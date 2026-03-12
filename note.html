@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRIDROID - Notes</title>
+    <title>SANTRIDROID - Public Notes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
@@ -57,7 +57,6 @@
         .tab-btn {
             background: rgba(255,255,255,0.7); border: none; padding: 10px 25px;
             border-radius: 50px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
         .tab-btn.active { background: #2ecc71; color: white; }
 
@@ -74,20 +73,21 @@
             text-align: left; cursor: pointer; transition: 0.3s; height: 130px;
             display: flex; flex-direction: column; justify-content: space-between;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
         }
         .note-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .note-title { font-weight: 800; font-size: 1rem; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .note-title { font-weight: 800; font-size: 1rem; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 20px; }
         .note-preview { font-size: 0.85rem; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* --- FLOATING ACTION BUTTON (FAB) --- */
+        /* --- FLOATING ACTION BUTTON (FAB) - SEKARANG PUBLIK --- */
         .fab {
             position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px;
-            background: #3498db; color: white; border-radius: 50%;
-            display: none; justify-content: center; align-items: center; font-size: 24px;
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.4); cursor: pointer; border: none; z-index: 1500;
+            background: #2ecc71; color: white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 24px;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4); cursor: pointer; border: none; z-index: 1500;
             transition: 0.3s;
         }
-        .fab:hover { transform: scale(1.1) rotate(90deg); background: #2980b9; }
+        .fab:hover { transform: scale(1.1) rotate(90deg); filter: brightness(1.1); }
 
         /* --- MODAL POPUP --- */
         .modal-overlay {
@@ -108,14 +108,6 @@
         .btn-group { display: flex; gap: 10px; }
         .btn-save { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 2; font-weight: bold; }
         .btn-cancel { background: #f1f2f6; color: #57606f; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 1; font-weight: bold; }
-
-        .auth-container { position: relative; }
-        .login-popup {
-            display: none; position: absolute; top: 50px; right: 0;
-            background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 240px; 
-            flex-direction: column; gap: 10px; z-index: 1001;
-        }
 
         .admin-controls { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 5px; }
         .btn-ctrl {
@@ -138,8 +130,8 @@
             <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
         </div>
         <div class="auth-container">
-            <button id="btn-login-trigger" onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login</button>
-            <div class="login-popup" id="login-popup">
+            <button id="btn-login-trigger" onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login Admin</button>
+            <div class="login-popup" id="login-popup" style="display:none; position:absolute; top:50px; right:0; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:240px; flex-direction:column; gap:10px; z-index:1001;">
                 <input type="email" id="email" class="admin-input" placeholder="Email Admin">
                 <input type="password" id="password" class="admin-input" placeholder="Password">
                 <button class="btn-save" onclick="login()">Masuk</button>
@@ -163,12 +155,12 @@
 
     <div id="form-modal" class="modal-overlay" onclick="closeModal('form-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 id="modal-title" style="margin-bottom:20px; color:#2c3e50;">Catatan Baru</h3>
+            <h3 id="modal-title" style="margin-bottom:20px; color:#2c3e50;">Tambah Catatan Baru</h3>
             <input type="text" id="note-title-input" class="admin-input" placeholder="Judul Catatan">
-            <textarea id="note-content-input" class="admin-input" placeholder="Tulis sesuatu atau tempel script..."></textarea>
+            <textarea id="note-content-input" class="admin-input" placeholder="Tulis pesan atau tempel script di sini..."></textarea>
             <div class="btn-group">
                 <button class="btn-cancel" onclick="closeModal('form-modal')">Batal</button>
-                <button class="btn-save" onclick="handleSave()">Simpan</button>
+                <button class="btn-save" onclick="handleSave()">Kirim Catatan</button>
             </div>
         </div>
     </div>
@@ -219,7 +211,7 @@
             const pass = document.getElementById('password').value;
             auth.signInWithEmailAndPassword(email, pass).then(() => {
                 document.getElementById('login-popup').style.display = 'none';
-            }).catch((err) => alert("Gagal: " + err.message));
+            }).catch((err) => alert("Gagal Login: " + err.message));
         }
 
         function logout() { auth.signOut().then(() => location.reload()); }
@@ -229,7 +221,6 @@
             document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('btn-login-trigger').style.display = isAdmin ? 'none' : 'block';
             document.getElementById('tab-priv').style.display = isAdmin ? 'block' : 'none';
-            document.getElementById('fab-add').style.display = isAdmin ? 'flex' : 'none';
             initSync();
         });
 
@@ -269,7 +260,7 @@
 
         function openFormModal() {
             editKey = null;
-            document.getElementById('modal-title').innerText = "Catatan Baru";
+            document.getElementById('modal-title').innerText = "Tambah Catatan Baru";
             document.getElementById('note-title-input').value = "";
             document.getElementById('note-content-input').value = "";
             document.getElementById('form-modal').style.display = 'flex';
@@ -277,7 +268,7 @@
 
         function openEditModal(key, title, content) {
             editKey = key;
-            document.getElementById('modal-title').innerText = "Edit Catatan";
+            document.getElementById('modal-title').innerText = "Edit Catatan Admin";
             document.getElementById('note-title-input').value = title;
             document.getElementById('note-content-input').value = content.replace(/\\n/g, '\n');
             document.getElementById('form-modal').style.display = 'flex';
@@ -286,18 +277,28 @@
         function handleSave() {
             const title = document.getElementById('note-title-input').value;
             const content = document.getElementById('note-content-input').value;
-            if(!title || !content) return alert("Isi semua field!");
+            if(!title || !content) return alert("Harap isi Judul dan Konten!");
 
-            const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
-            const noteData = { title, content, updatedAt: Date.now() };
+            // Jika bukan admin, otomatis masuk ke public. Jika admin, sesuai tab yang aktif.
+            const path = (isAdmin && currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
+            
+            const noteData = { 
+                title, 
+                content, 
+                timestamp: Date.now(),
+                type: isAdmin ? 'admin' : 'public'
+            };
 
             const promise = editKey ? db.ref(`${path}/${editKey}`).update(noteData) : db.ref(path).push(noteData);
             
-            promise.then(() => closeModal('form-modal'));
+            promise.then(() => {
+                closeModal('form-modal');
+                if(!isAdmin) alert("Catatan berhasil dikirim!");
+            }).catch(err => alert("Gagal menyimpan: " + err.message));
         }
 
         function deleteNote(key) {
-            if(confirm("Hapus catatan ini?")) {
+            if(confirm("Hapus catatan ini secara permanen?")) {
                 const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
                 db.ref(`${path}/${key}`).remove();
             }
@@ -315,7 +316,7 @@
             const content = document.getElementById('view-content');
             content.select();
             document.execCommand('copy');
-            alert("Berhasil disalin!");
+            alert("Teks berhasil disalin ke clipboard!");
         }
 
         window.onclick = (e) => {
