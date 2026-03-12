@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRIDROID - Notes</title>
+    <title>SANTRIDROID - Public Notes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
@@ -29,6 +29,13 @@
             padding-bottom: 100px;
         }
 
+        .brand-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900; font-size: 2.2rem; letter-spacing: 6px;
+            color: #2ecc71; text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            margin: 25px 0; text-transform: uppercase;
+        }
+
         /* --- TOOLBAR --- */
         .toolbar {
             width: 100%; background: rgba(255, 255, 255, 0.95);
@@ -45,72 +52,71 @@
         .nav-item:hover, .nav-item.active { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
         .nav-divider { width: 1.5px; height: 22px; background: #e0e0e0; margin: 0 4px; }
 
-        .brand-logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900; font-size: 1.8rem; letter-spacing: 4px;
-            color: #2ecc71; text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0; text-transform: uppercase;
-        }
-
         /* --- TABS --- */
         .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn {
-            background: rgba(255,255,255,0.7); border: none; padding: 10px 20px;
+            background: rgba(255,255,255,0.7); border: none; padding: 10px 25px;
             border-radius: 50px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s;
         }
         .tab-btn.active { background: #2ecc71; color: white; }
 
-        /* --- GRID --- */
+        /* --- GRID & CARDS --- */
         .container {
             flex: 1; width: 95%; max-width: 900px;
-            background: rgba(255, 255, 255, 0.85); border-radius: 25px;
-            padding: 25px 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.85); border-radius: 30px;
+            padding: 30px 20px; margin: 10px 0; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
         }
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
         
         .note-card {
             background: white; padding: 15px; border-radius: 18px; color: #333;
-            text-align: left; cursor: pointer; transition: 0.3s; height: 120px;
+            text-align: left; cursor: pointer; transition: 0.3s; height: 130px;
             display: flex; flex-direction: column; justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
             position: relative;
         }
-        .note-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-        .note-title { font-weight: 800; font-size: 0.95rem; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .note-preview { font-size: 0.8rem; color: #777; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+        .note-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .note-title { font-weight: 800; font-size: 1rem; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 20px; }
+        .note-preview { font-size: 0.85rem; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* --- FAB --- */
+        /* --- FLOATING ACTION BUTTON (FAB) - SEKARANG PUBLIK --- */
         .fab {
-            position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px;
+            position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px;
             background: #2ecc71; color: white; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 22px;
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); cursor: pointer; border: none; z-index: 1500;
+            display: flex; justify-content: center; align-items: center; font-size: 24px;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4); cursor: pointer; border: none; z-index: 1500;
+            transition: 0.3s;
         }
+        .fab:hover { transform: scale(1.1) rotate(90deg); filter: brightness(1.1); }
 
-        /* --- MODAL --- */
+        /* --- MODAL POPUP --- */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(6px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px);
         }
         .modal-content { 
-            background: white; padding: 25px; border-radius: 20px; width: 90%; 
-            max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            background: white; padding: 30px; border-radius: 25px; width: 90%; 
+            max-width: 450px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
         .admin-input { 
-            width: 100%; padding: 12px; margin-bottom: 12px; 
-            border: 1.5px solid #f0f0f0; border-radius: 12px; outline: none;
+            width: 100%; padding: 12px 15px; margin-bottom: 15px; 
+            border: 1.5px solid #eee; border-radius: 12px; outline: none; font-size: 14px;
         }
-        textarea.admin-input { min-height: 150px; resize: none; font-family: monospace; }
+        .admin-input:focus { border-color: #2ecc71; }
+        textarea.admin-input { min-height: 180px; resize: vertical; font-family: monospace; }
         
-        .btn-group { display: flex; gap: 8px; }
-        .btn-save { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; flex: 2; font-weight: bold; }
-        .btn-cancel { background: #eee; color: #666; border: none; padding: 12px; border-radius: 10px; cursor: pointer; flex: 1; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn-save { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 2; font-weight: bold; }
+        .btn-cancel { background: #f1f2f6; color: #57606f; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 1; font-weight: bold; }
 
-        .admin-controls { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 4px; }
-        .btn-ctrl { background: #f8f9fa; color: #999; border: none; width: 25px; height: 25px; border-radius: 6px; cursor: pointer; font-size: 10px; }
+        .admin-controls { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 5px; }
+        .btn-ctrl {
+            background: #eee; color: #666; border: none; width: 28px; height: 28px; 
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
+        }
         .btn-ctrl:hover { background: #ff4757; color: white; }
 
-        footer { width: 100%; padding: 20px; text-align: center; color: #666; font-family: 'Orbitron'; font-size: 0.6rem; letter-spacing: 2px; }
+        footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -119,61 +125,62 @@
         <div class="nav-links">
             <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
             <div class="nav-divider"></div>
-            <a href="note.html" class="nav-item active"><i class="fa-solid fa-layer-group"></i></a>
+            <a href="#" class="nav-item active"><i class="fa-solid fa-sticky-note"></i></a>
             <div class="nav-divider"></div>
             <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
         </div>
-        <div style="position: relative;">
-            <button id="btn-login-trigger" onclick="toggleLogin()" style="background:none; border:1px solid #ddd; padding:6px 12px; border-radius:15px; font-size: 0.8rem; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login</button>
-            <div id="login-popup" style="display:none; position:absolute; top:40px; right:0; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:200px; z-index:1001;">
-                <input type="email" id="email" class="admin-input" placeholder="Email" style="font-size: 0.8rem;">
-                <input type="password" id="password" class="admin-input" placeholder="Pass" style="font-size: 0.8rem;">
-                <button class="btn-save" onclick="login()" style="padding:8px">Masuk</button>
+        <div class="auth-container">
+            <button id="btn-login-trigger" onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login Admin</button>
+            <div class="login-popup" id="login-popup" style="display:none; position:absolute; top:50px; right:0; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:240px; flex-direction:column; gap:10px; z-index:1001;">
+                <input type="email" id="email" class="admin-input" placeholder="Email Admin">
+                <input type="password" id="password" class="admin-input" placeholder="Password">
+                <button class="btn-save" onclick="login()">Masuk</button>
             </div>
-            <button id="btn-logout" style="display:none; background:#ff4757; color:white; border:none; padding:6px 12px; border-radius:15px; font-size: 0.8rem;" onclick="logout()">Logout</button>
+            <button id="btn-logout" style="display:none; background: #ff4757; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer" onclick="logout()">Logout</button>
         </div>
     </nav>
 
-    <div class="brand-logo">SANTRIDROID</div>
+    <div class="brand-logo">NOTES</div>
 
     <div class="tab-container">
-        <button id="tab-pub" class="tab-btn active" onclick="switchTab('public')">PUBLIK</button>
-        <button id="tab-priv" class="tab-btn" style="display:none;" onclick="switchTab('private')">PRIVAT 🔒</button>
+        <button id="tab-pub" class="tab-btn active" onclick="switchTab('public')"><i class="fas fa-users"></i> PUBLIC</button>
+        <button id="tab-priv" class="tab-btn" style="display:none;" onclick="switchTab('private')"><i class="fas fa-lock"></i> PRIVATE</button>
     </div>
 
     <div class="container">
         <div id="notes-grid" class="notes-grid"></div>
     </div>
 
-    <button class="fab" onclick="openFormModal()"><i class="fas fa-plus"></i></button>
+    <button id="fab-add" class="fab" onclick="openFormModal()"><i class="fas fa-plus"></i></button>
 
     <div id="form-modal" class="modal-overlay" onclick="closeModal('form-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 id="modal-title" style="margin-bottom:15px;">Catatan Baru</h3>
-            <input type="text" id="note-title-input" class="admin-input" placeholder="Judul...">
-            <textarea id="note-content-input" class="admin-input" placeholder="Isi catatan atau script..."></textarea>
+            <h3 id="modal-title" style="margin-bottom:20px; color:#2c3e50;">Tambah Catatan Baru</h3>
+            <input type="text" id="note-title-input" class="admin-input" placeholder="Judul Catatan">
+            <textarea id="note-content-input" class="admin-input" placeholder="Tulis pesan atau tempel script di sini..."></textarea>
             <div class="btn-group">
                 <button class="btn-cancel" onclick="closeModal('form-modal')">Batal</button>
-                <button class="btn-save" onclick="handleSave()">Simpan</button>
+                <button class="btn-save" onclick="handleSave()">Kirim Catatan</button>
             </div>
         </div>
     </div>
 
     <div id="detail-modal" class="modal-overlay" onclick="closeModal('detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 id="view-title" style="margin-bottom:10px; color:#2ecc71;"></h3>
-            <textarea id="view-content" class="admin-input" style="height:200px; background:#f9f9f9; border:none;" readonly></textarea>
+            <h2 id="view-title" style="margin-bottom:15px; color:#333; font-size: 1.4rem;"></h2>
+            <textarea id="view-content" class="admin-input" style="height:250px; background:#f9f9f9;" readonly></textarea>
             <div class="btn-group">
                 <button class="btn-cancel" onclick="closeModal('detail-modal')">Tutup</button>
-                <button class="btn-save" style="background:#3498db" onclick="copyText()"><i class="fas fa-copy"></i> Salin</button>
+                <button class="btn-save" style="background:#3498db" onclick="copyNote()"><i class="fas fa-copy"></i> Salin</button>
             </div>
         </div>
     </div>
 
-    <footer>&copy; 2026 SANTRIDROID • ALL RIGHTS RESERVED</footer>
+    <footer>
+        &copy; Shopee Link • Powered By SANTRIDROID
+    </footer>
 
     <script>
-        // Gunakan Config Anda
         const firebaseConfig = {
             apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
             authDomain: "santridroid-link.firebaseapp.com",
@@ -181,7 +188,8 @@
             projectId: "santridroid-link",
             storageBucket: "santridroid-link.firebasestorage.app",
             messagingSenderId: "37630509146",
-            appId: "1:37630509146:web:e1472cff08b34269721863"
+            appId: "1:37630509146:web:e1472cff08b34269721863",
+            measurementId: "G-6YM0LDQTHN"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -192,17 +200,18 @@
         let isAdmin = false;
         let editKey = null;
 
-        function toggleLogin() {
-            const p = document.getElementById('login-popup');
-            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        function toggleLoginForm(event) {
+            event.stopPropagation();
+            const popup = document.getElementById('login-popup');
+            popup.style.display = (popup.style.display === 'flex') ? 'none' : 'flex';
         }
 
         function login() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(e, p).then(() => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, pass).then(() => {
                 document.getElementById('login-popup').style.display = 'none';
-            }).catch(a => alert("Error: " + a.message));
+            }).catch((err) => alert("Gagal Login: " + err.message));
         }
 
         function logout() { auth.signOut().then(() => location.reload()); }
@@ -230,18 +239,18 @@
             db.ref(path).on('value', snap => {
                 grid.innerHTML = '';
                 snap.forEach(child => {
-                    const d = child.val();
-                    const k = child.key;
+                    const data = child.val();
+                    const key = child.key;
                     const card = document.createElement('div');
                     card.className = 'note-card';
-                    card.onclick = () => openDetail(d.title, d.content);
+                    card.onclick = () => openDetailModal(data.title, data.content);
                     card.innerHTML = `
-                        <div class="note-title">${d.title}</div>
-                        <div class="note-preview">${d.content}</div>
+                        <div class="note-title">${data.title}</div>
+                        <div class="note-preview">${data.content}</div>
                         ${isAdmin ? `
                         <div class="admin-controls">
-                            <button class="btn-ctrl" onclick="event.stopPropagation(); openEdit('${k}', '${d.title}', '${d.content.replace(/\n/g, '\\n')}')"><i class="fas fa-pen"></i></button>
-                            <button class="btn-ctrl" onclick="event.stopPropagation(); delNote('${k}')"><i class="fas fa-trash"></i></button>
+                            <button class="btn-ctrl" onclick="event.stopPropagation(); openEditModal('${key}', '${data.title}', '${data.content.replace(/\n/g, '\\n')}')"><i class="fas fa-pen"></i></button>
+                            <button class="btn-ctrl" onclick="event.stopPropagation(); deleteNote('${key}')"><i class="fas fa-trash"></i></button>
                         </div>` : ''}
                     `;
                     grid.prepend(card);
@@ -251,60 +260,68 @@
 
         function openFormModal() {
             editKey = null;
-            document.getElementById('modal-title').innerText = "Catatan Baru";
+            document.getElementById('modal-title').innerText = "Tambah Catatan Baru";
             document.getElementById('note-title-input').value = "";
             document.getElementById('note-content-input').value = "";
             document.getElementById('form-modal').style.display = 'flex';
         }
 
-        function openEdit(k, t, c) {
-            editKey = k;
-            document.getElementById('modal-title').innerText = "Edit Catatan";
-            document.getElementById('note-title-input').value = t;
-            document.getElementById('note-content-input').value = c.replace(/\\n/g, '\n');
+        function openEditModal(key, title, content) {
+            editKey = key;
+            document.getElementById('modal-title').innerText = "Edit Catatan Admin";
+            document.getElementById('note-title-input').value = title;
+            document.getElementById('note-content-input').value = content.replace(/\\n/g, '\n');
             document.getElementById('form-modal').style.display = 'flex';
         }
 
         function handleSave() {
-            const t = document.getElementById('note-title-input').value;
-            const c = document.getElementById('note-content-input').value;
-            if(!t || !c) return alert("Isi semua!");
+            const title = document.getElementById('note-title-input').value;
+            const content = document.getElementById('note-content-input').value;
+            if(!title || !content) return alert("Harap isi Judul dan Konten!");
 
+            // Jika bukan admin, otomatis masuk ke public. Jika admin, sesuai tab yang aktif.
             const path = (isAdmin && currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
-            const data = { title: t, content: c, time: Date.now() };
+            
+            const noteData = { 
+                title, 
+                content, 
+                timestamp: Date.now(),
+                type: isAdmin ? 'admin' : 'public'
+            };
 
-            const p = editKey ? db.ref(`${path}/${editKey}`).update(data) : db.ref(path).push(data);
-            p.then(() => {
+            const promise = editKey ? db.ref(`${path}/${editKey}`).update(noteData) : db.ref(path).push(noteData);
+            
+            promise.then(() => {
                 closeModal('form-modal');
-                if(!isAdmin) alert("Terkirim!");
-            });
+                if(!isAdmin) alert("Catatan berhasil dikirim!");
+            }).catch(err => alert("Gagal menyimpan: " + err.message));
         }
 
-        function delNote(k) {
-            if(confirm("Hapus?")) {
+        function deleteNote(key) {
+            if(confirm("Hapus catatan ini secara permanen?")) {
                 const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
-                db.ref(`${path}/${k}`).remove();
+                db.ref(`${path}/${key}`).remove();
             }
         }
 
-        function openDetail(t, c) {
-            document.getElementById('view-title').innerText = t;
-            document.getElementById('view-content').value = c;
+        function openDetailModal(title, content) {
+            document.getElementById('view-title').innerText = title;
+            document.getElementById('view-content').value = content;
             document.getElementById('detail-modal').style.display = 'flex';
         }
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function copyText() {
-            const c = document.getElementById('view-content');
-            c.select();
+        function copyNote() {
+            const content = document.getElementById('view-content');
+            content.select();
             document.execCommand('copy');
-            alert("Disalin!");
+            alert("Teks berhasil disalin ke clipboard!");
         }
 
         window.onclick = (e) => {
-            if (e.target.id === 'form-modal' || e.target.id === 'detail-modal') {
-                e.target.style.display = 'none';
+            if (e.target.closest('.auth-container') === null) {
+                document.getElementById('login-popup').style.display = 'none';
             }
         };
     </script>
