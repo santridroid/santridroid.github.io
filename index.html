@@ -87,26 +87,37 @@
         .menu-wrapper { 
             position: relative; flex: 1 1 calc(50% - 20px); min-width: 160px; 
             border-radius: 18px; overflow: hidden; transition: 0.3s;
+            display: flex;
         }
         
-        /* Gaya Item Menu dengan Efek Neon */
+        /* GAYA TEXT BOX LINK (Update: Lebih Besar & Rata Tengah) */
         .menu-item {
-            display: flex; align-items: center; justify-content: center;
-            width: 100%; min-height: 85px; padding: 20px 60px 20px 20px;
-            text-decoration: none; color: #000; font-weight: 900;
-            transition: 0.3s; font-size: 1.15em;
-            text-transform: uppercase; letter-spacing: 1px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* Rata tengah horizontal */
+            text-align: center;      /* Rata tengah teks */
+            width: 100%; 
+            min-height: 100px; 
+            padding: 20px 50px;      /* Memberi ruang untuk icon download */
+            text-decoration: none; 
+            color: #000; 
+            font-weight: 900;
+            transition: 0.3s; 
+            font-size: 1.75em;        /* Ukuran 1,5x lipat lebih besar */
+            text-transform: uppercase; 
+            letter-spacing: 1px;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+            line-height: 1.2;
         }
         .menu-item:hover { transform: translateY(-5px) scale(1.02); filter: brightness(1.2); }
 
         .download-zone {
             position: absolute; right: 0; top: 0; bottom: 0;
             width: 50px; display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.15); color: #000; transition: 0.3s;
-            font-size: 1.4em; border-left: 1px solid rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.1); color: #000; transition: 0.3s;
+            font-size: 1.4em; border-left: 1px solid rgba(0,0,0,0.05);
         }
-        .download-zone:hover { background: rgba(0,0,0,0.3); }
+        .download-zone:hover { background: rgba(0,0,0,0.2); }
 
         .admin-controls { position: absolute; top: 8px; left: 8px; display: flex; gap: 5px; }
         .btn-ctrl {
@@ -118,11 +129,14 @@
 
         .badge-new { 
             position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            background: #000; color: #fff; font-size: 8px; 
+            background: #000; color: #fff; font-size: 9px; 
             padding: 2px 12px; border-radius: 0 0 10px 10px; font-weight: 900; z-index: 2;
         }
 
-        @media (max-width: 480px) { .menu-wrapper { flex: 1 1 100%; } }
+        @media (max-width: 480px) { 
+            .menu-wrapper { flex: 1 1 100%; }
+            .menu-item { font-size: 1.4em; } /* Penyesuaian sedikit untuk layar kecil agar tidak overflow */
+        }
     </style>
 </head>
 <body>
@@ -153,7 +167,7 @@
     <div class="brand-logo">SANTRIDROID</div>
 
     <div id="admin-panel">
-        <h3 style="margin-bottom:15px; font-family:'Orbitron'; color:#3DDC84">ADD NEW INTERFACE</h3>
+        <h3 style="margin-bottom:15px; font-family:'Orbitron'; color:#3DDC84">COMMAND CENTER</h3>
         <input type="text" id="title" class="admin-input" placeholder="Nama Menu">
         <input type="text" id="url" class="admin-input" placeholder="URL Link">
         <input type="text" id="downloadUrl" class="admin-input" placeholder="URL Download (Opsional)">
@@ -169,6 +183,7 @@
     </footer>
 
     <script>
+        // --- FIREBASE CONFIG SANTRIDROID-LINK ---
         const firebaseConfig = {
             apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
             authDomain: "santridroid-link.firebaseapp.com",
@@ -190,14 +205,14 @@
 
         // Palet Warna Neon Cyberpunk
         const neonColors = [
-            { bg: '#3DDC84', glow: 'rgba(61, 220, 132, 0.7)' }, // Android Green
-            { bg: '#00E5FF', glow: 'rgba(0, 229, 255, 0.7)' }, // Cyber Blue
-            { bg: '#FF00E5', glow: 'rgba(255, 0, 229, 0.7)' }, // Neon Pink
-            { bg: '#FFFF00', glow: 'rgba(255, 255, 0, 0.7)' }, // Electric Yellow
-            { bg: '#FF3D00', glow: 'rgba(255, 61, 0, 0.7)' },  // Neon Orange
-            { bg: '#7C4DFF', glow: 'rgba(124, 77, 255, 0.7)' }, // Purple Glow
-            { bg: '#00FF94', glow: 'rgba(0, 255, 148, 0.7)' }, // Seafoam Neon
-            { bg: '#FF1744', glow: 'rgba(255, 23, 68, 0.7)' }  // Radical Red
+            { bg: '#3DDC84', glow: 'rgba(61, 220, 132, 0.7)' },
+            { bg: '#00E5FF', glow: 'rgba(0, 229, 255, 0.7)' },
+            { bg: '#FF00E5', glow: 'rgba(255, 0, 229, 0.7)' },
+            { bg: '#FFFF00', glow: 'rgba(255, 255, 0, 0.7)' },
+            { bg: '#FF3D00', glow: 'rgba(255, 61, 0, 0.7)' },
+            { bg: '#7C4DFF', glow: 'rgba(124, 77, 255, 0.7)' },
+            { bg: '#00FF94', glow: 'rgba(0, 255, 148, 0.7)' },
+            { bg: '#FF1744', glow: 'rgba(255, 23, 68, 0.7)' }
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -270,17 +285,15 @@
             for (let key in menuDataCache) {
                 const data = menuDataCache[key];
                 const isNew = Math.ceil(Math.abs(new Date() - new Date(data.createdAt)) / (1000 * 60 * 60 * 24)) <= 3;
-                
-                // Ambil warna dari array neon
                 const theme = neonColors[colorIndex % neonColors.length];
                 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'menu-wrapper';
-                wrapper.style.boxShadow = `0 0 20px ${theme.glow}`; // Efek cahaya neon di luar box
+                wrapper.style.boxShadow = `0 0 20px ${theme.glow}`;
 
                 if (isAdmin && editingKey === key) {
                     wrapper.innerHTML = `
-                        <div style="background:#222; padding:15px; border:2px solid ${theme.bg};">
+                        <div style="background:#222; padding:15px; border:2px solid ${theme.bg}; width:100%">
                             <input type="text" id="ed-t-${key}" class="admin-input" value="${data.title}">
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-add" style="font-size:10px; padding:8px" onclick="saveEdit('${key}')">SAVE</button>
@@ -302,6 +315,16 @@
                 }
                 container.appendChild(wrapper);
                 colorIndex++;
+            }
+        }
+
+        function saveEdit(key) {
+            const title = document.getElementById(`ed-t-${key}`).value;
+            if(title) {
+                db.ref('ubaid/' + key).update({ title }).then(() => {
+                    editingKey = null;
+                    renderMenus();
+                });
             }
         }
 
