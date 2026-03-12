@@ -3,310 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Santridroid Notes</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>SANTRIDROID - Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #2ecc71;
-            --danger-color: #ff4757;
-            --dark-color: #2c3e50;
-            --bg-color: #f0f2f5;
-            --white: #ffffff;
-            --border-color: #dcdde1;
-        }
-
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); margin: 0; padding-bottom: 100px; }
-
-        header {
-            background: var(--white); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
-        }
-
-        .home-link { color: var(--dark-color); font-size: 22px; text-decoration: none; transition: 0.2s; padding: 5px; }
-        .home-link:hover { color: var(--primary-color); }
-
-        .nav-tabs { display: flex; gap: 8px; background: #eee; padding: 4px; border-radius: 50px; }
-        .tab-btn { border: none; background: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; font-weight: 600; color: #777; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary-color); color: white; }
-
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-
-        .card { 
-            background: white; padding: 15px; border-radius: 12px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;
-            transition: 0.2s; height: 110px; display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .card-title { font-weight: 700; font-size: 14px; color: var(--dark-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .card-preview { font-size: 11px; color: #666; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
-            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(3px);
-        }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; position: relative; }
+        /* CSS DISESUAIKAN DENGAN HALAMAN UTAMA */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         
-        .login-popup { 
-            position: absolute; top: 60px; right: 20px; background: white; padding: 20px; 
-            border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 250px; z-index: 1100; 
+        @keyframes gradientBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .remember-container {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 15px;
-            cursor: pointer; font-size: 13px; color: #555; width: fit-content;
-        }
-        .remember-container input { width: 16px; height: 16px; cursor: pointer; margin: 0; }
-
-        .fab {
-            position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; 
-            background: var(--primary-color); color: white; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 24px;
-            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4); cursor: pointer; border: none; z-index: 1500;
+        body {
+            min-height: 100vh;
+            background: linear-gradient(120deg, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1, #84fab0, #8fd3f4);
+            background-size: 300% 300%;
+            animation: gradientBackground 15s ease infinite;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Styling Form & Kolom Judul */
-        .form-group { margin-bottom: 15px; }
-        .form-control {
-            width: 100%; padding: 12px 15px; border: 1.5px solid var(--border-color); 
-            border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px;
-            transition: border-color 0.2s; outline: none;
+        .brand-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900; font-size: 2.2rem; letter-spacing: 6px;
+            color: #2ecc71; text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            margin: 25px 0; text-transform: uppercase;
         }
-        .form-control:focus { border-color: var(--primary-color); }
+
+        /* --- TOOLBAR --- */
+        .toolbar {
+            width: 100%; background: rgba(255, 255, 255, 0.95);
+            padding: 8px 15px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 0; }
+        .nav-item {
+            text-decoration: none; color: #555; 
+            display: flex; align-items: center; justify-content: center;
+            width: 45px; height: 45px; border-radius: 12px; transition: 0.3s;
+        }
+        .nav-item:hover, .nav-item.active { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        .nav-divider { width: 1.5px; height: 22px; background: #e0e0e0; margin: 0 4px; }
+
+        /* --- LOGIN POPUP --- */
+        .auth-container { position: relative; }
+        .login-popup {
+            display: none; position: absolute; top: 50px; right: 0;
+            background: white; padding: 15px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 240px; 
+            flex-direction: column; gap: 10px; z-index: 1001;
+        }
+        .login-popup input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+
+        /* --- TAB SWITCHER --- */
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            background: rgba(255,255,255,0.7); border: none; padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s;
+        }
+        .tab-btn.active { background: #2ecc71; color: white; }
+
+        /* --- ADMIN PANEL (ADD NOTE) --- */
+        #admin-panel {
+            background: white; padding: 25px; border-radius: 15px; margin: 20px 0;
+            width: 90%; max-width: 600px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .admin-input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9; }
+        textarea.admin-input { min-height: 120px; resize: vertical; }
+        .btn-add { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+
+        /* --- NOTES GRID --- */
+        .container {
+            flex: 1; width: 95%; max-width: 900px; text-align: center;
+            background: rgba(255, 255, 255, 0.9); border-radius: 30px;
+            padding: 40px 25px; margin: 20px 0 50px 0; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
-        textarea.form-control { font-family: monospace; resize: vertical; min-height: 200px; line-height: 1.5; }
-        textarea.view-area { background: #f8f9fa; border-color: transparent; }
+        .note-card {
+            position: relative; padding: 20px; border-radius: 20px; color: white;
+            text-align: left; cursor: pointer; transition: 0.3s; height: 150px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .note-card:hover { transform: translateY(-5px); filter: brightness(1.1); }
+        .note-title { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .note-preview { font-size: 0.85rem; opacity: 0.9; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        .btn { padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
-        .btn-save { background: var(--secondary-color); color: white; width: 100%; }
-        .btn-cancel { background: #edeff1; color: #57606f; flex: 1; }
-        .btn-edit { background: var(--primary-color); color: white; flex: 1; }
-        .btn-delete { background: var(--danger-color); color: white; }
+        /* --- MODAL DETAIL --- */
+        .modal {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 500px; padding: 25px;
+            border-radius: 20px; position: relative;
+        }
+        .btn-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.2rem; color: #999; }
 
-        .hidden { display: none !important; }
+        .admin-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+        .btn-ctrl {
+            background: rgba(0,0,0,0.2); color: white; border: none;
+            width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 10px;
+        }
+
+        footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-<header>
-    <a href="https://santridroid.github.io" class="home-link"><i class="fas fa-home"></i></a>
-    
-    <div class="nav-tabs">
-        <button id="tab-pub" class="tab-btn active" onclick="switchTab('public')"><i class="fas fa-users"></i></button>
-        <button id="tab-priv" class="tab-btn hidden" onclick="switchTab('private')"><i class="fas fa-lock"></i></button>
-    </div>
-
-    <div style="position: relative;">
-        <button class="tab-btn" id="user-menu-btn" onclick="toggleLoginPopup()"><i class="fas fa-user-circle" style="font-size: 20px;"></i></button>
-        <div id="login-popup" class="login-popup hidden">
-            <div id="login-fields">
-                <input type="email" id="login-email" class="form-control" placeholder="Email Admin" style="margin-bottom:10px">
-                <input type="password" id="login-pass" class="form-control" placeholder="Password" style="margin-bottom:10px">
-                <label class="remember-container">
-                    <input type="checkbox" id="remember-check"> Ingat Saya
-                </label>
-                <button class="btn btn-save" onclick="login()">Login</button>
+    <nav class="toolbar">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
+            <div class="nav-divider"></div>
+            <a href="#" class="nav-item active"><i class="fa-solid fa-layer-group"></i></a>
+            <div class="nav-divider"></div>
+            <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
+        </div>
+        <div class="auth-container">
+            <button id="btn-login-trigger" onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login</button>
+            <div class="login-popup" id="login-popup">
+                <input type="email" id="email" placeholder="Email Admin">
+                <input type="password" id="password" placeholder="Password">
+                <button class="btn-add" onclick="login()">Masuk</button>
             </div>
-            <div id="logout-field" class="hidden">
-                <p style="text-align:center; font-size:12px; margin-bottom:15px; color:var(--secondary-color); font-weight:bold;">ADMIN AKTIF</p>
-                <button class="btn btn-delete" style="width: 100%" onclick="logout()">Logout</button>
-            </div>
+            <button id="btn-logout" style="display:none; background: #ff4757; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="brand-logo">NOTES</div>
+
+    <div class="tab-container">
+        <button id="tab-pub" class="tab-btn active" onclick="switchTab('public')">PUBLIC</button>
+        <button id="tab-priv" class="tab-btn" style="display:none;" onclick="switchTab('private')">PRIVATE 🔒</button>
+    </div>
+
+    <div id="admin-panel">
+        <h3 style="margin-bottom:10px" id="panel-title">Tambah Catatan Publik</h3>
+        <input type="text" id="note-title-input" class="admin-input" placeholder="Judul Catatan">
+        <textarea id="note-content-input" class="admin-input" placeholder="Isi catatan atau script..."></textarea>
+        <button class="btn-add" onclick="handleSave()">Simpan Catatan</button>
+    </div>
+
+    <div class="container">
+        <div id="notes-grid" class="notes-grid"></div>
+    </div>
+
+    <div id="detail-modal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <i class="fa-solid fa-xmark btn-close" onclick="closeModal()"></i>
+            <h2 id="view-title" style="margin-bottom:15px; color:#333;"></h2>
+            <textarea id="view-content" class="admin-input" style="height:300px; background:#f0f2f5;" readonly></textarea>
+            <button class="btn-add" style="margin-top:10px; background:#3498db" onclick="copyNote()">Salin Teks</button>
         </div>
     </div>
-</header>
 
-<div class="container"><div id="notes-grid" class="notes-grid"></div></div>
-<button class="fab" onclick="openAddModal()"><i class="fas fa-plus"></i></button>
+    <footer>
+        &copy; Shopee Link • Powered By SANTRIDROID
+    </footer>
 
-<div id="form-modal" class="modal-overlay" onclick="closeModal('form-modal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 id="form-modal-title" style="margin-top:0; margin-bottom:20px;">Catatan Baru</h3>
-        <input type="text" id="node-title" class="form-control" placeholder="Masukkan Judul..." style="margin-bottom:15px; font-weight:600;">
-        <textarea id="node-content" class="form-control" placeholder="Tempel teks atau script di sini..."></textarea>
-        <div style="display: flex; gap: 12px; margin-top: 5px;">
-            <button type="button" class="btn btn-cancel" onclick="closeModal('form-modal')">Batal</button>
-            <button type="button" class="btn btn-save" style="flex:2" onclick="handleSave()">Simpan Catatan</button>
-        </div>
-    </div>
-</div>
+    <script>
+        // CONFIG FIREBASE SAMA DENGAN HALAMAN UTAMA
+        const firebaseConfig = {
+            apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
+            authDomain: "santridroid-link.firebaseapp.com",
+            databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "santridroid-link",
+            storageBucket: "santridroid-link.firebasestorage.app",
+            messagingSenderId: "37630509146",
+            appId: "1:37630509146:web:e1472cff08b34269721863",
+            measurementId: "G-6YM0LDQTHN"
+        };
 
-<div id="detail-modal" class="modal-overlay" onclick="closeModal('detail-modal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <span id="view-tag" style="font-size: 10px; font-weight: bold; background: #eee; padding: 4px 10px; border-radius: 20px; color:#555"></span>
-            <button onclick="closeModal('detail-modal')" style="border:none; background:none; cursor:pointer; color:#a4b0be; font-size:18px;"><i class="fas fa-times"></i></button>
-        </div>
-        <input type="text" id="view-title" class="form-control" readonly style="border:none; padding:0; font-size:20px; font-weight:800; margin-bottom:15px; background:transparent">
-        <textarea id="view-content" class="form-control view-area" readonly></textarea>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-edit" onclick="editFromDetail()"><i class="fas fa-edit"></i> Edit</button>
-            <button class="btn btn-delete" onclick="confirmDelete()"><i class="fas fa-trash"></i></button>
-        </div>
-    </div>
-</div>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC-cSIk3mraVl5sa24VcDWnRTpF50pBAoE",
-        authDomain: "muzans-d76c4.firebaseapp.com",
-        databaseURL: "https://muzans-d76c4-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "muzans-d76c4",
-        storageBucket: "muzans-d76c4.firebasestorage.app",
-        messagingSenderId: "1015626935627",
-        appId: "1:1015626935627:web:47a1b5f0ce11838c5f0cce"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+        let currentTab = 'public';
+        let isAdmin = false;
+        const colors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c'];
 
-    let currentTab = 'public';
-    let currentUser = null;
-    let selectedNoteKey = null;
-    let isEditing = false;
-
-    // Load Remember Me
-    window.onload = function() {
-        const savedEmail = localStorage.getItem('rem_e');
-        const savedPass = localStorage.getItem('rem_p');
-        if(savedEmail) {
-            document.getElementById('login-email').value = savedEmail;
-            document.getElementById('login-pass').value = savedPass;
-            document.getElementById('remember-check').checked = true;
+        function toggleLoginForm(event) {
+            event.stopPropagation();
+            const popup = document.getElementById('login-popup');
+            popup.style.display = (popup.style.display === 'flex') ? 'none' : 'flex';
         }
-    };
 
-    auth.onAuthStateChanged(user => {
-        currentUser = user;
-        document.getElementById('tab-priv').classList.toggle('hidden', !user);
-        document.getElementById('login-fields').classList.toggle('hidden', !!user);
-        document.getElementById('logout-field').classList.toggle('hidden', !user);
-        if(!user && currentTab === 'private') switchTab('public');
-        initSync();
-    });
-
-    function toggleLoginPopup() { 
-        document.getElementById('login-popup').classList.toggle('hidden'); 
-    }
-
-    window.onclick = function(e) {
-        const popup = document.getElementById('login-popup');
-        const btn = document.getElementById('user-menu-btn');
-        if (!popup.classList.contains('hidden') && !popup.contains(e.target) && !btn.contains(e.target)) {
-            popup.classList.add('hidden');
+        function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(email, pass).then(() => {
+                document.getElementById('login-popup').style.display = 'none';
+            }).catch((err) => alert("Gagal: " + err.message));
         }
-    };
 
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-        isEditing = false;
-    }
+        function logout() { auth.signOut().then(() => location.reload()); }
 
-    function login() {
-        const e = document.getElementById('login-email').value;
-        const p = document.getElementById('login-pass').value;
-        const rem = document.getElementById('remember-check').checked;
-        auth.signInWithEmailAndPassword(e, p).then(() => {
-            if(rem) { localStorage.setItem('rem_e', e); localStorage.setItem('rem_p', p); }
-            else { localStorage.removeItem('rem_e'); localStorage.removeItem('rem_p'); }
-            document.getElementById('login-popup').classList.add('hidden');
-        }).catch(() => alert("Email atau Password salah!"));
-    }
+        auth.onAuthStateChanged(user => {
+            isAdmin = !!user;
+            document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
+            document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
+            document.getElementById('btn-login-trigger').style.display = isAdmin ? 'none' : 'block';
+            document.getElementById('tab-priv').style.display = isAdmin ? 'block' : 'none';
+            initSync();
+        });
 
-    function logout() { 
-        if(confirm("Logout sekarang?")) {
-            // Tutup semua UI sebelum proses logout
-            document.getElementById('login-popup').classList.add('hidden');
-            document.getElementById('tab-priv').classList.add('hidden');
+        function switchTab(t) {
+            currentTab = t;
+            document.getElementById('tab-pub').classList.toggle('active', t === 'public');
+            document.getElementById('tab-priv').classList.toggle('active', t === 'private');
+            document.getElementById('panel-title').innerText = t === 'public' ? "Tambah Catatan Publik" : "Tambah Catatan Privat";
+            initSync();
+        }
+
+        function initSync() {
+            const grid = document.getElementById('notes-grid');
+            grid.innerHTML = '';
+            const path = (currentTab === 'private' && isAdmin) ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
             
-            auth.signOut().then(() => {
-                // Gunakan replace untuk membersihkan sesi di browser
-                window.location.replace(window.location.origin + window.location.pathname);
+            db.ref(path).off();
+            db.ref(path).on('value', snap => {
+                grid.innerHTML = '';
+                let i = 0;
+                snap.forEach(child => {
+                    const data = child.val();
+                    const key = child.key;
+                    const color = colors[i % colors.length];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'note-card';
+                    card.style.backgroundColor = color;
+                    card.onclick = () => openModal(data.title, data.content);
+                    
+                    card.innerHTML = `
+                        <div class="note-title">${data.title}</div>
+                        <div class="note-preview">${data.content}</div>
+                        ${isAdmin ? `
+                        <div class="admin-controls">
+                            <button class="btn-ctrl" onclick="event.stopPropagation(); deleteNote('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>` : ''}
+                    `;
+                    grid.prepend(card);
+                    i++;
+                });
             });
         }
-    }
 
-    function switchTab(t) {
-        currentTab = t;
-        document.getElementById('tab-pub').classList.toggle('active', t === 'public');
-        document.getElementById('tab-priv').classList.toggle('active', t === 'private');
-        initSync();
-    }
+        function handleSave() {
+            const title = document.getElementById('note-title-input').value;
+            const content = document.getElementById('note-content-input').value;
+            if(!title || !content) return alert("Isi semua field!");
 
-    function initSync() {
-        const grid = document.getElementById('notes-grid');
-        grid.innerHTML = '';
-        const path = (currentTab === 'private' && currentUser) ? `notes/users/${currentUser.uid}` : 'notes/public';
-        db.ref(path).off();
-        db.ref(path).orderByChild('timestamp').on('child_added', snap => {
-            const d = snap.val();
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = () => openDetailModal(snap.key, d);
-            card.innerHTML = `<div><div class="card-title">${d.title || 'Untitled'}</div><div class="card-preview">${escapeHTML(d.content)}</div></div>`;
-            grid.prepend(card);
-        });
-        db.ref(path).on('child_removed', () => initSync());
-        db.ref(path).on('child_changed', () => initSync());
-    }
-
-    function escapeHTML(str) {
-        if(!str) return "";
-        return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-    }
-
-    function handleSave() {
-        const t = document.getElementById('node-title').value;
-        const c = document.getElementById('node-content').value;
-        if(!c || c.trim() === "") return alert("Konten tidak boleh kosong!");
-
-        const path = (currentTab === 'private' && currentUser) ? `notes/users/${currentUser.uid}` : 'notes/public';
-        const data = { title: t || "Untitled", content: c, timestamp: Date.now() };
-
-        const promise = (isEditing && selectedNoteKey) 
-            ? db.ref(`${path}/${selectedNoteKey}`).update(data)
-            : db.ref(path).push(data);
-
-        promise.then(() => closeModal('form-modal')).catch(() => alert("Gagal simpan"));
-    }
-
-    function openAddModal() {
-        isEditing = false;
-        document.getElementById('node-title').value = "";
-        document.getElementById('node-content').value = "";
-        document.getElementById('form-modal-title').innerText = currentTab === 'private' ? "Catatan Privat Baru" : "Catatan Publik Baru";
-        document.getElementById('form-modal').style.display = 'flex';
-    }
-
-    function openDetailModal(key, data) {
-        selectedNoteKey = key;
-        document.getElementById('view-tag').innerText = currentTab === 'private' ? "🔒 PRIVATE" : "🌐 PUBLIC";
-        document.getElementById('view-title').value = data.title;
-        document.getElementById('view-content').value = data.content;
-        document.getElementById('detail-modal').style.display = 'flex';
-    }
-
-    function editFromDetail() {
-        const t = document.getElementById('view-title').value;
-        const c = document.getElementById('view-content').value;
-        closeModal('detail-modal');
-        isEditing = true;
-        document.getElementById('node-title').value = t;
-        document.getElementById('node-content').value = c;
-        document.getElementById('form-modal-title').innerText = "Edit Catatan";
-        document.getElementById('form-modal').style.display = 'flex';
-    }
-
-    function confirmDelete() {
-        if(confirm("Hapus catatan ini?")) {
-            const path = (currentTab === 'private' && currentUser) ? `notes/users/${currentUser.uid}` : 'notes/public';
-            db.ref(`${path}/${selectedNoteKey}`).remove().then(() => closeModal('detail-modal'));
+            const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
+            db.ref(path).push({ title, content, createdAt: Date.now() }).then(() => {
+                document.getElementById('note-title-input').value = "";
+                document.getElementById('note-content-input').value = "";
+            });
         }
-    }
-</script>
+
+        function deleteNote(key) {
+            if(confirm("Hapus catatan ini?")) {
+                const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
+                db.ref(`${path}/${key}`).remove();
+            }
+        }
+
+        function openModal(title, content) {
+            document.getElementById('view-title').innerText = title;
+            document.getElementById('view-content').value = content;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').style.display = 'none';
+        }
+
+        function copyNote() {
+            const content = document.getElementById('view-content');
+            content.select();
+            document.execCommand('copy');
+            alert("Teks berhasil disalin!");
+        }
+
+        // Close popup when clicking outside
+        window.onclick = (e) => {
+            const popup = document.getElementById('login-popup');
+            if (e.target.closest('.auth-container') === null) {
+                popup.style.display = 'none';
+            }
+        };
+    </script>
 </body>
 </html>
