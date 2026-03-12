@@ -129,16 +129,25 @@
 <body>
 
     <nav class="toolbar">
-    <div class="nav-links">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-        
-        <div class="nav-divider"></div>
-        <a href="note.html" class="nav-item active"><i class="fa-solid fa-layer-group"></i></a>
-        <div class="nav-divider"></div>
-        <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
-    </div>
-    </nav>
+        <div class="nav-links">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i></a>
+            <div class="nav-divider"></div>
+            
+            <a href="javascript:void(0)" onclick="location.href='note.html'" class="nav-item">
+            <i class="fa-solid fa-sticky-note"></i></a>
 
+            <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
+        </div>
+        <div class="auth-container" id="auth-wrapper">
+            <button onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login</button>
+            <div class="login-popup" id="login-popup">
+                <input type="email" id="email" placeholder="Email Admin">
+                <input type="password" id="password" placeholder="Password">
+                <button class="btn-add" onclick="login()">Masuk</button>
+            </div>
+            <button id="btn-logout" style="display:none; background: #ff4757; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer" onclick="logout()">Logout</button>
+        </div>
+    </nav>
 
     <div class="brand-logo">SANTRIDROID</div>
 
