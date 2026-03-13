@@ -29,13 +29,13 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- LOGO SANTRIDROID (Style Android Tetap Dipertahankan) --- */
+        /* --- LOGO SANTRIDROID --- */
         .brand-logo {
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
             font-size: 2.2rem;
             letter-spacing: 6px;
-            color: #2ecc71; /* Hijau yang lebih cerah agar masuk ke UI Light */
+            color: #2ecc71; 
             text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
             margin: 25px 0;
             text-transform: uppercase;
@@ -89,17 +89,26 @@
             display: flex; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
-        /* GAYA TEXT BOX LINK (Ukuran 1.75em & Rata Tengah Sesuai Permintaan Sebelumnya) */
         .menu-item {
             display: flex; align-items: center; justify-content: center;
             width: 100%; min-height: 100px; 
-            padding: 20px 55px; /* Memberi ruang untuk icon download */
+            padding: 20px 55px; 
             font-weight: 800; text-decoration: none; color: white; 
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-size: 1.75em; text-align: center; text-transform: uppercase;
             line-height: 1.2;
         }
         .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
+
+        /* GAYA TOMBOL COPY (Baru ditambahkan) */
+        .copy-zone {
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 50px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.1); 
+            border-right: 1.5px solid rgba(255,255,255,0.3);
+            cursor: pointer; color: white; transition: 0.3s; z-index: 5;
+        }
+        .copy-zone:hover { background: rgba(255,255,255,0.2); }
 
         .download-zone {
             position: absolute; right: 0; top: 0; bottom: 0;
@@ -110,7 +119,7 @@
         }
         .download-zone:hover { background: rgba(255,255,255,0.2); }
 
-        .admin-controls { position: absolute; bottom: 8px; left: 8px; display: flex; gap: 4px; z-index: 10; }
+        .admin-controls { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 10; }
         .btn-ctrl {
             background: rgba(0,0,0,0.2); color: white; border: none;
             width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
@@ -118,7 +127,7 @@
         }
         
         footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
-        .badge-new { position: absolute; top: 8px; left: 8px; background: #ff4757; color: white; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: bold; z-index: 2; }
+        .badge-new { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ff4757; color: white; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: bold; z-index: 2; }
 
         @media (max-width: 480px) { 
             .menu-wrapper { flex: 1 1 100%; }
@@ -187,7 +196,6 @@
         let editingKey = null;
         let menuDataCache = {};
 
-        // Warna Vibrant untuk Tombol Link
         const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
 
         function toggleLoginForm(event) {
@@ -213,6 +221,15 @@
             document.querySelector('[onclick="toggleLoginForm(event)"]').style.display = isAdmin ? 'none' : 'block';
             renderMenus(); 
         });
+
+        // FUNGSI COPY LINK (Baru ditambahkan)
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Link berhasil disalin ke clipboard!");
+            }).catch(err => {
+                console.error('Gagal menyalin: ', err);
+            });
+        }
 
         function addMenu() {
             const title = document.getElementById('title').value;
@@ -256,10 +273,16 @@
                 } else {
                     wrapper.innerHTML = `
                         ${isNew ? '<div class="badge-new">NEW</div>' : ''}
+                        <div class="copy-zone" onclick="copyToClipboard('${data.url}')" title="Copy Link">
+                            <i class="fa-solid fa-copy"></i>
+                        </div>
+                        
                         <a href="${data.url}" target="_blank" class="menu-item" style="background:${themeColor}">
                             <span>${data.title}</span>
                         </a>
+
                         ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank" class="download-zone"><i class="fa-solid fa-download"></i></a>` : ''}
+                        
                         ${isAdmin ? `
                         <div class="admin-controls">
                             <button class="btn-ctrl" onclick="editingKey='${key}';renderMenus()"><i class="fa-solid fa-pen"></i></button>
