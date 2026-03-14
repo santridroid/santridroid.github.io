@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -141,6 +143,10 @@
             width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
             display: flex; align-items: center; justify-content: center; font-size: 10px;
         }
+
+        /* Gaya untuk Dragging */
+        .sortable-ghost { opacity: 0.4; background: #c8ebfb !important; }
+        .drag-handle { cursor: move !important; }
         
         footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
         .badge-new { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ff4757; color: white; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: bold; z-index: 2; }
@@ -197,6 +203,7 @@
         <input type="text" id="url" class="admin-input" placeholder="Link Tujuan">
         <input type="text" id="downloadUrl" class="admin-input" placeholder="Link Download (Opsional)">
         <button class="btn-add" onclick="addMenu()">Tambahkan Menu</button>
+        <p style="font-size: 11px; color: #888; margin-top: 5px;">*Tips: Login admin untuk geser urutan menu langsung pada list bawah.</p>
     </div>
 
     <div class="container">
@@ -227,10 +234,10 @@
         let editingKey = null;
         let menuDataCache = {};
         let currentEmailData = { prefix: "user", domain: "@gmail.com", index: 1 };
+        let sortableInstance = null;
 
         const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
 
-        // --- FUNGSI EMAIL OTOMATIS ---
         function loadEmailConfig() {
             db.ref('email_config').on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -238,7 +245,6 @@
                     currentEmailData = data;
                     const fullEmail = `${data.prefix}${data.index}${data.domain}`;
                     document.getElementById('display-email').innerText = fullEmail;
-                    
                     if (isAdmin) {
                         document.getElementById('admin-email-prefix').value = data.prefix;
                         document.getElementById('admin-email-domain').value = data.domain;
@@ -252,22 +258,14 @@
             const prefix = document.getElementById('admin-email-prefix').value;
             const domain = document.getElementById('admin-email-domain').value;
             const index = parseInt(document.getElementById('admin-email-index').value);
-            
-            db.ref('email_config').set({ prefix, domain, index }).then(() => {
-                alert("Pengaturan Email Berhasil Diperbarui!");
-            });
+            db.ref('email_config').set({ prefix, domain, index }).then(() => alert("Email Diperbarui!"));
         }
 
         function copyAndIncrement() {
             const emailText = document.getElementById('display-email').innerText;
-            
-            // Salin ke Clipboard
             navigator.clipboard.writeText(emailText).then(() => {
                 alert("Email disalin: " + emailText);
-                
-                // Tambah Index di Database
-                const nextIndex = currentEmailData.index + 1;
-                db.ref('email_config').update({ index: nextIndex });
+                db.ref('email_config').update({ index: currentEmailData.index + 1 });
             });
         }
 
@@ -280,9 +278,7 @@
         function login() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, pass).then(() => {
-                document.getElementById('login-popup').style.display = 'none';
-            }).catch((err) => alert("Gagal: " + err.message));
+            auth.signInWithEmailAndPassword(email, pass).catch((err) => alert("Gagal: " + err.message));
         }
 
         function logout() { auth.signOut(); }
@@ -292,27 +288,50 @@
             document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
             document.querySelector('[onclick="toggleLoginForm(event)"]').style.display = isAdmin ? 'none' : 'block';
+            
+            initSortable();
             loadEmailConfig();
             renderMenus(); 
         });
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Link berhasil disalin ke clipboard!");
-            }).catch(err => {
-                console.error('Gagal menyalin: ', err);
+        function initSortable() {
+            const el = document.getElementById('menu-container');
+            if (isAdmin) {
+                if (sortableInstance) sortableInstance.destroy();
+                sortableInstance = new Sortable(el, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function() {
+                        saveNewOrder();
+                    }
+                });
+            } else if (sortableInstance) {
+                sortableInstance.destroy();
+                sortableInstance = null;
+            }
+        }
+
+        function saveNewOrder() {
+            const wrappers = document.querySelectorAll('.menu-wrapper');
+            const updates = {};
+            wrappers.forEach((el, index) => {
+                const key = el.getAttribute('data-key');
+                updates[`ubaid/${key}/order`] = index;
             });
+            db.ref().update(updates);
         }
 
         function addMenu() {
             const title = document.getElementById('title').value;
             const url = document.getElementById('url').value;
+            const order = Object.keys(menuDataCache).length;
             if(title) {
                 db.ref('ubaid').push({
                     title, 
                     url: url.startsWith('http') ? url : 'https://' + url,
                     downloadUrl: document.getElementById('downloadUrl').value,
-                    createdAt: new Date().toISOString().split('T')[0]
+                    createdAt: new Date().toISOString().split('T')[0],
+                    order: order
                 }).then(() => {
                     document.getElementById('title').value = "";
                     document.getElementById('url').value = "";
@@ -329,13 +348,19 @@
             const container = document.getElementById('menu-container');
             container.innerHTML = "";
             
-            let i = 0;
-            for (let key in menuDataCache) {
-                const data = menuDataCache[key];
+            // Ubah objek ke array dan urutkan berdasarkan field 'order'
+            const sortedMenus = Object.keys(menuDataCache).map(key => ({
+                key: key,
+                ...menuDataCache[key]
+            })).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+            sortedMenus.forEach((data, i) => {
+                const key = data.key;
                 const isNew = Math.ceil(Math.abs(new Date() - new Date(data.createdAt)) / (1000 * 60 * 60 * 24)) <= 7;
                 const themeColor = linkColors[i % linkColors.length];
                 const wrapper = document.createElement('div');
-                wrapper.className = 'menu-wrapper';
+                wrapper.className = 'menu-wrapper' + (isAdmin ? ' drag-handle' : '');
+                wrapper.setAttribute('data-key', key);
 
                 if (isAdmin && editingKey === key) {
                     wrapper.innerHTML = `
@@ -363,8 +388,7 @@
                         </div>` : ''}`;
                 }
                 container.appendChild(wrapper);
-                i++;
-            }
+            });
         }
 
         function saveEdit(key) {
@@ -377,9 +401,9 @@
         }
 
         function deleteMenu(key) { if(confirm("Hapus?")) db.ref('ubaid/' + key).remove(); }
-        
-        // Load config awal
-        loadEmailConfig();
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => alert("Link disalin!"));
+        }
     </script>
 </body>
 </html>
