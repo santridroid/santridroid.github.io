@@ -37,7 +37,7 @@
             letter-spacing: 6px;
             color: #2ecc71; 
             text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            margin: 25px 0;
+            margin: 25px 0 10px 0;
             text-transform: uppercase;
         }
 
@@ -66,6 +66,23 @@
             flex-direction: column; gap: 10px; z-index: 1001;
         }
         .login-popup input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+
+        /* --- EMAIL DISPLAY AREA --- */
+        .email-section {
+            width: 90%; max-width: 500px; margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .email-box {
+            background: rgba(255,255,255,0.7); width: 100%; padding: 15px;
+            border-radius: 20px; border: 2px dashed #2ecc71; text-align: center;
+            font-size: 1.2rem; font-weight: bold; color: #27ae60; word-break: break-all;
+        }
+        .btn-copy-email {
+            background: #2ecc71; color: white; border: none; padding: 10px 30px;
+            border-radius: 25px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); transition: 0.3s;
+        }
+        .btn-copy-email:hover { transform: scale(1.05); background: #27ae60; }
 
         /* --- ADMIN PANEL --- */
         #admin-panel {
@@ -100,7 +117,6 @@
         }
         .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
 
-        /* GAYA TOMBOL COPY (Baru ditambahkan) */
         .copy-zone {
             position: absolute; left: 0; top: 0; bottom: 0;
             width: 50px; display: flex; align-items: center; justify-content: center;
@@ -160,8 +176,23 @@
 
     <div class="brand-logo">SANTRIDROID</div>
 
+    <div class="email-section">
+        <div class="email-box" id="display-email">Memuat email...</div>
+        <button class="btn-copy-email" onclick="copyAndIncrement()"><i class="fa-solid fa-copy"></i> COPY EMAIL</button>
+    </div>
+
     <div id="admin-panel">
         <h3 style="margin-bottom:10px">Panel Navigasi Santridroid</h3>
+        
+        <div style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2ecc71;">
+            <h4 style="margin-bottom:10px">Pengaturan Email</h4>
+            <input type="text" id="admin-email-prefix" class="admin-input" placeholder="Prefix (Contoh: user)">
+            <input type="text" id="admin-email-domain" class="admin-input" placeholder="Domain (Contoh: @gmail.com)">
+            <input type="number" id="admin-email-index" class="admin-input" placeholder="Mulai dari Angka (Contoh: 1)">
+            <button class="btn-add" style="background: #3498db; margin-top:5px" onclick="updateEmailConfig()">Update Pengaturan Email</button>
+        </div>
+
+        <h4 style="margin-bottom:10px">Tambah Menu</h4>
         <input type="text" id="title" class="admin-input" placeholder="Nama Menu">
         <input type="text" id="url" class="admin-input" placeholder="Link Tujuan">
         <input type="text" id="downloadUrl" class="admin-input" placeholder="Link Download (Opsional)">
@@ -195,8 +226,50 @@
         let isAdmin = false;
         let editingKey = null;
         let menuDataCache = {};
+        let currentEmailData = { prefix: "user", domain: "@gmail.com", index: 1 };
 
         const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
+
+        // --- FUNGSI EMAIL OTOMATIS ---
+        function loadEmailConfig() {
+            db.ref('email_config').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    currentEmailData = data;
+                    const fullEmail = `${data.prefix}${data.index}${data.domain}`;
+                    document.getElementById('display-email').innerText = fullEmail;
+                    
+                    if (isAdmin) {
+                        document.getElementById('admin-email-prefix').value = data.prefix;
+                        document.getElementById('admin-email-domain').value = data.domain;
+                        document.getElementById('admin-email-index').value = data.index;
+                    }
+                }
+            });
+        }
+
+        function updateEmailConfig() {
+            const prefix = document.getElementById('admin-email-prefix').value;
+            const domain = document.getElementById('admin-email-domain').value;
+            const index = parseInt(document.getElementById('admin-email-index').value);
+            
+            db.ref('email_config').set({ prefix, domain, index }).then(() => {
+                alert("Pengaturan Email Berhasil Diperbarui!");
+            });
+        }
+
+        function copyAndIncrement() {
+            const emailText = document.getElementById('display-email').innerText;
+            
+            // Salin ke Clipboard
+            navigator.clipboard.writeText(emailText).then(() => {
+                alert("Email disalin: " + emailText);
+                
+                // Tambah Index di Database
+                const nextIndex = currentEmailData.index + 1;
+                db.ref('email_config').update({ index: nextIndex });
+            });
+        }
 
         function toggleLoginForm(event) {
             event.stopPropagation();
@@ -219,10 +292,10 @@
             document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
             document.querySelector('[onclick="toggleLoginForm(event)"]').style.display = isAdmin ? 'none' : 'block';
+            loadEmailConfig();
             renderMenus(); 
         });
 
-        // FUNGSI COPY LINK (Baru ditambahkan)
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert("Link berhasil disalin ke clipboard!");
@@ -304,6 +377,9 @@
         }
 
         function deleteMenu(key) { if(confirm("Hapus?")) db.ref('ubaid/' + key).remove(); }
+        
+        // Load config awal
+        loadEmailConfig();
     </script>
 </body>
 </html>
