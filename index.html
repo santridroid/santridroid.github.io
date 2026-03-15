@@ -74,7 +74,6 @@
             width: 90%; max-width: 500px; margin-bottom: 20px;
             display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
-        /* Perubahan: Menjadi Input agar bisa diedit public */
         .email-box {
             background: rgba(255,255,255,0.8); width: 100%; padding: 15px;
             border-radius: 20px; border: 2px dashed #2ecc71; text-align: center;
@@ -86,6 +85,14 @@
             box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); transition: 0.3s;
         }
         .btn-copy-email:hover { transform: scale(1.05); background: #27ae60; }
+
+        /* --- NOTIFIKASI TOAST --- */
+        #toast {
+            position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6); color: white; padding: 10px 20px;
+            border-radius: 30px; z-index: 9999; font-size: 14px; font-weight: bold;
+            display: none; backdrop-filter: blur(5px); pointer-events: none;
+        }
 
         /* --- ADMIN PANEL --- */
         #admin-panel {
@@ -164,10 +171,7 @@
         <div class="nav-links">
             <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i></a>
             <div class="nav-divider"></div>
-            
-            <a href="javascript:void(0)" onclick="location.href='note.html'" class="nav-item">
-            <i class="fa-solid fa-sticky-note"></i></a>
-
+            <a href="javascript:void(0)" onclick="location.href='note.html'" class="nav-item"><i class="fa-solid fa-sticky-note"></i></a>
             <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
         </div>
         <div class="auth-container" id="auth-wrapper">
@@ -197,15 +201,14 @@
         </div>
     </div>
 
+    <div id="toast">Tersalin!</div>
+
     <div id="admin-panel">
-        <h3 style="margin-bottom:10px">Panel Navigasi Santridroid</h3>
-        
         <h4 style="margin-bottom:10px">Tambah Menu</h4>
         <input type="text" id="title" class="admin-input" placeholder="Nama Menu">
         <input type="text" id="url" class="admin-input" placeholder="Link Tujuan">
         <input type="text" id="downloadUrl" class="admin-input" placeholder="Link Download (Opsional)">
         <button class="btn-add" onclick="addMenu()">Tambahkan Menu</button>
-        <p style="font-size: 11px; color: #888; margin-top: 5px;">*Tips: Login admin untuk geser urutan menu langsung pada list bawah.</p>
     </div>
 
     <div class="container">
@@ -236,57 +239,50 @@
         let editingKey = null;
         let menuDataCache = {};
         let sortableInstance = null;
-
         const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
 
-        // FUNGSI BARU: Load email dari Cache Perangkat (LocalStorage)
+        // FUNGSI TOAST KUSTOM (PENGGANTI ALERT)
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 500); // 0.5 detik sesuai permintaan
+        }
+
         function loadEmailConfig() {
             const cachedEmail = localStorage.getItem('santridroid_email');
-            if (cachedEmail) {
-                document.getElementById('display-email').value = cachedEmail;
-            }
+            if (cachedEmail) document.getElementById('display-email').value = cachedEmail;
         }
 
-        // FUNGSI BARU: Simpan ke Cache saat diketik
         function saveEmailToCache() {
-            const currentEmail = document.getElementById('display-email').value;
-            localStorage.setItem('santridroid_email', currentEmail);
+            localStorage.setItem('santridroid_email', document.getElementById('display-email').value);
         }
 
-        // FUNGSI BARU: Copy dan Otomatis Naikkan Angka
         function copyAndIncrement() {
             const emailInput = document.getElementById('display-email');
             const emailValue = emailInput.value;
-
-            // Copy ke clipboard
             navigator.clipboard.writeText(emailValue).then(() => {
-                alert("Email disalin: " + emailValue);
-
-                // Logika Increment: Mencari angka dalam string dan menambahkannya
-                const nextEmail = emailValue.replace(/(\d+)/, (match) => {
-                    return parseInt(match) + 1;
-                });
-
-                // Update tampilan dan simpan ke cache
+                showToast("Email disalin!");
+                const nextEmail = emailValue.replace(/(\d+)/, (match) => parseInt(match) + 1);
                 emailInput.value = nextEmail;
                 saveEmailToCache();
             });
         }
 
         function generateRandomName() {
-            const depan = ["Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari", "Rian", "Aulia", "Hendra", "Fitri", "Dedi", "Siska", "Bambang", "Putri", "Rizky", "Indah"];
-            const belakang = ["Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat", "Santoso", "Purnama", "Setiawan", "Ramadhan", "Nugroho", "Gunawan", "Laksana", "Wati"];
+            const depan = ["Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari"];
+            const belakang = ["Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat"];
             const namaAcak = depan[Math.floor(Math.random() * depan.length)] + " " + belakang[Math.floor(Math.random() * belakang.length)];
-            navigator.clipboard.writeText(namaAcak).then(() => alert("Nama disalin: " + namaAcak));
+            navigator.clipboard.writeText(namaAcak).then(() => showToast("Nama disalin!"));
         }
 
         function generateRandomPhone() {
-            const awalan = ["0812", "0813", "0821", "0822", "0852", "0853", "0817", "0818", "0819", "0838", "0831", "0895", "0896", "0856", "0857", "0858"];
-            const prefix = awalan[Math.floor(Math.random() * awalan.length)];
-            let nomor = prefix;
-            const panjang = Math.floor(Math.random() * 2) + 7; 
-            for (let i = 0; i < panjang; i++) { nomor += Math.floor(Math.random() * 10); }
-            navigator.clipboard.writeText(nomor).then(() => alert("No. HP disalin: " + nomor));
+            const awalan = ["0812", "0813", "0821", "0852", "0819", "0838", "0857"];
+            let nomor = awalan[Math.floor(Math.random() * awalan.length)];
+            for (let i = 0; i < 8; i++) { nomor += Math.floor(Math.random() * 10); }
+            navigator.clipboard.writeText(nomor).then(() => showToast("No. HP disalin!"));
         }
 
         function toggleLoginForm(event) {
@@ -298,7 +294,7 @@
         function login() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, pass).catch((err) => alert("Gagal: " + err.message));
+            auth.signInWithEmailAndPassword(email, pass).catch((err) => showToast("Gagal Login!"));
         }
 
         function logout() { auth.signOut(); }
@@ -308,9 +304,8 @@
             document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
             document.querySelector('[onclick="toggleLoginForm(event)"]').style.display = isAdmin ? 'none' : 'block';
-            
             initSortable();
-            loadEmailConfig(); // Load email dari cache saat halaman dimuat
+            loadEmailConfig();
             renderMenus(); 
         });
 
@@ -319,15 +314,9 @@
             if (isAdmin) {
                 if (sortableInstance) sortableInstance.destroy();
                 sortableInstance = new Sortable(el, {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function() {
-                        saveNewOrder();
-                    }
+                    animation: 150, ghostClass: 'sortable-ghost',
+                    onEnd: function() { saveNewOrder(); }
                 });
-            } else if (sortableInstance) {
-                sortableInstance.destroy();
-                sortableInstance = null;
             }
         }
 
@@ -347,11 +336,9 @@
             const order = Object.keys(menuDataCache).length;
             if(title) {
                 db.ref('ubaid').push({
-                    title, 
-                    url: url.startsWith('http') ? url : 'https://' + url,
+                    title, url: url.startsWith('http') ? url : 'https://' + url,
                     downloadUrl: document.getElementById('downloadUrl').value,
-                    createdAt: new Date().toISOString().split('T')[0],
-                    order: order
+                    createdAt: new Date().toISOString().split('T')[0], order: order
                 }).then(() => {
                     document.getElementById('title').value = "";
                     document.getElementById('url').value = "";
@@ -367,10 +354,8 @@
         function renderMenus() {
             const container = document.getElementById('menu-container');
             container.innerHTML = "";
-            
             const sortedMenus = Object.keys(menuDataCache).map(key => ({
-                key: key,
-                ...menuDataCache[key]
+                key: key, ...menuDataCache[key]
             })).sort((a, b) => (a.order || 0) - (b.order || 0));
 
             sortedMenus.forEach((data, i) => {
@@ -390,18 +375,10 @@
                 } else {
                     wrapper.innerHTML = `
                         ${isNew ? '<div class="badge-new">NEW</div>' : ''}
-                        <div class="copy-zone" onclick="copyToClipboard('${data.url}')" title="Copy Link">
-                            <i class="fa-solid fa-copy"></i>
-                        </div>
-                        
-                        <a href="javascript:void(0)" onclick="copyToClipboard('${data.url}')" class="menu-item" style="background:${themeColor}">
-                            <span>${data.title}</span>
-                        </a>
-
+                        <div class="copy-zone" onclick="copyToClipboard('${data.url}')"><i class="fa-solid fa-copy"></i></div>
+                        <a href="javascript:void(0)" onclick="copyToClipboard('${data.url}')" class="menu-item" style="background:${themeColor}"><span>${data.title}</span></a>
                         ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank" class="download-zone"><i class="fa-solid fa-download"></i></a>` : ''}
-                        
-                        ${isAdmin ? `
-                        <div class="admin-controls">
+                        ${isAdmin ? `<div class="admin-controls">
                             <button class="btn-ctrl" onclick="editingKey='${key}';renderMenus()"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn-ctrl" style="background:#e74c3c" onclick="deleteMenu('${key}')"><i class="fa-solid fa-trash"></i></button>
                         </div>` : ''}`;
@@ -412,19 +389,15 @@
 
         function saveEdit(key) {
             const title = document.getElementById(`ed-t-${key}`).value;
-            if(title) {
-                db.ref('ubaid/' + key).update({ title }).then(() => {
-                    editingKey = null; renderMenus();
-                });
-            }
+            if(title) db.ref('ubaid/' + key).update({ title }).then(() => { editingKey = null; renderMenus(); });
         }
 
         function deleteMenu(key) { if(confirm("Hapus?")) db.ref('ubaid/' + key).remove(); }
+        
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => alert("Link disalin!"));
+            navigator.clipboard.writeText(text).then(() => showToast("Link disalin!"));
         }
 
-        // Panggil saat pertama kali buka
         window.onload = loadEmailConfig;
     </script>
 </body>
