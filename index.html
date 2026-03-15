@@ -31,7 +31,7 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- LOGO SANTRIDROID --- */
+        /* --- LOGO --- */
         .brand-logo {
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
@@ -69,7 +69,7 @@
         }
         .login-popup input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
 
-        /* --- EMAIL DISPLAY AREA --- */
+        /* --- EMAIL AREA --- */
         .email-section {
             width: 90%; max-width: 500px; margin-bottom: 20px;
             display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -86,7 +86,7 @@
         }
         .btn-copy-email:hover { transform: scale(1.05); background: #27ae60; }
 
-        /* --- NOTIFIKASI TOAST --- */
+        /* --- TOAST NOTIFIKASI --- */
         #toast {
             position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.6); color: white; padding: 10px 20px;
@@ -118,29 +118,25 @@
         
         .menu-item {
             display: flex; align-items: center; justify-content: center;
-            width: 100%; min-height: 100px; 
-            padding: 20px 55px; 
+            width: 100%; min-height: 100px; padding: 20px 55px; 
             font-weight: 800; text-decoration: none; color: white; 
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 1.75em; text-align: center; text-transform: uppercase;
-            line-height: 1.2;
+            font-size: 1.75em; text-align: center; text-transform: uppercase; line-height: 1.2;
         }
         .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
 
         .copy-zone {
-            position: absolute; left: 0; top: 0; bottom: 0;
-            width: 50px; display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.1); 
-            border-right: 1.5px solid rgba(255,255,255,0.3);
+            position: absolute; left: 0; top: 0; bottom: 0; width: 50px; 
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.1); border-right: 1.5px solid rgba(255,255,255,0.3);
             cursor: pointer; color: white; transition: 0.3s; z-index: 5;
         }
         .copy-zone:hover { background: rgba(255,255,255,0.2); }
 
         .download-zone {
-            position: absolute; right: 0; top: 0; bottom: 0;
-            width: 50px; display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.1); 
-            border-left: 1.5px solid rgba(255,255,255,0.3);
+            position: absolute; right: 0; top: 0; bottom: 0; width: 50px; 
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.1); border-left: 1.5px solid rgba(255,255,255,0.3);
             text-decoration: none; color: white; transition: 0.3s; z-index: 5;
         }
         .download-zone:hover { background: rgba(255,255,255,0.2); }
@@ -152,7 +148,6 @@
             display: flex; align-items: center; justify-content: center; font-size: 10px;
         }
 
-        /* Gaya untuk Dragging */
         .sortable-ghost { opacity: 0.4; background: #c8ebfb !important; }
         .drag-handle { cursor: move !important; }
         
@@ -188,7 +183,7 @@
     <div class="brand-logo">SANTRIDROID</div>
 
     <div class="email-section">
-        <input type="text" class="email-box" id="display-email" value="user1@gmail.com" oninput="saveEmailToCache()">
+        <input type="text" class="email-box" id="display-email" value="masukkan email disini" oninput="saveEmailToCache()">
         <button class="btn-copy-email" onclick="copyAndIncrement()"><i class="fa-solid fa-copy"></i> COPY EMAIL</button>
         
         <div style="display: flex; gap: 10px; margin-top: 5px;">
@@ -241,14 +236,11 @@
         let sortableInstance = null;
         const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
 
-        // FUNGSI TOAST KUSTOM (PENGGANTI ALERT)
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.innerText = message;
             toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 500); // 0.5 detik sesuai permintaan
+            setTimeout(() => { toast.style.display = 'none'; }, 500);
         }
 
         function loadEmailConfig() {
@@ -313,10 +305,7 @@
             const el = document.getElementById('menu-container');
             if (isAdmin) {
                 if (sortableInstance) sortableInstance.destroy();
-                sortableInstance = new Sortable(el, {
-                    animation: 150, ghostClass: 'sortable-ghost',
-                    onEnd: function() { saveNewOrder(); }
-                });
+                sortableInstance = new Sortable(el, { animation: 150, ghostClass: 'sortable-ghost', onEnd: function() { saveNewOrder(); } });
             }
         }
 
@@ -333,12 +322,11 @@
         function addMenu() {
             const title = document.getElementById('title').value;
             const url = document.getElementById('url').value;
-            const order = Object.keys(menuDataCache).length;
             if(title) {
                 db.ref('ubaid').push({
                     title, url: url.startsWith('http') ? url : 'https://' + url,
                     downloadUrl: document.getElementById('downloadUrl').value,
-                    createdAt: new Date().toISOString().split('T')[0], order: order
+                    createdAt: new Date().toISOString().split('T')[0], order: Object.keys(menuDataCache).length
                 }).then(() => {
                     document.getElementById('title').value = "";
                     document.getElementById('url').value = "";
@@ -393,10 +381,7 @@
         }
 
         function deleteMenu(key) { if(confirm("Hapus?")) db.ref('ubaid/' + key).remove(); }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => showToast("Link disalin!"));
-        }
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => showToast("Link disalin!")); }
 
         window.onload = loadEmailConfig;
     </script>
