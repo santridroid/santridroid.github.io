@@ -185,6 +185,15 @@
     <div class="email-section">
         <div class="email-box" id="display-email">Memuat email...</div>
         <button class="btn-copy-email" onclick="copyAndIncrement()"><i class="fa-solid fa-copy"></i> COPY EMAIL</button>
+        
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <button class="btn-copy-email" style="background: #3498db; padding: 10px 15px; font-size: 0.8rem;" onclick="generateRandomName()">
+                <i class="fa-solid fa-user"></i> ACAK NAMA
+            </button>
+            <button class="btn-copy-email" style="background: #9b59b6; padding: 10px 15px; font-size: 0.8rem;" onclick="generateRandomPhone()">
+                <i class="fa-solid fa-phone"></i> ACAK NO.HP
+            </button>
+        </div>
     </div>
 
     <div id="admin-panel">
@@ -269,6 +278,23 @@
             });
         }
 
+        // FUNGSI BARU UNTUK ACAK NAMA & NO HP
+        function generateRandomName() {
+            const depan = ["Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari", "Rian", "Aulia", "Hendra", "Fitri", "Dedi", "Siska", "Bambang", "Putri", "Rizky", "Indah"];
+            const belakang = ["Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat", "Santoso", "Purnama", "Setiawan", "Ramadhan", "Nugroho", "Gunawan", "Laksana", "Wati"];
+            const namaAcak = depan[Math.floor(Math.random() * depan.length)] + " " + belakang[Math.floor(Math.random() * belakang.length)];
+            navigator.clipboard.writeText(namaAcak).then(() => alert("Nama disalin: " + namaAcak));
+        }
+
+        function generateRandomPhone() {
+            const awalan = ["0812", "0813", "0821", "0822", "0852", "0853", "0817", "0818", "0819", "0838", "0831", "0895", "0896", "0856", "0857", "0858"];
+            const prefix = awalan[Math.floor(Math.random() * awalan.length)];
+            let nomor = prefix;
+            const panjang = Math.floor(Math.random() * 2) + 7; 
+            for (let i = 0; i < panjang; i++) { nomor += Math.floor(Math.random() * 10); }
+            navigator.clipboard.writeText(nomor).then(() => alert("No. HP disalin: " + nomor));
+        }
+
         function toggleLoginForm(event) {
             event.stopPropagation();
             const popup = document.getElementById('login-popup');
@@ -348,7 +374,6 @@
             const container = document.getElementById('menu-container');
             container.innerHTML = "";
             
-            // Ubah objek ke array dan urutkan berdasarkan field 'order'
             const sortedMenus = Object.keys(menuDataCache).map(key => ({
                 key: key,
                 ...menuDataCache[key]
