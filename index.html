@@ -31,7 +31,6 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- LOGO --- */
         .brand-logo {
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
@@ -43,7 +42,6 @@
             text-transform: uppercase;
         }
 
-        /* --- TOOLBAR --- */
         .toolbar {
             width: 100%; background: rgba(255, 255, 255, 0.95);
             padding: 8px 15px; display: flex; justify-content: space-between;
@@ -69,7 +67,6 @@
         }
         .login-popup input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
 
-        /* --- EMAIL AREA --- */
         .email-section {
             width: 90%; max-width: 500px; margin-bottom: 20px;
             display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -86,7 +83,6 @@
         }
         .btn-copy-email:hover { transform: scale(1.05); background: #27ae60; }
 
-        /* --- TOAST NOTIFIKASI --- */
         #toast {
             position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.6); color: white; padding: 10px 20px;
@@ -94,7 +90,6 @@
             display: none; backdrop-filter: blur(5px); pointer-events: none;
         }
 
-        /* --- ADMIN PANEL --- */
         #admin-panel {
             background: white; padding: 25px; border-radius: 15px; margin: 20px 0;
             width: 90%; max-width: 600px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -102,7 +97,6 @@
         .admin-input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9; }
         .btn-add { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
 
-        /* --- MENU CONTENT --- */
         .container {
             flex: 1; width: 95%; max-width: 750px; text-align: center;
             background: rgba(255, 255, 255, 0.9); border-radius: 30px;
@@ -264,16 +258,28 @@
         }
 
         function generateRandomName() {
-            const depan = ["Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari"];
-            const belakang = ["Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat"];
+            const depan = [
+                "Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari", "Ahmad", "Bambang", "Candra", "Dedi", "Erika", "Farhan", "Gita", "Hadi", "Indah", "Jaka", "Kurnia", "Linda", "Mulyadi", "Nina", "Oscar", "Putri", "Qori", "Rahmat", "Sari", "Taufik", "Usman", "Vina", "Wahyu", "Xena", "Yanto", "Zainal", "Abadi", "Aditya", "Amalia", "Anisa", "Arya", "Aziz", "Bagusp", "Bayu", "Citra", "Danang", "Dian", "Doni", "Endang", "Fajar", "Galih", "Hany", "Irfan", "Ivan", "Julia", "Krisna", "Laras", "Maulana", "Nanda", "Okta", "Panji", "Rangga", "Siska", "Teguh", "Utari", "Veri", "Wulan", "Yuda", "Zaki", "Adam", "Bella", "Cecep", "Dina", "Ervan", "Fina", "Gilang", "Hera", "Indra", "Jarot", "Kevin", "Lilis", "Mira", "Niko", "Oki", "Puji", "Rama", "Soni", "Tiara", "Ujang", "Vivi", "Widi", "Yoga", "Zora", "Akbar", "Bagas", "Cindy", "Dora", "Edi", "Feri", "Gani", "Hana", "Iis", "Joni", "Kiki", "Lulu", "Maman", "Nana", "Oni", "Pipit", "Rudi", "Santi", "Tono", "Umar", "Vera", "Wawan", "Yani", "Zul", "Anton", "Bunga", "Cucu", "Dede", "Elia", "Fadil", "Gatot", "Hesti", "Imron", "Jati", "Kusno", "Lia", "Mita", "Novi", "Oman", "Parno", "Rani", "Soleh", "Totok", "Untung", "Vina", "Willy", "Yessi", "Zaira", "Asep", "Basuki", "Cahya", "Darsa", "Eman", "Fatah", "Guruh", "Hasna", "Iwan", "Jajang", "Komar", "Lely", "Mumu", "Neneng", "Odang", "Pepen", "Rika", "Suryo", "Tarsan", "Udin", "Vicky", "Wawan", "Yuyun", "Zain", "Abimanyu", "Bratasena", "Cakrawala", "Dirgantara", "Erlangga", "Fathir", "Gibran", "Haikal", "Ikhsan", "Januar", "Kenzie", "Lutfi", "Mufid", "Naufal", "Oza", "Prasetyo", "Qubil", "Rafif", "Satria", "Tristan", "Ubaid", "Vino", "Wildan", "Xander", "Yusuf", "Zidan", "Aris", "Beni", "Cipto", "Darmono", "Edy", "Fahmi", "Gito", "Harno", "Ipul", "Jojo", "Kasino", "Leman", "Munir", "Nanang", "Oding", "Parto", "Rudy", "Slamet", "Timbul", "Uus", "Vikri", "Wongso", "Yosep", "Zoro", "Andre", "Baim", "Chika", "Dodo", "Eni", "Fifi", "Gery", "Hani", "Ira", "Jery", "Koko", "Lusi", "Mono", "Noni", "Oce", "Pian", "Rere", "Sasa", "Titi", "Ute", "Vani", "Wira", "Yaya", "Zizi", "Aldi", "Boby", "Caca", "Didi", "Euis", "Fafa", "Gogo", "Huhu", "Ina", "Juju", "Kaka", "Lala", "Mama", "Nana", "Opa", "Papa", "Rara", "Sasa", "Tata", "Uu", "Vv", "Ww", "Yy", "Zz"
+            ];
+            const belakang = [
+                "Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat", "Setiawan", "Nugroho", "Santoso", "Siregar", "Nasution", "Ginting", "Pane", "Lubis", "Simanjuntak", "Situmorang", "Harahap", "Batubara", "Pasaribu", "Daulay", "Tanjung", "Pohan", "Sitorus", "Sinaga", "Saragih", "Damanik", "Purba", "Sumbayak", "Tarigan", "Bangun", "Sembiring", "Perangin-angin", "Munthe", "Gulo", "Zega", "Hia", "Lase", "Bawamenewi", "Harefa", "Mendrofa", "Waruwu", "Halawa", "Telaumbanua", "Gea", "Wau", "Duha", "Manaö", "Maru'ao", "Ndruru", "Zalukhu", "Zalogo", "Ziduhu", "Gulö", "Löi", "Nazara", "Tanjung", "Chaniago", "Paniang", "Sikumbang", "Koto", "Piliang", "Guci", "Melayu", "Jambak", "Mandaliko", "Bodi", "Singkuang", "Sumpu", "Dalimo", "Simalaba", "Simalingkung", "Simabur", "Siahaan", "Silalahi", "Manurung", "Gultom", "Hasibuan", "Ritonga", "Dalimunthe", "Rangkuti", "Matondang", "Pulungan", "Harahap", "Siregar", "Nasution", "Lubis", "Daulay", "Batubara", "Tanjung", "Pohan", "Sitorus", "Sinaga", "Saragih", "Damanik", "Purba", "Tarigan", "Bangun", "Sembiring", "Karo-karo", "Ginting", "Milala", "Pelawi", "Pinem", "Brahmana", "Surbakti", "Depari", "Kaban", "Bukit", "Gurusinga", "Sitepu", "Kembaren", "Barus", "Sinuraya", "Sinuhaji", "Samilala", "Sinukaban", "Singarimbun", "Sebayang", "Kacaribu", "Manik", "Gajah", "Maha", "Sambo", "Capah", "Bako", "Kudadiri", "Sinamo", "Banurea", "Boangmanalu", "Anakampun", "Maibang", "Lumban Tobing", "Lumban Gaol", "Lumban Raja", "Lumban Siantar", "Lumban Nahor", "Pangaribuan", "Simatupang", "Tampubolon", "Aritonang", "Sianipar", "Simanjuntak", "Situmorang", "Sidabutar", "Sidauruk", "Sihaloho", "Sitompul", "Hutajulu", "Hutahaean", "Hutapea", "Hutagalung", "Hutabarat", "Hutasoit", "Hutauruk", "Manalu", "Purba", "Siburian", "Sihombing", "Silaban", "Situmorang", "Nainggolan", "Sarumpaet", "Panggabean", "Panjaitan", "Siagian", "Silitonga", "Samosir", "Napitupulu", "Pardede", "Pardosi", "Sitorus", "Marpaung", "Simangunsong", "Sibarani", "Siahaan", "Sihotang", "Banjarnahor", "Bakara", "Sinambela", "Simanullang", "Simbolon", "Simalango", "Saing", "Sigalingging", "Tambunan", "Tambu", "Girsang", "Lingga", "Munthe", "Saragih", "Sinaga", "Sipayung", "Haloho", "Purba", "Sumbayak", "Dasuha", "Damanik", "Sinurat", "Sitohang", "Sitopu", "Sidebang", "Sijabat", "Siadari", "Sidabalok", "Rumapea", "Turnip", "Ambarita", "Sidauruk", "Limbong", "Sagala", "Malau", "Sinurat", "Manurung", "Gultom", "Samosir", "Pakpahan", "Situmorang", "Naibaho", "Simarmata", "Sitanggang", "Sigiro", "Sidauruk", "Munthe", "Simalango", "Simanullang", "Sitohang", "Sinurat", "Samosir", "Tarihoran", "Habeahan", "Bondar", "Silaban", "Tampubolon", "Siahaan", "Simanjuntak", "Sitompul", "Hasibuan", "Siregar", "Nasution", "Lubis", "Daulay", "Tanjung", "Pohan", "Sitorus", "Sinaga"
+            ];
             const namaAcak = depan[Math.floor(Math.random() * depan.length)] + " " + belakang[Math.floor(Math.random() * belakang.length)];
             navigator.clipboard.writeText(namaAcak).then(() => showToast("Nama disalin!"));
         }
 
         function generateRandomPhone() {
-            const awalan = ["0812", "0813", "0821", "0852", "0819", "0838", "0857"];
+            // PERUBAHAN: Daftar awalan nomor HP minimal 15 pilihan
+            const awalan = [
+                "0811", "0812", "0813", "0821", "0822", "0823", "0852", "0853", // Telkomsel
+                "0817", "0818", "0819", "0859", "0877", "0878", // XL
+                "0814", "0815", "0816", "0855", "0856", "0857", "0858", // Indosat
+                "0895", "0896", "0897", "0898", "0899", // Tri
+                "0881", "0882", "0883", "0884", "0885", "0886", "0887", "0888", "0889" // Smartfren
+            ];
             let nomor = awalan[Math.floor(Math.random() * awalan.length)];
-            for (let i = 0; i < 8; i++) { nomor += Math.floor(Math.random() * 10); }
+            const sisaDigit = Math.floor(Math.random() * 2) + 7; // Random 7-8 digit tambahan
+            for (let i = 0; i < sisaDigit; i++) { nomor += Math.floor(Math.random() * 10); }
             navigator.clipboard.writeText(nomor).then(() => showToast("No. HP disalin!"));
         }
 
