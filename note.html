@@ -3,327 +3,510 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRIDROID - Public Notes</title>
+    <title>Dashboard Panel</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        /* ================= GLOBAL STYLES ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
+        input, select, button { outline: none; }
+        .hidden { display: none !important; }
+
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
+
+        /* ================= HEADER ================= */
+        .header {
+            background-color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px;
+        }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; }
+        .user-dropdown select { padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 10px; border-radius: 15px; font-size: 14px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; }
+
+        /* ================= KOTAK MENU ADMIN (POPUP) ================= */
+        .admin-popup {
+            display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; 
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001;
+        }
+        .admin-popup.active { display: block; }
+        .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
         
-        @keyframes gradientBackground {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        body {
-            min-height: 100vh;
-            background: linear-gradient(120deg, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1, #84fab0, #8fd3f4);
-            background-size: 300% 300%;
-            animation: gradientBackground 15s ease infinite;
-            display: flex; flex-direction: column; align-items: center;
-            padding-bottom: 100px;
-        }
-
-        .brand-logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900; font-size: 2.2rem; letter-spacing: 6px;
-            color: #2ecc71; text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            margin: 25px 0; text-transform: uppercase;
-        }
-
-        /* --- TOOLBAR --- */
-        .toolbar {
-            width: 100%; background: rgba(255, 255, 255, 0.95);
-            padding: 8px 15px; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .nav-links { display: flex; align-items: center; gap: 0; }
-        .nav-item {
-            text-decoration: none; color: #555; 
-            display: flex; align-items: center; justify-content: center;
-            width: 45px; height: 45px; border-radius: 12px; transition: 0.3s;
-        }
-        .nav-item:hover, .nav-item.active { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
-        .nav-divider { width: 1.5px; height: 22px; background: #e0e0e0; margin: 0 4px; }
-
-        /* --- TABS --- */
-        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn {
-            background: rgba(255,255,255,0.7); border: none; padding: 10px 25px;
-            border-radius: 50px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s;
-        }
-        .tab-btn.active { background: #2ecc71; color: white; }
-
-        /* --- GRID & CARDS --- */
-        .container {
-            flex: 1; width: 95%; max-width: 900px;
-            background: rgba(255, 255, 255, 0.85); border-radius: 30px;
-            padding: 30px 20px; margin: 10px 0; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-        }
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        /* ================= CARD & BUTTONS ================= */
+        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
         
-        .note-card {
-            background: white; padding: 15px; border-radius: 18px; color: #333;
-            text-align: left; cursor: pointer; transition: 0.3s; height: 130px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
-            position: relative;
+        .email-input { 
+            width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; 
+            font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px;
         }
-        .note-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .note-title { font-weight: 800; font-size: 1rem; color: #2c3e50; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 20px; }
-        .note-preview { font-size: 0.85rem; color: #666; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-
-        /* --- FLOATING ACTION BUTTON (FAB) - SEKARANG PUBLIK --- */
-        .fab {
-            position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px;
-            background: #2ecc71; color: white; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 24px;
-            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4); cursor: pointer; border: none; z-index: 1500;
-            transition: 0.3s;
-        }
-        .fab:hover { transform: scale(1.1) rotate(90deg); filter: brightness(1.1); }
-
-        /* --- MODAL POPUP --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
-            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px);
-        }
-        .modal-content { 
-            background: white; padding: 30px; border-radius: 25px; width: 90%; 
-            max-width: 450px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        .admin-input { 
-            width: 100%; padding: 12px 15px; margin-bottom: 15px; 
-            border: 1.5px solid #eee; border-radius: 12px; outline: none; font-size: 14px;
-        }
-        .admin-input:focus { border-color: #2ecc71; }
-        textarea.admin-input { min-height: 180px; resize: vertical; font-family: monospace; }
         
-        .btn-group { display: flex; gap: 10px; }
-        .btn-save { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 2; font-weight: bold; }
-        .btn-cancel { background: #f1f2f6; color: #57606f; border: none; padding: 12px; border-radius: 12px; cursor: pointer; flex: 1; font-weight: bold; }
-
-        .admin-controls { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 5px; }
-        .btn-ctrl {
-            background: #eee; color: #666; border: none; width: 28px; height: 28px; 
-            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
+        .btn {
+            width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white;
+            cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;
         }
-        .btn-ctrl:hover { background: #ff4757; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .btn-orange { background-color: #f39c12; margin-bottom: 10px; }
+        .btn-blue { background-color: #2e86de; }
+        .btn-green { background-color: #27ae60; }
+        .btn-purple { background-color: #8e44ad; margin-bottom: 5px; }
+        .btn-red { background-color: #e74c3c; }
+        
+        .btn-row { display: flex; gap: 10px; }
 
-        footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
+        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
+
+        /* ================= DAFTAR NOMOR & HARGA ================= */
+        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
+        .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
+        
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
+        .list-item:hover { background-color: #f9f9f9; }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-weight: bold; }
+        .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
+        .item-stock { color: #7f8c8d; font-size: 12px; }
+
+        /* ================= ACTIVE ORDERS CARD ================= */
+        .order-card { background: white; border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; border-left: 4px solid #3498db;}
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
+        .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
+        .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
+        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
+        .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Loader OTP */
+        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
+        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
+
+        /* ================= MODAL & TOAST ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
+        
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <nav class="toolbar">
-        <div class="nav-links">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-            <div class="nav-divider"></div>
-            <a href="#" class="nav-item active"><i class="fa-solid fa-sticky-note"></i></a>
-            <div class="nav-divider"></div>
-            <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
+<div class="app-container">
+    
+    <header class="header">
+        <div class="menu-icon" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i></div>
+        <div class="user-dropdown">
+            <select id="user-selector" onchange="changeGlobalUser()"></select>
         </div>
-        <div class="auth-container">
-            <button id="btn-login-trigger" onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login Admin</button>
-            <div class="login-popup" id="login-popup" style="display:none; position:absolute; top:50px; right:0; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:240px; flex-direction:column; gap:10px; z-index:1001;">
-                <input type="email" id="email" class="admin-input" placeholder="Email Admin">
-                <input type="password" id="password" class="admin-input" placeholder="Password">
-                <button class="btn-save" onclick="login()">Masuk</button>
-            </div>
-            <button id="btn-logout" style="display:none; background: #ff4757; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer" onclick="logout()">Logout</button>
+        <div class="header-right">
+            <span class="saldo-text" id="sms-balance">Rp 0</span>
+            <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
         </div>
-    </nav>
+    </header>
 
-    <div class="brand-logo">NOTES</div>
-
-    <div class="tab-container">
-        <button id="tab-pub" class="tab-btn active" onclick="switchTab('public')"><i class="fas fa-users"></i> PUBLIC</button>
-        <button id="tab-priv" class="tab-btn" style="display:none;" onclick="switchTab('private')"><i class="fas fa-lock"></i> PRIVATE</button>
-    </div>
-
-    <div class="container">
-        <div id="notes-grid" class="notes-grid"></div>
-    </div>
-
-    <button id="fab-add" class="fab" onclick="openFormModal()"><i class="fas fa-plus"></i></button>
-
-    <div id="form-modal" class="modal-overlay" onclick="closeModal('form-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 id="modal-title" style="margin-bottom:20px; color:#2c3e50;">Tambah Catatan Baru</h3>
-            <input type="text" id="note-title-input" class="admin-input" placeholder="Judul Catatan">
-            <textarea id="note-content-input" class="admin-input" placeholder="Tulis pesan atau tempel script di sini..."></textarea>
-            <div class="btn-group">
-                <button class="btn-cancel" onclick="closeModal('form-modal')">Batal</button>
-                <button class="btn-save" onclick="handleSave()">Kirim Catatan</button>
-            </div>
+    <div id="admin-menu" class="admin-popup">
+        <div id="login-form">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+            <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
+            <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+            <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+        </div>
+        <div id="logout-form" class="hidden">
+            <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+            <button class="btn btn-red" onclick="globalLogout()">Logout</button>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+            
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
+            <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
+            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
+            <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
         </div>
     </div>
 
-    <div id="detail-modal" class="modal-overlay" onclick="closeModal('detail-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h2 id="view-title" style="margin-bottom:15px; color:#333; font-size: 1.4rem;"></h2>
-            <textarea id="view-content" class="admin-input" style="height:250px; background:#f9f9f9;" readonly></textarea>
-            <div class="btn-group">
-                <button class="btn-cancel" onclick="closeModal('detail-modal')">Tutup</button>
-                <button class="btn-save" style="background:#3498db" onclick="copyNote()"><i class="fas fa-copy"></i> Salin</button>
-            </div>
+    <div class="card">
+        <input type="text" id="genEmailInput" class="email-input" placeholder="udin7@gmail.com" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+        <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+        <div class="btn-row">
+            <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
+            <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
         </div>
     </div>
 
-    <footer>
-        &copy; Shopee Link • Powered By SANTRIDROID
-    </footer>
+    <div class="card">
+        <div class="section-title">LINK SHOPEE AKTIF</div>
+        <div id="shopee-container">
+            <div style="color: #aaa; font-size: 13px; text-align: center;">Memuat Link...</div>
+        </div>
+    </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
-            authDomain: "santridroid-link.firebaseapp.com",
-            databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "santridroid-link",
-            storageBucket: "santridroid-link.firebasestorage.app",
-            messagingSenderId: "37630509146",
-            appId: "1:37630509146:web:e1472cff08b34269721863",
-            measurementId: "G-6YM0LDQTHN"
-        };
+    <div id="sms-active-orders"></div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const auth = firebase.auth();
+    <div class="list-header">PESAN NOMOR BARU</div>
+    <div class="list-group" id="sms-prices">
+        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+    </div>
 
-        let currentTab = 'public';
-        let isAdmin = false;
-        let editKey = null;
+</div>
 
-        function toggleLoginForm(event) {
-            event.stopPropagation();
-            const popup = document.getElementById('login-popup');
-            popup.style.display = (popup.style.display === 'flex') ? 'none' : 'flex';
+<div id="toast-container"></div>
+
+<div id="universal-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
+        <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
+        <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
+    </div>
+</div>
+
+<script>
+    // ================= PENGATURAN AWAL =================
+    const USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
+    const WORKER_URL = "https://sms.santridroid.workers.dev";
+    
+    let currentUser = "UMAM";
+    let isUserLocked = false;
+    let audioCtx;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('xurel_saved_email');
+        if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
+        
+        initUserDropdown();
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+    });
+
+    // ================= FUNGSI DASAR UI =================
+    function initUserDropdown() {
+        const select = document.getElementById('user-selector');
+        select.innerHTML = USERS.map(u => `<option value="${u}">${u}</option>`).join('');
+        
+        isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
+        const savedUser = localStorage.getItem('xurel_selected_user');
+        
+        if(savedUser && USERS.includes(savedUser)) {
+            currentUser = savedUser;
+            select.value = currentUser;
         }
+        applyUserLockUI();
+        refreshAllData();
+        
+        setInterval(pollSms, 5000); 
+        setInterval(updateSmsTimers, 1000);
+    }
 
-        function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, pass).then(() => {
-                document.getElementById('login-popup').style.display = 'none';
-            }).catch((err) => alert("Gagal Login: " + err.message));
-        }
+    function toggleUserLock() { 
+        isUserLocked = !isUserLocked; 
+        localStorage.setItem('xurel_user_locked', isUserLocked); 
+        applyUserLockUI(); 
+    }
 
-        function logout() { auth.signOut().then(() => location.reload()); }
+    function applyUserLockUI() {
+        const select = document.getElementById('user-selector'); 
+        const icon = document.getElementById('user-lock-icon'); 
+        select.disabled = isUserLocked;
+        
+        if (isUserLocked) { icon.className = 'fas fa-lock'; icon.style.color = '#e74c3c'; } 
+        else { icon.className = 'fas fa-unlock'; icon.style.color = '#666'; }
+    }
 
-        auth.onAuthStateChanged(user => {
-            isAdmin = !!user;
-            document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
-            document.getElementById('btn-login-trigger').style.display = isAdmin ? 'none' : 'block';
-            document.getElementById('tab-priv').style.display = isAdmin ? 'block' : 'none';
-            initSync();
+    function changeGlobalUser() {
+        if(isUserLocked) return;
+        currentUser = document.getElementById('user-selector').value;
+        localStorage.setItem('xurel_selected_user', currentUser);
+        refreshAllData();
+    }
+
+    function refreshAllData() {
+        renderShopee(); 
+        refreshSms();   
+    }
+
+    function showTempNotif(btnElement, notifText, originalHTML) {
+        btnElement.innerHTML = notifText;
+        setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
+    }
+
+    // ================= MODAL & AUDIO =================
+    function showModal(title, msg, type='confirm') {
+        return new Promise(resolve => {
+            const ov = document.getElementById('universal-modal');
+            document.getElementById('u-modal-title').innerText = title;
+            document.getElementById('u-modal-msg').innerText = msg;
+            const actions = document.getElementById('u-modal-actions');
+            actions.innerHTML = '';
+            
+            if (type === 'confirm') {
+                actions.innerHTML = `
+                    <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
+                    <button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>
+                `;
+            } else {
+                actions.innerHTML = `<button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>`;
+            }
+            window.modalResolve = resolve;
+            ov.classList.add('active');
+        });
+    }
+
+    function playNotifSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
+    function showOtpToast(otpCode) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'otp-toast';
+        toast.innerHTML = `<i class="fa-solid fa-bell"></i> OTP: <span>${otpCode}</span>`;
+        container.appendChild(toast);
+        playNotifSound();
+        setTimeout(() => { toast.remove(); }, 5000);
+    }
+
+    // ================= FIREBASE & ADMIN =================
+    const configMaster = { 
+        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
+        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "santridroid-link"
+    };
+    firebase.initializeApp(configMaster);
+    const db = firebase.database(); const auth = firebase.auth();
+    let globalUser = null;
+
+    function toggleAdminMenu() { document.getElementById('admin-menu').classList.toggle('active'); }
+    
+    auth.onAuthStateChanged(user => {
+        globalUser = user; 
+        document.getElementById('login-form').classList.toggle('hidden', !!user);
+        document.getElementById('logout-form').classList.toggle('hidden', !user);
+        renderShopee();
+    });
+
+    function globalLogin() {
+        const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            document.getElementById('admin-menu').classList.remove('active');
+        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
+    }
+    function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    // ================= LOGIKA SHOPEE =================
+    let shopeeDataCache = {}; 
+    db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+
+    async function addShopeeMenu() {
+        const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
+        if(!t || !u) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
+        db.ref('linkshopee').push({ title: t.toUpperCase(), url: u, createdAt: Date.now() }).then(() => {
+            document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
+            showModal("Sukses", "Link berhasil ditambahkan", "alert");
+        });
+    }
+
+    function renderShopee() {
+        const container = document.getElementById('shopee-container'); container.innerHTML = "";
+        let found = false;
+        
+        Object.keys(shopeeDataCache).reverse().forEach(key => {
+            const data = shopeeDataCache[key];
+            if(data.title.toUpperCase() === currentUser.toUpperCase()) {
+                found = true;
+                // Merender tombol ungu polos sesuai desain gambar baru
+                container.innerHTML += `
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-purple" style="flex:1;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                            ${data.title}
+                        </button>
+                        ${!!globalUser ? `<button class="btn btn-red" style="width:40px; margin-bottom:5px;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
+                `;
+            }
         });
 
-        function switchTab(t) {
-            currentTab = t;
-            document.getElementById('tab-pub').classList.toggle('active', t === 'public');
-            document.getElementById('tab-priv').classList.toggle('active', t === 'private');
-            initSync();
-        }
+        if(!found) container.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center;">Kosong</div>`;
+    }
 
-        function initSync() {
-            const grid = document.getElementById('notes-grid');
-            const path = (currentTab === 'private' && isAdmin) ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
+    async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
+    
+    function copyShopeeLink(event, url, btnElement) {
+        event.preventDefault(); navigator.clipboard.writeText(url).then(() => {
+            const ori = btnElement.innerText;
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', ori);
+        });
+    }
+
+    // ================= TOOLS GENERATOR =================
+    let listFN = [], listLN = [];
+    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+    
+    function generateName(btnElement) {
+        if(!listFN.length) return;
+        const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        navigator.clipboard.writeText(full).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-user"></i> Acak Nama'); });
+    }
+    
+    function generatePhone(btnElement) {
+        let number = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) number += Math.floor(Math.random() * 10);
+        navigator.clipboard.writeText(number).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-phone-alt"></i> Acak Nomor'); });
+    }
+    
+    function copyAndIncrementEmail() {
+        const input = document.getElementById('genEmailInput'); const btn = document.getElementById('btn-copy-email');
+        let email = input.value.trim(); if (!email) return;
+        
+        navigator.clipboard.writeText(email).then(() => {
+            showTempNotif(btn, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Email');
+            const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
+            if (match) input.value = `${match[1]}${parseInt(match[2], 10) + 1}${match[3]}`;
+            else { const atIdx = email.lastIndexOf('@'); if (atIdx !== -1) input.value = `${email.substring(0, atIdx)}1${email.substring(atIdx)}`; }
+            localStorage.setItem('xurel_saved_email', input.value);
+        });
+    }
+
+    // ================= LOGIKA SMS =================
+    async function fetchWorker(path, options = {}) {
+        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser } });
+    }
+
+    function refreshSms() {
+        document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
+        updateSmsBal(); loadSmsPrices(); pollSms();
+    }
+
+    async function updateSmsBal() {
+        try {
+            const res = await fetchWorker(`/get-balance`); const json = await res.json();
+            document.getElementById('sms-balance').innerText = json.success ? `Rp ${json.data.balance.toLocaleString('id-ID')}` : `Rp 0`;
+        } catch(e) {}
+    }
+
+    async function loadSmsPrices() {
+        try {
+            const res = await fetchWorker(`/get-prices`); const json = await res.json();
+            const box = document.getElementById('sms-prices');
+            if (json.success && json.data.length > 0) {
+                box.innerHTML = json.data.map(i => `
+                    <div class="list-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
+                        <span class="item-name">${i.name}</span>
+                        <span class="item-price">Rp ${i.price}</span>
+                        <span class="item-stock">${i.available} stok</span>
+                    </div>`).join('');
+            } else box.innerHTML = '<div style="padding:20px; text-align:center;">Kosong atau Token Error</div>';
+        } catch (e) {}
+    }
+
+    async function buySms(pid, price, name) {
+        if(!await showModal("Pesan", `Beli ${name} seharga Rp ${price}?`)) return;
+        try {
+            const res = await fetchWorker(`/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
+            const j = await res.json();
+            if(j.success) {
+                const o = j.data.orders[0]; 
+                localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
+                pollSms(); updateSmsBal();
+            } else showModal("Gagal", j.error.message || "Gagal order", "alert");
+        } catch(e){}
+    }
+
+    async function pollSms() { try { const res = await fetchWorker(`/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {} }
+
+    function copyPhoneNumber(txt, el) {
+        if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function renderSmsOrders(orders) {
+        const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        if(!orders || !orders.length) return;
+        
+        orders.forEach(o => {
+            const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari...';
+            if(o.phone) localStorage.setItem('phone_'+o.id, o.phone);
             
-            db.ref(path).off();
-            db.ref(path).on('value', snap => {
-                grid.innerHTML = '';
-                snap.forEach(child => {
-                    const data = child.val();
-                    const key = child.key;
-                    const card = document.createElement('div');
-                    card.className = 'note-card';
-                    card.onclick = () => openDetailModal(data.title, data.content);
-                    card.innerHTML = `
-                        <div class="note-title">${data.title}</div>
-                        <div class="note-preview">${data.content}</div>
-                        ${isAdmin ? `
-                        <div class="admin-controls">
-                            <button class="btn-ctrl" onclick="event.stopPropagation(); openEditModal('${key}', '${data.title}', '${data.content.replace(/\n/g, '\\n')}')"><i class="fas fa-pen"></i></button>
-                            <button class="btn-ctrl" onclick="event.stopPropagation(); deleteNote('${key}')"><i class="fas fa-trash"></i></button>
-                        </div>` : ''}
-                    `;
-                    grid.prepend(card);
-                });
-            });
-        }
-
-        function openFormModal() {
-            editKey = null;
-            document.getElementById('modal-title').innerText = "Tambah Catatan Baru";
-            document.getElementById('note-title-input').value = "";
-            document.getElementById('note-content-input').value = "";
-            document.getElementById('form-modal').style.display = 'flex';
-        }
-
-        function openEditModal(key, title, content) {
-            editKey = key;
-            document.getElementById('modal-title').innerText = "Edit Catatan Admin";
-            document.getElementById('note-title-input').value = title;
-            document.getElementById('note-content-input').value = content.replace(/\\n/g, '\n');
-            document.getElementById('form-modal').style.display = 'flex';
-        }
-
-        function handleSave() {
-            const title = document.getElementById('note-title-input').value;
-            const content = document.getElementById('note-content-input').value;
-            if(!title || !content) return alert("Harap isi Judul dan Konten!");
-
-            // Jika bukan admin, otomatis masuk ke public. Jika admin, sesuai tab yang aktif.
-            const path = (isAdmin && currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
+            const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
+            if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
             
-            const noteData = { 
-                title, 
-                content, 
-                timestamp: Date.now(),
-                type: isAdmin ? 'admin' : 'public'
-            };
-
-            const promise = editKey ? db.ref(`${path}/${editKey}`).update(noteData) : db.ref(path).push(noteData);
+            let expireTime = localStorage.getItem('timer_' + o.id);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem('timer_' + o.id, expireTime); }
             
-            promise.then(() => {
-                closeModal('form-modal');
-                if(!isAdmin) alert("Catatan berhasil dikirim!");
-            }).catch(err => alert("Gagal menyimpan: " + err.message));
-        }
+            let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
 
-        function deleteNote(key) {
-            if(confirm("Hapus catatan ini secara permanen?")) {
-                const path = (currentTab === 'private') ? `notes/private/${auth.currentUser.uid}` : 'notes/public';
-                db.ref(`${path}/${key}`).remove();
+            if (o.otp_code && !localStorage.getItem('notif_otp_' + o.id + '_' + o.otp_code)) {
+                showOtpToast(o.otp_code); localStorage.setItem('notif_otp_' + o.id + '_' + o.otp_code, 'true');
             }
-        }
 
-        function openDetailModal(title, content) {
-            document.getElementById('view-title').innerText = title;
-            document.getElementById('view-content').value = content;
-            document.getElementById('detail-modal').style.display = 'flex';
-        }
-
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function copyNote() {
-            const content = document.getElementById('view-content');
-            content.select();
-            document.execCommand('copy');
-            alert("Teks berhasil disalin ke clipboard!");
-        }
-
-        window.onclick = (e) => {
-            if (e.target.closest('.auth-container') === null) {
-                document.getElementById('login-popup').style.display = 'none';
+            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            
+            const existing = document.getElementById('order-' + o.id);
+            if (existing) {
+                existing.querySelector('.order-phone').innerText = phone;
+                existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
+                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
+            } else {
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="order-card" id="order-${o.id}">
+                    <div class="order-header"><span>#${o.id} - Rp ${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                    <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
+                    <div class="order-otp">${otpDisplay}</div>
+                    <div class="btn-grid">
+                        <button class="btn-sm" onclick="actSms('finish', ${o.id})">DONE</button>
+                        <button class="btn-sm btn-resend" onclick="actSms('resend', ${o.id})" ${o.otp_code?'':'disabled'}>RESEND</button>
+                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', ${o.id})" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                        <button class="btn-sm btn-replace" onclick="actSms('replace', ${o.id})" ${passed2Mins?'':'disabled'}>REPLACE</button>
+                    </div>
+                </div>`);
             }
-        };
-    </script>
+        });
+        updateSmsTimers();
+    }
+
+    function updateSmsTimers() {
+        document.querySelectorAll('.sms-timer').forEach(el => {
+            const diff = Math.max(0, Math.floor((parseInt(localStorage.getItem('timer_'+el.dataset.id)) - Date.now())/1000));
+            el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+            el.style.color = diff < 600 ? "#e74c3c" : "#555";
+            if (diff <= 1080) {
+                const card = document.getElementById('order-' + el.dataset.id);
+                if(card) { card.querySelector('.btn-cancel').disabled = false; card.querySelector('.btn-replace').disabled = false; }
+            }
+        });
+    }
+
+    async function actSms(action, id) {
+        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        try {
+            const res = await fetchWorker(`/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
+            if((await res.json()).success) {
+                if(action !== 'resend') { 
+                    localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); 
+                    Object.keys(localStorage).forEach(k => { if(k.startsWith('notif_otp_' + id)) localStorage.removeItem(k); });
+                }
+                pollSms(); updateSmsBal();
+            }
+        } catch(e){}
+    }
+</script>
 </body>
 </html>
