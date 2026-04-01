@@ -86,12 +86,10 @@
         .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
 
         /* ================= MEDIA QUERIES (RESPONSIVE) ================= */
-        @media (max-width: 650px) {
+        @media (max-width: 768px) {
+            /* Dikunci menjadi 2 kolom untuk SEMUA ukuran layar HP */
             .shopee-grid { grid-template-columns: repeat(2, 1fr); }
             .tools-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 400px) {
-            .shopee-grid { grid-template-columns: 1fr; }
         }
 
         /* ================= CSS NOTES (A2) ================= */
@@ -642,7 +640,7 @@
         }
 
         // ================= 5. LOGIKA SMS =================
-        const SMS_SERVERS = { "UMAM": "https://umam-santridroid.santridroid.workers.dev", "YANTO": "https://yanto.santridroid.workers.dev/", "MIA": "https://mia.santridroid.workers.dev/", "NAZILA": "https://nazila.santridroid.workers.dev/", "MAHFUDZ": "https://mahfudz.santridroid.workers.dev/", "MIFTAH": "https://miftah.santridroid.workers.dev/" };
+        const SMS_SERVERS = { "UMAM": "https://umam.santridroid.workers.dev", "YANTO": "https://yanto.santridroid.workers.dev", "MIA": "https://mia.santridroid.workers.dev", "NAZILA": "https://nazila.santridroid.workers.dev", "MAHFUDZ": "https://mahfudz.santridroid.workers.dev", "MIFTAH": "https://miftah.santridroid.workers.dev" };
         let currentSmsWorker = ""; let smsInitialized = false; let isSmsLocked = false;
 
         function initSms() {
@@ -651,7 +649,7 @@
             isSmsLocked = localStorage.getItem('xurel_locked') === 'true';
             const savedServer = localStorage.getItem('xurel_selected_hp');
             if(savedServer && SMS_SERVERS[savedServer]) { currentSmsWorker = SMS_SERVERS[savedServer]; select.value = currentSmsWorker; } 
-            else { currentSmsWorker = SMS_SERVERS["UMAM"]; }
+            else { currentSmsWorker = SMS_SERVERS["HP1"]; }
             applySmsLockUI(); refreshSms(); setInterval(pollSms, 5000); setInterval(updateSmsTimers, 1000);
         }
 
