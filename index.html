@@ -20,13 +20,13 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        body { background-color: var(--fb-bg); color: var(--fb-text); padding-top: 60px; min-height: 100vh; }
+        body { background-color: var(--fb-bg); color: var(--fb-text); padding-top: 75px; min-height: 100vh; }
         
         input, textarea { user-select: auto !important; pointer-events: auto !important; }
 
         /* ================= TOP NAVIGATION ================= */
         .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            position: fixed; top: 15px; left: 0; width: 100%; height: 60px;
             background: var(--fb-card); box-shadow: 0 1px 4px rgba(0,0,0,0.1);
             display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1000;
         }
@@ -38,9 +38,8 @@
         }
         .menu-btn:hover { background: var(--fb-hover); }
 
-        /* Dropdown Hamburger Kiri (Pusat Login/Logout) */
         .global-login {
-            display: none; position: absolute; top: 50px; left: 0; background: var(--fb-card); 
+            display: none; position: absolute; top: 60px; left: 0; background: var(--fb-card); 
             padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid var(--fb-border); z-index: 1001;
         }
         .global-login.active { display: block; animation: fadeIn 0.2s ease; }
@@ -66,7 +65,7 @@
         .content-card { background: var(--fb-card); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; position: relative; z-index: 2; }
         .hidden { display: none !important; }
 
-        /* ================= TOOLS KUSTOM (ACAK NAMA/NOMOR/EMAIL) ================= */
+        /* ================= TOOLS KUSTOM ================= */
         .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .tool-group { display: flex; flex-direction: column; gap: 8px; background: var(--fb-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--fb-border); }
         .tool-row { display: flex; gap: 8px; }
@@ -74,27 +73,24 @@
         .tool-row button:hover { opacity: 0.9; }
         .tool-input { padding: 10px; border: 1px solid var(--fb-border); border-radius: 6px; font-weight: bold; text-align: center; width: 100%; outline: none; font-size: 13px; }
 
-        /* ================= CSS SHOPEE (A1) ================= */
-        .shopee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        /* ================= CSS SHOPEE ================= */
+        .shopee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
         .shopee-item-wrapper { display: flex; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .shopee-copy-btn { width: 40px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .shopee-copy-btn { width: 45px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; cursor: pointer; transition: 0.2s; }
         .shopee-copy-btn:hover { background: rgba(0,0,0,0.3); }
-        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 55px; font-size: 12px; cursor: pointer;}
-        .shopee-details { display: flex; gap: 5px; font-size: 10px; }
+        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 10px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 60px; font-size: 14px; cursor: pointer;}
+        .shopee-details { display: flex; gap: 5px; font-size: 11px; }
         .badge-status { background: rgba(0,0,0,0.2); padding: 3px 5px; border-radius: 4px; }
         .admin-controls { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 5px; }
-        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
 
-        /* ================= MEDIA QUERIES (RESPONSIVE) ================= */
-        @media (max-width: 650px) {
+        /* ================= MEDIA QUERIES ================= */
+        @media (max-width: 768px) {
             .shopee-grid { grid-template-columns: repeat(2, 1fr); }
             .tools-grid { grid-template-columns: 1fr; }
         }
-        @media (max-width: 400px) {
-            .shopee-grid { grid-template-columns: 1fr; }
-        }
 
-        /* ================= CSS NOTES (A2) ================= */
+        /* ================= CSS NOTES ================= */
         .notes-subnav { display: flex; gap: 10px; margin-bottom: 15px; background: #e4e6eb; padding: 5px; border-radius: 20px; width: fit-content; }
         .note-tab { border: none; background: transparent; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--fb-muted); }
         .note-tab.active { background: white; color: var(--fb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -118,6 +114,7 @@
         .sms-select:disabled { opacity: 0.6; cursor: not-allowed; }
         .bal-val { font-weight: bold; color: var(--sms-grn); font-size: 16px; background: #e6f4ea; padding: 5px 12px; border-radius: 15px; }
         
+        /* Modifikasi penambahan max-height dan overflow agar list harga bisa di-scroll */
         .price-list { border: 1px solid var(--fb-border); border-radius: 12px; overflow-y: auto; max-height: 450px; background: white; }
         
         .price-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--fb-border); cursor: pointer; }
@@ -126,11 +123,7 @@
         
         .order-card { border: 1px solid var(--fb-border); background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        .phone-box { 
-            font-size: 24px; font-weight: bold; font-family: monospace; cursor: pointer; 
-            padding: 10px 0; color: var(--fb-text); display: flex; align-items: center; justify-content: flex-start; gap: 10px; 
-            width: 100%;
-        }
+        .phone-box { font-size: 24px; font-weight: bold; font-family: monospace; cursor: pointer; padding: 10px 0; color: var(--fb-text); display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; }
         .phone-box i { font-size: 20px; transition: color 0.2s ease; }
         
         .btn-grid-4 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -151,7 +144,6 @@
         #universal-modal { z-index: 9999 !important; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
         .modal-box { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         
-        /* Tombol Konfirmasi Diperbesar */
         .m-btn { padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; margin-left: 8px; transition: 0.2s; text-transform: uppercase; }
         .m-btn:hover { opacity: 0.8; }
     </style>
@@ -199,7 +191,7 @@
         <div class="content-card">
             <div class="tools-grid">
                 <div class="tool-group">
-                    <input type="text" id="genEmailInput" class="tool-input" placeholder="Email (contoh: user1@gmail.com)" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+                    <input type="text" id="genEmailInput" class="tool-input" placeholder="Email (contoh: user1@gmail.com)">
                     <div class="tool-row">
                         <button onclick="copyAndIncrementEmail()" style="background: #f39c12;"><i class="fa-solid fa-copy"></i> Copy Email</button>
                     </div>
@@ -292,15 +284,6 @@
     </div>
 
     <script>
-        // ================= TAMBAHAN: AUTO-LOAD EMAIL DARI LOCAL STORAGE =================
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem('xurel_saved_email');
-            if(savedEmail) {
-                document.getElementById('genEmailInput').value = savedEmail;
-            }
-        });
-
-        // ================= 0. UNIVERSAL MODAL SYSTEM =================
         function showModal(title, msg, type='confirm') {
             return new Promise(resolve => {
                 const ov = document.getElementById('universal-modal');
@@ -336,7 +319,6 @@
         }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // ================= 1. TAB & UI NAVIGATION =================
         function switchApp(appId, btnElement) {
             document.querySelectorAll('.app-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -357,7 +339,6 @@
             }
         });
 
-        // ================= 2. FIREBASE INITIALIZATION =================
         const configMaster = { 
             apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
             authDomain: "santridroid-link.firebaseapp.com",
@@ -406,7 +387,6 @@
             document.getElementById('main-menu-popup').classList.remove('active'); 
         }
 
-        // ================= 3. LOGIKA SHOPEE & TOOLS KUSTOM =================
         let shopeeDataCache = {}; let editingShopeeKey = null;
         db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
 
@@ -511,12 +491,8 @@
                     emailInput.value = `${prefix}1${domain}`;
                 }
             }
-            
-            // TAMBAHAN: Simpan ke local storage setelah email diganti oleh sistem
-            localStorage.setItem('xurel_saved_email', emailInput.value);
         }
 
-        // ================= 4. LOGIKA NOTES =================
         let currentNoteTab = 'public'; let selectedNoteKey = null; let currentNoteRaw = ""; let isEditingNote = false;
 
         function switchNoteTab(tab) {
@@ -641,8 +617,7 @@
             setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
         }
 
-        // ================= 5. LOGIKA SMS =================
-        const SMS_SERVERS = { "UMAM": "https://umam-santridroid.santridroid.workers.dev", "HP2": "https://smscodezip.aam-zip.workers.dev" };
+        const SMS_SERVERS = { "UMAM": "https://umam-santridroid.santridroid.workers.dev", "YANTO": "https://yanto.santridroid.workers.dev/", "MIA": "https://mia.santridroid.workers.dev/", "NAZILA": "https://nazila.santridroid.workers.dev/", "MAHFUDZ": "https://mahfudz.santridroid.workers.dev/", "MIFTAH": "https://miftah.santridroid.workers.dev/" };
         let currentSmsWorker = ""; let smsInitialized = false; let isSmsLocked = false;
 
         function initSms() {
