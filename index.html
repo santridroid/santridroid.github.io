@@ -66,20 +66,33 @@
         .content-card { background: var(--fb-card); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; position: relative; z-index: 2; }
         .hidden { display: none !important; }
 
+        /* ================= TOOLS KUSTOM (ACAK NAMA/NOMOR/EMAIL) ================= */
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tool-group { display: flex; flex-direction: column; gap: 8px; background: var(--fb-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--fb-border); }
+        .tool-row { display: flex; gap: 8px; }
+        .tool-row button { flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; color: white; cursor: pointer; transition: 0.2s; }
+        .tool-row button:hover { opacity: 0.9; }
+        .tool-input { padding: 10px; border: 1px solid var(--fb-border); border-radius: 6px; font-weight: bold; text-align: center; width: 100%; outline: none; font-size: 13px; }
+
         /* ================= CSS SHOPEE (A1) ================= */
-        .generate-box { display: flex; gap: 10px; }
-        .generate-box input { flex: 1; padding: 12px; border: 1px solid var(--fb-border); border-radius: 8px; font-weight: bold; text-align: center; }
-        .generate-box button { background: var(--fb-blue); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        .shopee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
-        .shopee-item-wrapper { display: flex; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .shopee-copy-btn { width: 50px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .shopee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .shopee-item-wrapper { display: flex; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .shopee-copy-btn { width: 40px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .shopee-copy-btn:hover { background: rgba(0,0,0,0.3); }
-        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 85px;}
-        .shopee-details { display: flex; gap: 5px; font-size: 11px; }
-        .badge-status { background: rgba(0,0,0,0.2); padding: 3px 6px; border-radius: 6px; }
-        .admin-controls { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 5px; }
-        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 55px; font-size: 12px; cursor: pointer;}
+        .shopee-details { display: flex; gap: 5px; font-size: 10px; }
+        .badge-status { background: rgba(0,0,0,0.2); padding: 3px 5px; border-radius: 4px; }
+        .admin-controls { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 5px; }
+        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+
+        /* ================= MEDIA QUERIES (RESPONSIVE) ================= */
+        @media (max-width: 650px) {
+            .shopee-grid { grid-template-columns: repeat(2, 1fr); }
+            .tools-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 400px) {
+            .shopee-grid { grid-template-columns: 1fr; }
+        }
 
         /* ================= CSS NOTES (A2) ================= */
         .notes-subnav { display: flex; gap: 10px; margin-bottom: 15px; background: #e4e6eb; padding: 5px; border-radius: 20px; width: fit-content; }
@@ -183,14 +196,21 @@
         </div>
 
         <div class="content-card">
-            <div class="generate-box" style="margin-bottom: 15px;">
-                <input type="text" id="genEmailInput" placeholder="Masukkan email (contoh: user1@gmail.com)">
-                <button id="btn-copy-email" onclick="copyAndIncrementEmail()"><i class="fa-solid fa-copy"></i> Copy Email</button>
-            </div>
-            <div class="generate-box">
-                <input type="text" id="genNameOutput" placeholder="---" readonly>
-                <button id="btn-gen" onclick="generateName()"><i class="fa-solid fa-shuffle"></i> Acak Nama</button>
-                <button id="btn-gen-phone" onclick="generatePhone()" style="background: var(--fb-green);"><i class="fa-solid fa-phone"></i> Acak Nomor</button>
+            <div class="tools-grid">
+                <div class="tool-group">
+                    <input type="text" id="genEmailInput" class="tool-input" placeholder="Email (contoh: user1@gmail.com)">
+                    <div class="tool-row">
+                        <button onclick="copyAndIncrementEmail()" style="background: #f39c12;"><i class="fa-solid fa-copy"></i> Copy Email</button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <input type="text" id="genNameOutput" class="tool-input" placeholder="--- Hasil Acak ---" readonly>
+                    <div class="tool-row">
+                        <button onclick="generateName()" style="background: var(--fb-blue);"><i class="fa-solid fa-user"></i> Acak Nama</button>
+                        <button onclick="generatePhone()" style="background: var(--fb-green);"><i class="fa-solid fa-phone"></i> Acak Nomor</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -424,9 +444,9 @@
                     
                     wrapper.innerHTML = `
                         <div class="shopee-copy-btn" onclick="copyShopeeLink(event, '${data.url}', this)" title="Salin Link"><i class="fa-solid fa-copy"></i></div>
-                        <a href="${data.url}" target="_blank" class="shopee-item">
+                        <div class="shopee-item" onclick="copyShopeeLink(event, '${data.url}', this.previousElementSibling)">
                             <span>${data.title}</span><div class="shopee-details">${st}${pr}</div>
-                        </a>
+                        </div>
                         ${isAdmin ? `<div class="admin-controls"><button class="btn-ctrl" onclick="editingShopeeKey='${key}'; renderShopee();"><i class="fa-solid fa-pen" style="font-size:12px;"></i></button><button class="btn-ctrl" style="color:var(--fb-red)" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></button></div>` : ''}`;
                 }
                 container.appendChild(wrapper);
@@ -454,10 +474,10 @@
         }
 
         function generatePhone() {
-            const prefix = "08";
-            const length = Math.floor(Math.random() * 4) + 8;
+            const prefixes = ["081", "082", "083", "085", "087", "088", "089"];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             let number = prefix;
-            for(let i=0; i<length; i++) {
+            for(let i=0; i<9; i++) {
                 number += Math.floor(Math.random() * 10);
             }
             document.getElementById('genNameOutput').value = number;
