@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Panel</title>
+    <title>Xurel - Multi Dashboard</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
@@ -13,500 +13,839 @@
 
     <style>
         /* ================= GLOBAL STYLES ================= */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
-        input, select, button { outline: none; }
+        :root {
+            --fb-bg: #f0f2f5; --fb-card: #ffffff; --fb-text: #050505;
+            --fb-muted: #65676B; --fb-blue: #1877f2; --fb-border: #ccd0d5;
+            --fb-hover: #e4e6eb; --fb-red: #e41e3f; --fb-green: #31a24c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { background-color: var(--fb-bg); color: var(--fb-text); padding-top: 60px; min-height: 100vh; }
+        
+        input, textarea { user-select: auto !important; pointer-events: auto !important; }
+
+        /* ================= TOP NAVIGATION ================= */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: var(--fb-card); box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1000;
+        }
+
+        .nav-left { display: flex; align-items: center; position: relative; width: 50px; }
+        .menu-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; 
+            color: var(--fb-muted); font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
+        }
+        .menu-btn:hover { background: var(--fb-hover); }
+
+        /* Dropdown Hamburger Kiri (Pusat Login/Logout) */
+        .global-login {
+            display: none; position: absolute; top: 50px; left: 0; background: var(--fb-card); 
+            padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid var(--fb-border); z-index: 1001;
+        }
+        .global-login.active { display: block; animation: fadeIn 0.2s ease; }
+        .form-input { width: 100%; padding: 12px 10px; margin-bottom: 10px; border: 1px solid var(--fb-border); border-radius: 6px; outline: none; font-size: 14px;}
+        .btn-primary { width: 100%; padding: 12px 10px; background: var(--fb-blue); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #1558b0; }
+        .btn-danger { width: 100%; padding: 12px 10px; background: var(--fb-red); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+
+        .nav-tabs-center { display: flex; height: 100%; gap: 10px; }
+        .nav-btn {
+            width: 90px; height: 100%; border: none; background: transparent; color: var(--fb-muted); font-size: 22px; 
+            cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; display: flex; justify-content: center; align-items: center;
+        }
+        .nav-btn:hover { background: var(--fb-hover); border-radius: 8px; margin: 5px 0; height: calc(100% - 10px); }
+        .nav-btn.active { color: var(--fb-blue); border-bottom-color: var(--fb-blue); border-radius: 0; margin: 0; height: 100%; background: transparent; }
+        .nav-right { width: 50px; }
+
+        /* ================= APP CONTAINERS ================= */
+        .app-section { display: none; padding: 20px 10px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.3s ease; position: relative; z-index: 1; }
+        .app-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .content-card { background: var(--fb-card); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; position: relative; z-index: 2; }
         .hidden { display: none !important; }
 
-        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
+        /* ================= TOOLS KUSTOM (ACAK NAMA/NOMOR/EMAIL) ================= */
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tool-group { display: flex; flex-direction: column; gap: 8px; background: var(--fb-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--fb-border); }
+        .tool-row { display: flex; gap: 8px; }
+        .tool-row button { flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; color: white; cursor: pointer; transition: 0.2s; }
+        .tool-row button:hover { opacity: 0.9; }
+        .tool-input { padding: 10px; border: 1px solid var(--fb-border); border-radius: 6px; font-weight: bold; text-align: center; width: 100%; outline: none; font-size: 13px; }
 
-        /* ================= HEADER ================= */
-        .header {
-            background-color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px;
+        /* ================= CSS SHOPEE (A1) ================= */
+        .shopee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .shopee-item-wrapper { display: flex; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .shopee-copy-btn { width: 40px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .shopee-copy-btn:hover { background: rgba(0,0,0,0.3); }
+        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 55px; font-size: 12px; cursor: pointer;}
+        .shopee-details { display: flex; gap: 5px; font-size: 10px; }
+        .badge-status { background: rgba(0,0,0,0.2); padding: 3px 5px; border-radius: 4px; }
+        .admin-controls { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 5px; }
+        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+
+        /* ================= MEDIA QUERIES (RESPONSIVE) ================= */
+        @media (max-width: 768px) {
+            /* Dikunci menjadi 2 kolom untuk SEMUA ukuran layar HP */
+            .shopee-grid { grid-template-columns: repeat(2, 1fr); }
+            .tools-grid { grid-template-columns: 1fr; }
         }
-        .menu-icon { font-size: 20px; color: #555; cursor: pointer; }
-        .user-dropdown select { padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 10px; border-radius: 15px; font-size: 14px; color: #000; }
-        .lock-icon { color: #666; font-size: 18px; cursor: pointer; }
 
-        /* ================= KOTAK MENU ADMIN (POPUP) ================= */
-        .admin-popup {
-            display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; 
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001;
+        /* ================= CSS NOTES (A2) ================= */
+        .notes-subnav { display: flex; gap: 10px; margin-bottom: 15px; background: #e4e6eb; padding: 5px; border-radius: 20px; width: fit-content; }
+        .note-tab { border: none; background: transparent; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--fb-muted); }
+        .note-tab.active { background: white; color: var(--fb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .note-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--fb-border); cursor: pointer; height: 110px; position: relative; }
+        .note-card:hover { background: #f8f9fa; }
+        .note-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-preview { font-size: 11px; color: var(--fb-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .note-date { position: absolute; bottom: 10px; left: 10px; font-size: 8.5px; background: #f8f9fa; padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 600; border: 1px solid #eee; text-transform: uppercase; }
+        
+        .text-link { color: var(--fb-blue); text-decoration: none; font-weight: 500; }
+        .text-link:hover { text-decoration: underline; color: #1558b0; }
+
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--fb-blue); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 4px 10px rgba(24,119,242,0.4); cursor: pointer; border: none; z-index: 500; }
+
+        /* ================= CSS SMS ================= */
+        .sms-wrapper { --sms-grn: var(--fb-green); --sms-blu: var(--fb-blue); --sms-org: var(--fb-red); }
+        .sms-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .sms-select { padding: 8px; border-radius: 8px; border: 1px solid var(--fb-border); font-weight: bold; outline: none; }
+        .sms-select:disabled { opacity: 0.6; cursor: not-allowed; }
+        .bal-val { font-weight: bold; color: var(--sms-grn); font-size: 16px; background: #e6f4ea; padding: 5px 12px; border-radius: 15px; }
+        
+        .price-list { border: 1px solid var(--fb-border); border-radius: 12px; overflow-y: auto; max-height: 450px; background: white; }
+        
+        .price-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--fb-border); cursor: pointer; }
+        .price-item:hover { background: #f8f9fa; }
+        .price-item:last-child { border-bottom: none; }
+        
+        .order-card { border: 1px solid var(--fb-border); background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .phone-box { 
+            font-size: 24px; font-weight: bold; font-family: monospace; cursor: pointer; 
+            padding: 10px 0; color: var(--fb-text); display: flex; align-items: center; justify-content: flex-start; gap: 10px; 
+            width: 100%;
         }
-        .admin-popup.active { display: block; }
-        .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
+        .phone-box i { font-size: 20px; transition: color 0.2s ease; }
         
-        /* ================= CARD & BUTTONS ================= */
-        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
-        
-        .email-input { 
-            width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; 
-            font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px;
-        }
-        
-        .btn {
-            width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white;
-            cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;
-        }
-        .btn:hover { opacity: 0.9; }
-        .btn-orange { background-color: #f39c12; margin-bottom: 10px; }
-        .btn-blue { background-color: #2e86de; }
-        .btn-green { background-color: #27ae60; }
-        .btn-purple { background-color: #8e44ad; margin-bottom: 5px; }
-        .btn-red { background-color: #e74c3c; }
-        
-        .btn-row { display: flex; gap: 10px; }
+        .btn-grid-4 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .sms-btn { flex: 1 1 calc(50% - 8px); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 11px; cursor: pointer; border: 1px solid var(--fb-border); background: var(--fb-bg); color: var(--fb-muted); text-transform: uppercase; text-align: center; transition: 0.2s;}
+        .sms-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sms-btn:not(:disabled):hover { background: var(--fb-hover); color: var(--fb-text); }
 
-        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
-
-        /* ================= DAFTAR NOMOR & HARGA ================= */
-        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
-        .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
-        
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
-        .list-item:hover { background-color: #f9f9f9; }
-        .list-item:last-child { border-bottom: none; }
-        .item-name { font-weight: bold; }
-        .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
-        .item-stock { color: #7f8c8d; font-size: 12px; }
-
-        /* ================= ACTIVE ORDERS CARD ================= */
-        .order-card { background: white; border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; border-left: 4px solid #3498db;}
-        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
-        .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
-        .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
-        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
-        .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
-        .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Loader OTP */
         .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
-        .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: var(--fb-muted); border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
         .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
         .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
-        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
+        .loader-bars span:nth-child(3) { animation-delay: 0s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: var(--fb-blue); } }
 
-        /* ================= MODAL & TOAST ================= */
+        /* ================= MODAL UNIVERSAL & NOTES ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-overlay.active { display: flex; }
-        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        #universal-modal { z-index: 9999 !important; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         
-        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* Tombol Konfirmasi Diperbesar */
+        .m-btn { padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; margin-left: 8px; transition: 0.2s; text-transform: uppercase; }
+        .m-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    
-    <header class="header">
-        <div class="menu-icon" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i></div>
-        <div class="user-dropdown">
-            <select id="user-selector" onchange="changeGlobalUser()"></select>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <button class="menu-btn" onclick="toggleMainMenu()"><i class="fa-solid fa-bars"></i></button>
+            <div id="main-menu-popup" class="global-login">
+                <div id="login-form">
+                    <div style="font-weight: bold; margin-bottom: 15px; color: var(--fb-muted); font-size: 11px; letter-spacing: 1px;">SISTEM ADMIN</div>
+                    <input type="email" id="global-email" class="form-input" placeholder="Email">
+                    <input type="password" id="global-pass" class="form-input" placeholder="Password">
+                    <button class="btn-primary" onclick="globalLogin()">Masuk</button>
+                </div>
+                <div id="logout-form" class="hidden">
+                    <p style="text-align: center; font-weight: bold; color: var(--fb-green); margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                    <button class="btn-danger" onclick="globalLogout()">Keluar (Logout)</button>
+                </div>
+            </div>
         </div>
-        <div class="header-right">
-            <span class="saldo-text" id="sms-balance">Rp 0</span>
-            <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
+        <div class="nav-tabs-center">
+            <button class="nav-btn active" onclick="switchApp('shopee', this)"><i class="fa-solid fa-store"></i></button>
+            <button class="nav-btn" onclick="switchApp('notes', this)"><i class="fa-solid fa-note-sticky"></i></button>
+            <button class="nav-btn" onclick="switchApp('sms', this)"><i class="fa-solid fa-message"></i></button>
         </div>
-    </header>
+        <div class="nav-right"></div>
+    </nav>
 
-    <div id="admin-menu" class="admin-popup">
-        <div id="login-form">
-            <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
-            <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
-            <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
-            <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+    <div id="app-shopee" class="app-section active">
+        <div id="shopee-admin" class="content-card hidden" style="border: 2px solid var(--fb-blue);">
+            <h3 style="margin-bottom: 10px; font-size: 16px;">Tambah Link Shopee</h3>
+            <input type="text" id="shopee-title" class="form-input" placeholder="Nama Produk">
+            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link">
+            <input type="text" id="shopee-price" class="form-input" placeholder="Harga (Misal: 150000)" oninput="formatRupiah(this)">
+            <select id="shopee-status" class="form-input">
+                <option value="">-- Tanpa Label --</option>
+                <option value="STAR">Star</option>
+                <option value="MALL">Mall</option>
+            </select>
+            <button class="btn-primary" onclick="addShopeeMenu()">Terbitkan</button>
         </div>
-        <div id="logout-form" class="hidden">
-            <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-            <button class="btn btn-red" onclick="globalLogout()">Logout</button>
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-            
-            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
-            <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
-            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
-            <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
-        </div>
-    </div>
 
-    <div class="card">
-        <input type="text" id="genEmailInput" class="email-input" placeholder="udin7@gmail.com" oninput="localStorage.setItem('xurel_saved_email', this.value)">
-        <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
-        <div class="btn-row">
-            <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
-            <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="section-title">LINK SHOPEE AKTIF</div>
-        <div id="shopee-container">
-            <div style="color: #aaa; font-size: 13px; text-align: center;">Memuat Link...</div>
-        </div>
-    </div>
-
-    <div id="sms-active-orders"></div>
-
-    <div class="list-header">PESAN NOMOR BARU</div>
-    <div class="list-group" id="sms-prices">
-        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
-    </div>
-
-</div>
-
-<div id="toast-container"></div>
-
-<div id="universal-modal" class="modal-overlay">
-    <div class="modal-box">
-        <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
-        <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
-        <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
-    </div>
-</div>
-
-<script>
-    // ================= PENGATURAN AWAL =================
-    const USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
-    const WORKER_URL = "https://sms.santridroid.workers.dev";
-    
-    let currentUser = "UMAM";
-    let isUserLocked = false;
-    let audioCtx;
-
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedEmail = localStorage.getItem('xurel_saved_email');
-        if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
-        
-        initUserDropdown();
-        document.body.addEventListener('click', () => {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }, { once: true });
-    });
-
-    // ================= FUNGSI DASAR UI =================
-    function initUserDropdown() {
-        const select = document.getElementById('user-selector');
-        select.innerHTML = USERS.map(u => `<option value="${u}">${u}</option>`).join('');
-        
-        isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
-        const savedUser = localStorage.getItem('xurel_selected_user');
-        
-        if(savedUser && USERS.includes(savedUser)) {
-            currentUser = savedUser;
-            select.value = currentUser;
-        }
-        applyUserLockUI();
-        refreshAllData();
-        
-        setInterval(pollSms, 5000); 
-        setInterval(updateSmsTimers, 1000);
-    }
-
-    function toggleUserLock() { 
-        isUserLocked = !isUserLocked; 
-        localStorage.setItem('xurel_user_locked', isUserLocked); 
-        applyUserLockUI(); 
-    }
-
-    function applyUserLockUI() {
-        const select = document.getElementById('user-selector'); 
-        const icon = document.getElementById('user-lock-icon'); 
-        select.disabled = isUserLocked;
-        
-        if (isUserLocked) { icon.className = 'fas fa-lock'; icon.style.color = '#e74c3c'; } 
-        else { icon.className = 'fas fa-unlock'; icon.style.color = '#666'; }
-    }
-
-    function changeGlobalUser() {
-        if(isUserLocked) return;
-        currentUser = document.getElementById('user-selector').value;
-        localStorage.setItem('xurel_selected_user', currentUser);
-        refreshAllData();
-    }
-
-    function refreshAllData() {
-        renderShopee(); 
-        refreshSms();   
-    }
-
-    function showTempNotif(btnElement, notifText, originalHTML) {
-        btnElement.innerHTML = notifText;
-        setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
-    }
-
-    // ================= MODAL & AUDIO =================
-    function showModal(title, msg, type='confirm') {
-        return new Promise(resolve => {
-            const ov = document.getElementById('universal-modal');
-            document.getElementById('u-modal-title').innerText = title;
-            document.getElementById('u-modal-msg').innerText = msg;
-            const actions = document.getElementById('u-modal-actions');
-            actions.innerHTML = '';
-            
-            if (type === 'confirm') {
-                actions.innerHTML = `
-                    <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
-                    <button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>
-                `;
-            } else {
-                actions.innerHTML = `<button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>`;
-            }
-            window.modalResolve = resolve;
-            ov.classList.add('active');
-        });
-    }
-
-    function playNotifSound() {
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
-        } catch(e) {}
-    }
-
-    function showOtpToast(otpCode) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'otp-toast';
-        toast.innerHTML = `<i class="fa-solid fa-bell"></i> OTP: <span>${otpCode}</span>`;
-        container.appendChild(toast);
-        playNotifSound();
-        setTimeout(() => { toast.remove(); }, 5000);
-    }
-
-    // ================= FIREBASE & ADMIN =================
-    const configMaster = { 
-        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
-        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "santridroid-link"
-    };
-    firebase.initializeApp(configMaster);
-    const db = firebase.database(); const auth = firebase.auth();
-    let globalUser = null;
-
-    function toggleAdminMenu() { document.getElementById('admin-menu').classList.toggle('active'); }
-    
-    auth.onAuthStateChanged(user => {
-        globalUser = user; 
-        document.getElementById('login-form').classList.toggle('hidden', !!user);
-        document.getElementById('logout-form').classList.toggle('hidden', !user);
-        renderShopee();
-    });
-
-    function globalLogin() {
-        const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
-        auth.signInWithEmailAndPassword(e, p).then(() => {
-            document.getElementById('admin-menu').classList.remove('active');
-        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
-    }
-    function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
-
-    // ================= LOGIKA SHOPEE =================
-    let shopeeDataCache = {}; 
-    db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
-
-    async function addShopeeMenu() {
-        const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
-        if(!t || !u) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
-        db.ref('linkshopee').push({ title: t.toUpperCase(), url: u, createdAt: Date.now() }).then(() => {
-            document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
-            showModal("Sukses", "Link berhasil ditambahkan", "alert");
-        });
-    }
-
-    function renderShopee() {
-        const container = document.getElementById('shopee-container'); container.innerHTML = "";
-        let found = false;
-        
-        Object.keys(shopeeDataCache).reverse().forEach(key => {
-            const data = shopeeDataCache[key];
-            if(data.title.toUpperCase() === currentUser.toUpperCase()) {
-                found = true;
-                // Merender tombol ungu polos sesuai desain gambar baru
-                container.innerHTML += `
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-purple" style="flex:1;" onclick="copyShopeeLink(event, '${data.url}', this)">
-                            ${data.title}
-                        </button>
-                        ${!!globalUser ? `<button class="btn btn-red" style="width:40px; margin-bottom:5px;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+        <div class="content-card">
+            <div class="tools-grid">
+                <div class="tool-group">
+                    <input type="text" id="genEmailInput" class="tool-input" placeholder="Email (contoh: user1@gmail.com)" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+                    <div class="tool-row">
+                        <button onclick="copyAndIncrementEmail()" style="background: #f39c12;"><i class="fa-solid fa-copy"></i> Copy Email</button>
                     </div>
-                `;
-            }
-        });
+                </div>
 
-        if(!found) container.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center;">Kosong</div>`;
-    }
-
-    async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
-    
-    function copyShopeeLink(event, url, btnElement) {
-        event.preventDefault(); navigator.clipboard.writeText(url).then(() => {
-            const ori = btnElement.innerText;
-            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', ori);
-        });
-    }
-
-    // ================= TOOLS GENERATOR =================
-    let listFN = [], listLN = [];
-    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
-    
-    function generateName(btnElement) {
-        if(!listFN.length) return;
-        const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
-        navigator.clipboard.writeText(full).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-user"></i> Acak Nama'); });
-    }
-    
-    function generatePhone(btnElement) {
-        let number = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
-        for(let i=0; i<9; i++) number += Math.floor(Math.random() * 10);
-        navigator.clipboard.writeText(number).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-phone-alt"></i> Acak Nomor'); });
-    }
-    
-    function copyAndIncrementEmail() {
-        const input = document.getElementById('genEmailInput'); const btn = document.getElementById('btn-copy-email');
-        let email = input.value.trim(); if (!email) return;
-        
-        navigator.clipboard.writeText(email).then(() => {
-            showTempNotif(btn, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Email');
-            const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
-            if (match) input.value = `${match[1]}${parseInt(match[2], 10) + 1}${match[3]}`;
-            else { const atIdx = email.lastIndexOf('@'); if (atIdx !== -1) input.value = `${email.substring(0, atIdx)}1${email.substring(atIdx)}`; }
-            localStorage.setItem('xurel_saved_email', input.value);
-        });
-    }
-
-    // ================= LOGIKA SMS =================
-    async function fetchWorker(path, options = {}) {
-        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser } });
-    }
-
-    function refreshSms() {
-        document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
-        updateSmsBal(); loadSmsPrices(); pollSms();
-    }
-
-    async function updateSmsBal() {
-        try {
-            const res = await fetchWorker(`/get-balance`); const json = await res.json();
-            document.getElementById('sms-balance').innerText = json.success ? `Rp ${json.data.balance.toLocaleString('id-ID')}` : `Rp 0`;
-        } catch(e) {}
-    }
-
-    async function loadSmsPrices() {
-        try {
-            const res = await fetchWorker(`/get-prices`); const json = await res.json();
-            const box = document.getElementById('sms-prices');
-            if (json.success && json.data.length > 0) {
-                box.innerHTML = json.data.map(i => `
-                    <div class="list-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
-                        <span class="item-name">${i.name}</span>
-                        <span class="item-price">Rp ${i.price}</span>
-                        <span class="item-stock">${i.available} stok</span>
-                    </div>`).join('');
-            } else box.innerHTML = '<div style="padding:20px; text-align:center;">Kosong atau Token Error</div>';
-        } catch (e) {}
-    }
-
-    async function buySms(pid, price, name) {
-        if(!await showModal("Pesan", `Beli ${name} seharga Rp ${price}?`)) return;
-        try {
-            const res = await fetchWorker(`/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
-            const j = await res.json();
-            if(j.success) {
-                const o = j.data.orders[0]; 
-                localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
-                pollSms(); updateSmsBal();
-            } else showModal("Gagal", j.error.message || "Gagal order", "alert");
-        } catch(e){}
-    }
-
-    async function pollSms() { try { const res = await fetchWorker(`/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {} }
-
-    function copyPhoneNumber(txt, el) {
-        if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
-        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
-    }
-
-    function renderSmsOrders(orders) {
-        const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
-        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
-        if(!orders || !orders.length) return;
-        
-        orders.forEach(o => {
-            const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari...';
-            if(o.phone) localStorage.setItem('phone_'+o.id, o.phone);
-            
-            const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
-            if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
-            
-            let expireTime = localStorage.getItem('timer_' + o.id);
-            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem('timer_' + o.id, expireTime); }
-            
-            let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
-
-            if (o.otp_code && !localStorage.getItem('notif_otp_' + o.id + '_' + o.otp_code)) {
-                showOtpToast(o.otp_code); localStorage.setItem('notif_otp_' + o.id + '_' + o.otp_code, 'true');
-            }
-
-            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
-            
-            const existing = document.getElementById('order-' + o.id);
-            if (existing) {
-                existing.querySelector('.order-phone').innerText = phone;
-                existing.querySelector('.order-otp').innerHTML = otpDisplay;
-                if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
-                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
-            } else {
-                container.insertAdjacentHTML('afterbegin', `
-                <div class="order-card" id="order-${o.id}">
-                    <div class="order-header"><span>#${o.id} - Rp ${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
-                    <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
-                    <div class="order-otp">${otpDisplay}</div>
-                    <div class="btn-grid">
-                        <button class="btn-sm" onclick="actSms('finish', ${o.id})">DONE</button>
-                        <button class="btn-sm btn-resend" onclick="actSms('resend', ${o.id})" ${o.otp_code?'':'disabled'}>RESEND</button>
-                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', ${o.id})" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                        <button class="btn-sm btn-replace" onclick="actSms('replace', ${o.id})" ${passed2Mins?'':'disabled'}>REPLACE</button>
+                <div class="tool-group">
+                    <input type="text" id="genNameOutput" class="tool-input" placeholder="--- Hasil Acak ---" readonly>
+                    <div class="tool-row">
+                        <button onclick="generateName()" style="background: var(--fb-blue);"><i class="fa-solid fa-user"></i> Acak Nama</button>
+                        <button onclick="generatePhone()" style="background: var(--fb-green);"><i class="fa-solid fa-phone"></i> Acak Nomor</button>
                     </div>
-                </div>`);
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color: var(--fb-muted); font-size: 14px;">LINK SHOPEE</h3>
+        <div id="shopee-container" class="shopee-grid"></div>
+    </div>
+
+    <div id="app-notes" class="app-section">
+        <div class="notes-subnav">
+            <button id="tab-pub" class="note-tab active" onclick="switchNoteTab('public')">Publik</button>
+            <button id="tab-priv" class="note-tab" onclick="switchNoteTab('private')"><i class="fa-solid fa-lock"></i> Privat</button>
+        </div>
+        
+        <div id="note-lock-section" class="content-card hidden" style="text-align: center; padding: 40px 20px;">
+            <i class="fa-solid fa-lock" style="font-size: 40px; color: var(--fb-muted); margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom: 10px; font-size: 16px; color: var(--fb-text);">Catatan Terkunci</h3>
+            <p style="font-size: 12px; color: var(--fb-muted); margin-bottom: 20px;">Silakan login melalui <b>Menu Utama (Garis tiga di pojok kiri atas)</b> untuk melihat catatan privat Anda.</p>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="toggleMainMenu()">Buka Menu Login</button>
+        </div>
+
+        <div id="notes-grid" class="notes-grid"></div>
+    </div>
+    <button id="fab-note" class="fab" onclick="openNoteModal()"><i class="fas fa-plus"></i></button>
+
+    <div id="app-sms" class="app-section sms-wrapper">
+        <div class="content-card sms-top" style="padding: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="sms-server" class="sms-select" onchange="changeSmsServer()"></select>
+                <button onclick="toggleSmsLock()" style="background:none; border:none; cursor:pointer; font-size:18px;">
+                    <i id="sms-lock-icon" class="fa-solid fa-unlock" style="color: var(--fb-muted);"></i>
+                </button>
+            </div>
+            <div class="bal-val" id="sms-balance">Rp 0</div>
+        </div>
+        
+        <div id="sms-active-orders"></div>
+        
+        <h3 style="color: var(--fb-muted); font-size: 14px; margin-bottom: 10px;">PESAN NOMOR BARU</h3>
+        <div class="price-list" id="sms-prices">
+            <div style="padding:30px; text-align:center; color:#888;">Memuat data...</div>
+        </div>
+    </div>
+
+    <div id="universal-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="u-modal-title" style="margin-bottom:10px;">Konfirmasi</h3>
+            <p id="u-modal-msg" style="color:var(--fb-muted); font-size:14px; margin-bottom:20px; line-height:1.5;"></p>
+            <div id="u-modal-actions" style="display:flex; justify-content:flex-end; gap:0;"></div>
+        </div>
+    </div>
+
+    <div id="modal-note-form" class="modal-overlay" onclick="closeModal('modal-note-form')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3 style="margin-bottom:15px;">Catatan</h3>
+            <input type="text" id="note-title" class="form-input" placeholder="Judul (Kosongkan utk auto-number)">
+            <textarea id="note-content" class="form-input" style="min-height: 150px; resize: vertical;" placeholder="Tulis sesuatu..."></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="m-btn" style="flex: 1; background: var(--fb-bg); color:var(--fb-muted); margin-left:0;" onclick="closeModal('modal-note-form')">BATAL</button>
+                <button class="m-btn btn-primary" style="flex: 2; margin-left: 0;" onclick="saveNote()">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-note-view" class="modal-overlay" onclick="closeModal('modal-note-view')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span id="view-tag" style="font-size:10px; font-weight:bold; background:#eee; padding:4px 10px; border-radius:20px; color:#555"></span>
+                <i class="fa-solid fa-times" style="cursor:pointer; color:#888; font-size:18px;" onclick="closeModal('modal-note-view')"></i>
+            </div>
+            <h2 id="view-title" style="margin-bottom:15px; font-weight:800; font-size:20px;"></h2>
+            <div id="view-content" style="background:#f8f9fa; padding:15px; border-radius:8px; min-height:150px; max-height:50vh; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-size:14px;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="m-btn btn-primary" style="flex:1; margin-left:0; padding:12px;" onclick="editNote()"><i class="fas fa-edit"></i> Edit</button>
+                <button class="m-btn btn-primary" style="flex:1; background:#f39c12; margin-left:0; padding:12px;" onclick="copyNoteContent(this)"><i class="fas fa-copy"></i> Salin</button>
+                <button class="m-btn btn-danger" style="width:50px; margin-left:0; padding:12px;" onclick="deleteNote()"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= TAMBAHAN: AUTO-LOAD EMAIL DARI LOCAL STORAGE =================
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('xurel_saved_email');
+            if(savedEmail) {
+                document.getElementById('genEmailInput').value = savedEmail;
             }
         });
-        updateSmsTimers();
-    }
 
-    function updateSmsTimers() {
-        document.querySelectorAll('.sms-timer').forEach(el => {
-            const diff = Math.max(0, Math.floor((parseInt(localStorage.getItem('timer_'+el.dataset.id)) - Date.now())/1000));
-            el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
-            el.style.color = diff < 600 ? "#e74c3c" : "#555";
-            if (diff <= 1080) {
-                const card = document.getElementById('order-' + el.dataset.id);
-                if(card) { card.querySelector('.btn-cancel').disabled = false; card.querySelector('.btn-replace').disabled = false; }
-            }
-        });
-    }
-
-    async function actSms(action, id) {
-        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
-        try {
-            const res = await fetchWorker(`/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
-            if((await res.json()).success) {
-                if(action !== 'resend') { 
-                    localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); 
-                    Object.keys(localStorage).forEach(k => { if(k.startsWith('notif_otp_' + id)) localStorage.removeItem(k); });
+        // ================= 0. UNIVERSAL MODAL SYSTEM =================
+        function showModal(title, msg, type='confirm') {
+            return new Promise(resolve => {
+                const ov = document.getElementById('universal-modal');
+                document.getElementById('u-modal-title').innerText = title;
+                document.getElementById('u-modal-msg').innerText = msg;
+                const actions = document.getElementById('u-modal-actions');
+                actions.innerHTML = '';
+                
+                if (type === 'confirm' || type === 'danger') {
+                    const btnCancel = document.createElement('button');
+                    btnCancel.className = 'm-btn'; 
+                    btnCancel.style.background = 'var(--fb-hover)'; btnCancel.style.color = 'var(--fb-text)';
+                    btnCancel.innerText = 'BATAL';
+                    btnCancel.onclick = () => { ov.classList.remove('active'); resolve(false); };
+                    
+                    const btnOk = document.createElement('button');
+                    btnOk.className = 'm-btn ' + (type === 'danger' ? 'btn-danger' : 'btn-primary'); 
+                    btnOk.innerText = 'OKE';
+                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
+                    
+                    actions.appendChild(btnCancel);
+                    actions.appendChild(btnOk);
+                } else {
+                    const btnOk = document.createElement('button');
+                    btnOk.className = 'm-btn btn-primary'; 
+                    btnOk.innerText = 'OKE';
+                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
+                    actions.appendChild(btnOk);
                 }
-                pollSms(); updateSmsBal();
+                
+                ov.classList.add('active');
+            });
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // ================= 1. TAB & UI NAVIGATION =================
+        function switchApp(appId, btnElement) {
+            document.querySelectorAll('.app-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('app-' + appId).classList.add('active');
+            btnElement.classList.add('active');
+            
+            document.getElementById('fab-note').style.display = (appId === 'notes' && document.getElementById('note-lock-section').classList.contains('hidden')) ? 'flex' : 'none';
+            if(appId === 'sms' && !smsInitialized) initSms();
+        }
+
+        function toggleMainMenu() { document.getElementById('main-menu-popup').classList.toggle('active'); }
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('main-menu-popup');
+            const btn = document.querySelector('.menu-btn');
+            if(popup.classList.contains('active') && !popup.contains(e.target) && !btn.contains(e.target)) {
+                popup.classList.remove('active');
             }
-        } catch(e){}
-    }
-</script>
+        });
+
+        // ================= 2. FIREBASE INITIALIZATION =================
+        const configMaster = { 
+            apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
+            authDomain: "santridroid-link.firebaseapp.com",
+            databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "santridroid-link",
+            storageBucket: "santridroid-link.firebasestorage.app",
+            messagingSenderId: "37630509146",
+            appId: "1:37630509146:web:e1472cff08b34269721863",
+            measurementId: "G-6YM0LDQTHN"
+        };
+
+        firebase.initializeApp(configMaster);
+
+        const db = firebase.database(); 
+        const auth = firebase.auth();
+
+        let globalUser = null;
+
+        auth.onAuthStateChanged(user => {
+            globalUser = user; const isAdmin = !!user;
+            
+            document.getElementById('login-form').classList.toggle('hidden', isAdmin);
+            document.getElementById('logout-form').classList.toggle('hidden', !isAdmin);
+            
+            document.getElementById('shopee-admin').classList.toggle('hidden', !isAdmin);
+            renderShopee();
+            
+            if(currentNoteTab === 'private' && !isAdmin) {
+                switchNoteTab('public');
+            } else {
+                syncNotes();
+            }
+        });
+
+        function globalLogin() {
+            const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => auth.signInWithEmailAndPassword(e, p))
+            .then(() => {
+                document.getElementById('main-menu-popup').classList.remove('active');
+            }).catch(() => showModal("Gagal Login", "Periksa kembali Email atau Password Anda.", "alert"));
+        }
+        
+        function globalLogout() { 
+            auth.signOut(); 
+            document.getElementById('main-menu-popup').classList.remove('active'); 
+        }
+
+        // ================= 3. LOGIKA SHOPEE & TOOLS KUSTOM =================
+        let shopeeDataCache = {}; let editingShopeeKey = null;
+        db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+
+        function formatRupiah(el) {
+            let angka = el.value.replace(/[^,\d]/g, '').toString(); let split = angka.split(','); let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa); let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+            if (ribuan) { rupiah += (sisa ? '.' : '') + ribuan.join('.'); }
+            el.value = rupiah ? 'Rp ' + rupiah : '';
+        }
+
+        async function addShopeeMenu() {
+            const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
+            const p = document.getElementById('shopee-price').value; const s = document.getElementById('shopee-status').value;
+            if(t && u) {
+                db.ref('linkshopee').push({ title: t, url: u, price: p, status: s, createdAt: Date.now() }).then(() => {
+                    document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
+                    document.getElementById('shopee-price').value = ""; document.getElementById('shopee-status').value = "";
+                });
+            } else showModal("Peringatan", "Nama Produk & URL wajib diisi!", "alert");
+        }
+
+        function renderShopee() {
+            const container = document.getElementById('shopee-container'); container.innerHTML = "";
+            const colors = ['#e41e3f', '#1877f2', '#8e44ad', '#f39c12', '#2ecc71', '#1abc9c', '#d35400'];
+            
+            Object.keys(shopeeDataCache).reverse().forEach((key, idx) => {
+                const data = shopeeDataCache[key]; const isAdmin = !!globalUser;
+                const wrapper = document.createElement('div');
+                
+                if (isAdmin && editingShopeeKey === key) {
+                    wrapper.className = 'content-card'; wrapper.style.padding = '10px'; wrapper.style.marginBottom = '0';
+                    wrapper.innerHTML = `
+                        <input id="ed-t-${key}" class="form-input" value="${data.title}">
+                        <input id="ed-u-${key}" class="form-input" value="${data.url}">
+                        <button class="btn-primary" onclick="saveEditShopee('${key}')">Simpan</button>`;
+                } else {
+                    wrapper.className = 'shopee-item-wrapper'; wrapper.style.background = colors[idx % colors.length];
+                    let st = data.status ? `<span class="badge-status">${data.status}</span>` : ''; let pr = data.price ? `<span class="badge-status">${data.price}</span>` : '';
+                    
+                    wrapper.innerHTML = `
+                        <div class="shopee-copy-btn" onclick="copyShopeeLink(event, '${data.url}', this)" title="Salin Link"><i class="fa-solid fa-copy"></i></div>
+                        <div class="shopee-item" onclick="copyShopeeLink(event, '${data.url}', this.previousElementSibling)">
+                            <span>${data.title}</span><div class="shopee-details">${st}${pr}</div>
+                        </div>
+                        ${isAdmin ? `<div class="admin-controls"><button class="btn-ctrl" onclick="editingShopeeKey='${key}'; renderShopee();"><i class="fa-solid fa-pen" style="font-size:12px;"></i></button><button class="btn-ctrl" style="color:var(--fb-red)" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></button></div>` : ''}`;
+                }
+                container.appendChild(wrapper);
+            });
+        }
+
+        function saveEditShopee(key) { db.ref('linkshopee/'+key).update({ title: document.getElementById(`ed-t-${key}`).value, url: document.getElementById(`ed-u-${key}`).value }).then(() => { editingShopeeKey = null; renderShopee(); }); }
+        async function deleteShopee(key) { if(await showModal("Hapus Link", "Yakin ingin menghapus link Shopee ini?", "danger")) db.ref('linkshopee/'+key).remove(); }
+        function copyShopeeLink(event, url, btnElement) {
+            event.preventDefault(); event.stopPropagation();
+            navigator.clipboard.writeText(url).then(() => {
+                const originalIcon = btnElement.innerHTML; btnElement.innerHTML = '<i class="fa-solid fa-check" style="color:var(--fb-green);"></i>';
+                setTimeout(() => { btnElement.innerHTML = originalIcon; }, 1500);
+            }).catch(() => showModal("Gagal", "Perangkat tidak mendukung fitur salin otomatis.", "alert"));
+        }
+
+        let listFN = [], listLN = [];
+        fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+        
+        function generateName() {
+            if(!listFN.length) return;
+            const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+            document.getElementById('genNameOutput').value = full; 
+            navigator.clipboard.writeText(full);
+        }
+
+        function generatePhone() {
+            const prefixes = ["081", "082", "083", "085", "087", "088", "089"];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            let number = prefix;
+            for(let i=0; i<9; i++) {
+                number += Math.floor(Math.random() * 10);
+            }
+            document.getElementById('genNameOutput').value = number;
+            navigator.clipboard.writeText(number);
+        }
+
+        function copyAndIncrementEmail() {
+            const emailInput = document.getElementById('genEmailInput');
+            let currentEmail = emailInput.value.trim();
+            if (!currentEmail) return;
+
+            navigator.clipboard.writeText(currentEmail);
+
+            const regex = /(.*?)(\d+)(@[^@]+)$/;
+            const match = currentEmail.match(regex);
+
+            if (match) {
+                const prefix = match[1];
+                const number = parseInt(match[2], 10);
+                const domain = match[3];
+                emailInput.value = `${prefix}${number + 1}${domain}`;
+            } else {
+                const atIndex = currentEmail.lastIndexOf('@');
+                if (atIndex !== -1) {
+                    const prefix = currentEmail.substring(0, atIndex);
+                    const domain = currentEmail.substring(atIndex);
+                    emailInput.value = `${prefix}1${domain}`;
+                }
+            }
+            
+            // TAMBAHAN: Simpan ke local storage setelah email diganti oleh sistem
+            localStorage.setItem('xurel_saved_email', emailInput.value);
+        }
+
+        // ================= 4. LOGIKA NOTES =================
+        let currentNoteTab = 'public'; let selectedNoteKey = null; let currentNoteRaw = ""; let isEditingNote = false;
+
+        function switchNoteTab(tab) {
+            currentNoteTab = tab;
+            document.getElementById('tab-pub').classList.toggle('active', tab === 'public');
+            document.getElementById('tab-priv').classList.toggle('active', tab === 'private');
+            
+            if (tab === 'private' && !globalUser) {
+                document.getElementById('note-lock-section').classList.remove('hidden');
+                document.getElementById('notes-grid').classList.add('hidden');
+                document.getElementById('fab-note').style.display = 'none';
+            } else {
+                document.getElementById('note-lock-section').classList.add('hidden');
+                document.getElementById('notes-grid').classList.remove('hidden');
+                if (document.getElementById('app-notes').classList.contains('active')) {
+                    document.getElementById('fab-note').style.display = 'flex';
+                }
+                syncNotes();
+            }
+        }
+
+        function getNotesPath() { return (currentNoteTab === 'private' && globalUser) ? `notes/users/${globalUser.uid}` : 'notes/public'; }
+
+        function formatDate(ts) {
+            if(!ts) return "---";
+            const days = ['Ming', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            const d = new Date(ts);
+            const dayName = days[d.getDay()];
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = String(d.getFullYear()).slice(-2);
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${dayName}, ${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        function autoLinkText(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, function(url) {
+                return `<a href="${url}" target="_blank" class="text-link" onclick="event.stopPropagation()">${url}</a>`;
+            });
+        }
+
+        function escapeHTML(str) {
+            if(!str) return "";
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        }
+
+        function syncNotes() {
+            const path = getNotesPath(); db.ref(path).off();
+            db.ref(path).orderByChild('timestamp').on('value', snap => {
+                const grid = document.getElementById('notes-grid'); grid.innerHTML = ''; let items = [];
+                snap.forEach(child => { items.push({ key: child.key, ...child.val() }); });
+                
+                items.reverse().forEach(d => {
+                    const card = document.createElement('div'); card.className = 'note-card'; card.onclick = () => viewNote(d.key, d);
+                    card.innerHTML = `<div class="note-title">${escapeHTML(d.title) || 'Untitled'}</div>
+                                      <div class="note-preview">${escapeHTML(d.content)}</div>
+                                      <div class="note-date">${formatDate(d.timestamp)}</div>`;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        function openNoteModal() {
+            isEditingNote = false; document.getElementById('note-title').value = ""; document.getElementById('note-content').value = "";
+            document.getElementById('modal-note-form').classList.add('active');
+        }
+
+        function saveNote() {
+            let t = document.getElementById('note-title').value.trim();
+            const c = document.getElementById('note-content').value;
+            if(!c) return showModal("Peringatan", "Konten catatan tidak boleh kosong!", "alert");
+            const path = getNotesPath();
+            
+            if(!t) {
+                db.ref(path).once('value').then(snapshot => {
+                    let usedNumbers = new Set();
+                    snapshot.forEach(child => {
+                        if (isEditingNote && child.key === selectedNoteKey) return; 
+                        let titleStr = child.val().title;
+                        if (titleStr && /^\d+$/.test(titleStr.toString().trim())) usedNumbers.add(parseInt(titleStr.toString().trim()));
+                    });
+                    let nextNum = 1; while (usedNumbers.has(nextNum)) { nextNum++; }
+                    executeNoteSave(nextNum.toString(), c, path);
+                }).catch(e => showModal("Gagal", "Gagal menghubungi database.", "alert"));
+            } else { executeNoteSave(t, c, path); }
+        }
+
+        function executeNoteSave(title, content, path) {
+            const data = { title: title, content: content, timestamp: Date.now() };
+            const req = (isEditingNote && selectedNoteKey) ? db.ref(`${path}/${selectedNoteKey}`).update(data) : db.ref(path).push(data);
+            req.then(() => closeModal('modal-note-form')).catch(() => showModal("Gagal", "Akses Ditolak.", "alert"));
+        }
+
+        function viewNote(key, data) {
+            selectedNoteKey = key; currentNoteRaw = data.content;
+            document.getElementById('view-tag').innerText = (currentNoteTab === 'private' ? "🔒 PRIV | " : "🌐 PUB | ") + formatDate(data.timestamp);
+            document.getElementById('view-title').innerText = data.title;
+            document.getElementById('view-content').innerHTML = autoLinkText(escapeHTML(data.content));
+            document.getElementById('modal-note-view').classList.add('active');
+        }
+
+        function editNote() {
+            closeModal('modal-note-view'); isEditingNote = true;
+            document.getElementById('note-title').value = document.getElementById('view-title').innerText;
+            document.getElementById('note-content').value = currentNoteRaw;
+            document.getElementById('modal-note-form').classList.add('active');
+        }
+
+        async function deleteNote() {
+            if(await showModal("Hapus Catatan", "Yakin ingin menghapus catatan ini secara permanen?", "danger")) {
+                db.ref(`${getNotesPath()}/${selectedNoteKey}`).remove();
+                closeModal('modal-note-view');
+            }
+        }
+        
+        function copyNoteContent(btn) {
+            navigator.clipboard.writeText(currentNoteRaw);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Tersalin';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
+        }
+
+        // ================= 5. LOGIKA SMS =================
+        const SMS_SERVERS = { "UMAM": "https://umam.santridroid.workers.dev", "YANTO": "https://yanto.santridroid.workers.dev", "MIA": "https://mia.santridroid.workers.dev", "NAZILA": "https://nazila.santridroid.workers.dev", "MAHFUDZ": "https://mahfudz.santridroid.workers.dev", "MIFTAH": "https://miftah.santridroid.workers.dev" };
+        let currentSmsWorker = ""; let smsInitialized = false; let isSmsLocked = false;
+
+        function initSms() {
+            smsInitialized = true; const select = document.getElementById('sms-server');
+            select.innerHTML = Object.keys(SMS_SERVERS).map(k => `<option value="${SMS_SERVERS[k]}">${k}</option>`).join('');
+            isSmsLocked = localStorage.getItem('xurel_locked') === 'true';
+            const savedServer = localStorage.getItem('xurel_selected_hp');
+            if(savedServer && SMS_SERVERS[savedServer]) { currentSmsWorker = SMS_SERVERS[savedServer]; select.value = currentSmsWorker; } 
+            else { currentSmsWorker = SMS_SERVERS["HP1"]; }
+            applySmsLockUI(); refreshSms(); setInterval(pollSms, 5000); setInterval(updateSmsTimers, 1000);
+        }
+
+        function toggleSmsLock() { isSmsLocked = !isSmsLocked; localStorage.setItem('xurel_locked', isSmsLocked); applySmsLockUI(); }
+
+        function applySmsLockUI() {
+            const select = document.getElementById('sms-server'); const icon = document.getElementById('sms-lock-icon'); select.disabled = isSmsLocked;
+            if (isSmsLocked) { icon.className = 'fa-solid fa-lock'; icon.style.color = 'var(--fb-red)'; } 
+            else { icon.className = 'fa-solid fa-unlock'; icon.style.color = 'var(--fb-muted)'; }
+        }
+
+        function changeSmsServer() {
+            if(isSmsLocked) return; currentSmsWorker = document.getElementById('sms-server').value;
+            localStorage.setItem('xurel_selected_hp', document.getElementById('sms-server').options[document.getElementById('sms-server').selectedIndex].text);
+            refreshSms();
+        }
+
+        function refreshSms() {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:30px; text-align:center; color:#888;">Mengambil Data...</div>';
+            updateSmsBal(); loadSmsPrices(); pollSms();
+        }
+
+        async function updateSmsBal() {
+            try {
+                const res = await fetch(`${currentSmsWorker}/get-balance`); const json = await res.json();
+                if(json.success) document.getElementById('sms-balance').innerText = `Rp ${json.data.balance.toLocaleString('id-ID')}`;
+            } catch(e) {}
+        }
+
+        async function loadSmsPrices() {
+            try {
+                const res = await fetch(`${currentSmsWorker}/get-prices`); const json = await res.json();
+                const box = document.getElementById('sms-prices');
+                if (json.success && json.data.length > 0) {
+                    box.innerHTML = json.data.map(i => `
+                        <div class="price-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
+                            <div><div style="font-weight:bold;">${i.name}</div></div>
+                            <div style="font-size:12px; color:var(--fb-muted);"><span style="color:var(--fb-red); font-family:monospace; font-size:14px; font-weight: 900; margin-right: 10px;">Rp ${i.price}</span> ${i.available} stok</div>
+                        </div>`).join('');
+                } else box.innerHTML = '<div style="padding:30px; text-align:center;">Kosong</div>';
+            } catch (e) {}
+        }
+
+        async function buySms(pid, price, name) {
+            if(!await showModal("Pesan Baru", `Beli nomor untuk ${name} seharga Rp ${price}?`, "confirm")) return;
+            try {
+                const res = await fetch(`${currentSmsWorker}/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
+                const j = await res.json();
+                if(j.success) {
+                    const o = j.data.orders[0]; 
+                    localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
+                    pollSms(); updateSmsBal();
+                } else showModal("Gagal", j.error.message || "Gagal memesan stok.", "alert");
+            } catch(e){}
+        }
+
+        async function pollSms() {
+            try { const res = await fetch(`${currentSmsWorker}/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {}
+        }
+
+        function copyPhoneNumber(txt, iconId) {
+            if(txt.includes('Mencari')) return;
+            navigator.clipboard.writeText(txt);
+            
+            const icon = document.getElementById(iconId);
+            if(icon) {
+                icon.className = "fa-solid fa-circle-check";
+                icon.style.color = "var(--fb-green)";
+                setTimeout(() => { 
+                    icon.className = "fa-regular fa-copy";
+                    icon.style.color = "var(--fb-muted)";
+                }, 1500);
+            }
+        }
+
+        function renderSmsOrders(orders) {
+            const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+            Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+            if(!orders || !orders.length) return;
+            
+            orders.forEach(o => {
+                const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari Nomor...';
+                if(o.phone && !localStorage.getItem('phone_'+o.id)) localStorage.setItem('phone_'+o.id, o.phone);
+                
+                const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
+                if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
+                
+                let expireTime = 0;
+                if (o.expires_at) expireTime = new Date(o.expires_at).getTime();
+                else if (o.created_at) expireTime = new Date(o.created_at).getTime() + (20 * 60000);
+                else if (o.time) expireTime = new Date(o.time).getTime() + (20 * 60000);
+                else if (o.start_time) expireTime = new Date(o.start_time).getTime() + (20 * 60000);
+                else if (o.timestamp) expireTime = new Date(o.timestamp).getTime() + (20 * 60000);
+                else if (o.date) expireTime = new Date(o.date).getTime() + (20 * 60000);
+                
+                if (!expireTime || isNaN(expireTime) || expireTime === 0) {
+                    expireTime = localStorage.getItem('timer_' + o.id);
+                    if (!expireTime) expireTime = Date.now() + (20 * 60000);
+                }
+                
+                localStorage.setItem('timer_' + o.id, expireTime); 
+                
+                const endTimeStr = expireTime; 
+                let passed2Mins = false;
+                if (endTimeStr) { const remaining = Math.floor((parseInt(endTimeStr) - Date.now()) / 1000); if (remaining <= 1080) passed2Mins = true; }
+
+                const resendState = o.otp_code ? '' : 'disabled'; const cancelReplaceState = passed2Mins ? '' : 'disabled';
+                let otpDisplay = o.otp_code ? `<span style="color:var(--fb-green); letter-spacing:4px; font-size:26px; font-weight:bold; font-family:monospace;">${o.otp_code}</span>` : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+                const priceDisplay = serverPrice ? parseInt(serverPrice).toLocaleString('id-ID') : '...';
+
+                const existingCard = document.getElementById('order-' + o.id);
+                if (existingCard) {
+                    const phoneBoxSpan = existingCard.querySelector('.phone-text-span'); 
+                    if (phoneBoxSpan && phoneBoxSpan.innerText !== phone && phone !== 'Mencari Nomor...') phoneBoxSpan.innerText = phone; 
+                    
+                    const otpContainer = existingCard.querySelector('.otp-container'); if (otpContainer.innerHTML.trim() !== otpDisplay.trim()) otpContainer.innerHTML = otpDisplay;
+                    const priceBox = existingCard.querySelector('.price-box'); if (priceBox && priceBox.innerText.includes('...') && serverPrice) priceBox.innerText = `Rp ${priceDisplay}`;
+                    if (o.otp_code) {
+                        const btnDone = existingCard.querySelector('.btn-done'); if(btnDone && btnDone.disabled) { btnDone.disabled = false; btnDone.style.color = "var(--fb-green)"; btnDone.style.borderColor = "var(--fb-green)"; btnDone.style.background = "#e6f4ea"; }
+                        const btnResend = existingCard.querySelector('.btn-resend'); if(btnResend && btnResend.disabled) btnResend.disabled = false;
+                    }
+                    if (passed2Mins) {
+                        const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
+                        if(btnCancel) btnCancel.disabled = false; if(btnReplace) btnReplace.disabled = false;
+                    }
+                } else {
+                    const cardHTML = `
+                    <div class="order-card" id="order-${o.id}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed var(--fb-border); padding-bottom:15px; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:var(--fb-blue); font-weight:bold; font-family:monospace; font-size:15px;">#${o.id}</span>
+                                <span class="badge-status" style="font-size:10px; color:var(--fb-text); font-family:sans-serif; background:rgba(0,0,0,0.1);">ACTIVE</span>
+                                <span class="price-box" style="font-size:16px; font-weight:900; color:var(--fb-red); font-family:monospace;">Rp ${priceDisplay}</span>
+                            </div>
+                            <span class="sms-timer" data-id="${o.id}" style="font-family:monospace; font-weight:bold; color:var(--fb-blue);">--:--</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--fb-muted); margin-bottom:5px; text-transform:uppercase;">Tap untuk salin:</div>
+                        
+                        <div class="phone-box" onclick="copyPhoneNumber('${phone}', 'copy-icon-${o.id}')">
+                            <span class="phone-text-span">${phone}</span>
+                            <i id="copy-icon-${o.id}" class="fa-regular fa-copy" style="color: var(--fb-muted);"></i>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 10px 0 15px 0; padding: 15px 0; background: #fafafa; border-radius: 8px;">
+                            <div style="font-size:11px; color:var(--fb-muted); font-weight:bold; letter-spacing:1px; margin-bottom:5px;">KODE OTP</div>
+                            <div class="otp-container" style="min-height:35px; display:flex; align-items:center; justify-content:center;">${otpDisplay}</div>
+                        </div>
+
+                        <div class="btn-grid-4">
+                            <button class="sms-btn btn-done" onclick="actSms('finish', ${o.id})" ${o.otp_code?'style="background:#e6f4ea; color:var(--fb-green); border-color:var(--fb-green);"':'disabled'}>✓ DONE</button>
+                            <button class="sms-btn btn-resend" onclick="actSms('resend', ${o.id})" ${resendState}>↻ RESEND</button>
+                            <button class="sms-btn btn-cancel" onclick="actSms('cancel', ${o.id})" ${cancelReplaceState}>✕ CANCEL</button>
+                            <button class="sms-btn btn-replace" onclick="actSms('replace', ${o.id})" ${cancelReplaceState}>⇄ REPLACE</button>
+                        </div>
+                    </div>`;
+                    container.insertAdjacentHTML('afterbegin', cardHTML);
+                }
+            });
+            updateSmsTimers();
+        }
+
+        function updateSmsTimers() {
+            document.querySelectorAll('.sms-timer').forEach(el => {
+                const id = el.dataset.id; const end = localStorage.getItem('timer_'+id);
+                if(end) {
+                    const diff = Math.max(0, Math.floor((parseInt(end) - Date.now())/1000));
+                    el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+                    el.style.color = diff < 600 ? "var(--fb-red)" : "var(--fb-blue)";
+                    if (diff <= 1080) {
+                        const existingCard = document.getElementById('order-' + id);
+                        if(existingCard) {
+                            const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
+                            if(btnCancel && btnCancel.disabled) btnCancel.disabled = false; if(btnReplace && btnReplace.disabled) btnReplace.disabled = false;
+                        }
+                    }
+                }
+            });
+        }
+
+        async function actSms(action, id) {
+            let title = "Konfirmasi", msg = "Lanjutkan?", type = "confirm";
+            if(action === 'cancel') { title = "Batalkan"; msg = "Yakin batalkan pesanan ini? Saldo dikembalikan."; type = "danger"; }
+            if(action === 'replace') { title = "Ganti Nomor"; msg = "Batalkan pesanan ini dan ganti nomor baru?"; }
+            if(action === 'resend') { title = "Kirim Ulang"; msg = "Meminta kode OTP baru?"; }
+            if(action === 'finish') { title = "Selesaikan"; msg = "Konfirmasi pesanan selesai."; }
+
+            if(!await showModal(title, msg, type)) return;
+            try {
+                const res = await fetch(`${currentSmsWorker}/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
+                const j = await res.json();
+                if(j.success) {
+                    if(action === 'cancel' || action === 'finish' || action === 'replace') { localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); }
+                    pollSms(); updateSmsBal();
+                } else showModal("Gagal", "Ditolak oleh server.", "alert");
+            } catch(e){}
+        }
+    </script>
 </body>
 </html>
