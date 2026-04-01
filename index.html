@@ -3,213 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRIDROID - Official</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Xurel - Multi Dashboard</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        /* ================= GLOBAL STYLES ================= */
+        :root {
+            --fb-bg: #f0f2f5; --fb-card: #ffffff; --fb-text: #050505;
+            --fb-muted: #65676B; --fb-blue: #1877f2; --fb-border: #ccd0d5;
+            --fb-hover: #e4e6eb; --fb-red: #e41e3f; --fb-green: #31a24c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { background-color: var(--fb-bg); color: var(--fb-text); padding-top: 60px; min-height: 100vh; }
         
-        @keyframes gradientBackground {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        input, textarea { user-select: auto !important; pointer-events: auto !important; }
+
+        /* ================= TOP NAVIGATION ================= */
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: var(--fb-card); box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1000;
         }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(120deg, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1, #84fab0, #8fd3f4);
-            background-size: 300% 300%;
-            animation: gradientBackground 15s ease infinite;
-            display: flex; flex-direction: column; align-items: center;
+        .nav-left { display: flex; align-items: center; position: relative; width: 50px; }
+        .menu-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; 
+            color: var(--fb-muted); font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
         }
+        .menu-btn:hover { background: var(--fb-hover); }
 
-        .brand-logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 2.2rem;
-            letter-spacing: 6px;
-            color: #2ecc71; 
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            margin: 25px 0 10px 0;
-            text-transform: uppercase;
+        /* Dropdown Hamburger Kiri (Pusat Login/Logout) */
+        .global-login {
+            display: none; position: absolute; top: 50px; left: 0; background: var(--fb-card); 
+            padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid var(--fb-border); z-index: 1001;
         }
+        .global-login.active { display: block; animation: fadeIn 0.2s ease; }
+        .form-input { width: 100%; padding: 12px 10px; margin-bottom: 10px; border: 1px solid var(--fb-border); border-radius: 6px; outline: none; font-size: 14px;}
+        .btn-primary { width: 100%; padding: 12px 10px; background: var(--fb-blue); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #1558b0; }
+        .btn-danger { width: 100%; padding: 12px 10px; background: var(--fb-red); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
 
-        .toolbar {
-            width: 100%; background: rgba(255, 255, 255, 0.95);
-            padding: 8px 15px; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            position: sticky; top: 0; z-index: 1000;
+        .nav-tabs-center { display: flex; height: 100%; gap: 10px; }
+        .nav-btn {
+            width: 90px; height: 100%; border: none; background: transparent; color: var(--fb-muted); font-size: 22px; 
+            cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; display: flex; justify-content: center; align-items: center;
         }
+        .nav-btn:hover { background: var(--fb-hover); border-radius: 8px; margin: 5px 0; height: calc(100% - 10px); }
+        .nav-btn.active { color: var(--fb-blue); border-bottom-color: var(--fb-blue); border-radius: 0; margin: 0; height: 100%; background: transparent; }
+        .nav-right { width: 50px; }
 
-        .nav-links { display: flex; align-items: center; gap: 0; }
-        .nav-item {
-            text-decoration: none; color: #555; 
-            display: flex; align-items: center; justify-content: center;
-            width: 45px; height: 45px; border-radius: 12px; transition: 0.3s;
-        }
-        .nav-item:hover, .nav-item.active { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
-        .nav-divider { width: 1.5px; height: 22px; background: #e0e0e0; margin: 0 4px; }
+        /* ================= APP CONTAINERS ================= */
+        .app-section { display: none; padding: 20px 10px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.3s ease; position: relative; z-index: 1; }
+        .app-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .auth-container { position: relative; }
-        .login-popup {
-            display: none; position: absolute; top: 50px; right: 0;
-            background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 240px; 
-            flex-direction: column; gap: 10px; z-index: 1001;
-        }
-        .login-popup input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .content-card { background: var(--fb-card); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; position: relative; z-index: 2; }
+        .hidden { display: none !important; }
 
-        .email-section {
-            width: 90%; max-width: 500px; margin-bottom: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
-        .email-box {
-            background: rgba(255,255,255,0.8); width: 100%; padding: 15px;
-            border-radius: 20px; border: 2px dashed #2ecc71; text-align: center;
-            font-size: 1.2rem; font-weight: bold; color: #27ae60; outline: none;
-        }
-        .btn-copy-email {
-            background: #2ecc71; color: white; border: none; padding: 10px 30px;
-            border-radius: 25px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); transition: 0.3s;
-        }
-        .btn-copy-email:hover { transform: scale(1.05); background: #27ae60; }
-
-        #toast {
-            position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.6); color: white; padding: 10px 20px;
-            border-radius: 30px; z-index: 9999; font-size: 14px; font-weight: bold;
-            display: none; backdrop-filter: blur(5px); pointer-events: none;
-        }
-
-        #admin-panel {
-            background: white; padding: 25px; border-radius: 15px; margin: 20px 0;
-            width: 90%; max-width: 600px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .admin-input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9; }
-        .btn-add { background: #2ecc71; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
-
-        .container {
-            flex: 1; width: 95%; max-width: 750px; text-align: center;
-            background: rgba(255, 255, 255, 0.9); border-radius: 30px;
-            padding: 40px 25px; margin: 20px 0 50px 0; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-        .menu-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 10px; }
+        /* ================= CSS SHOPEE (A1) ================= */
+        .generate-box { display: flex; gap: 10px; }
+        .generate-box input { flex: 1; padding: 12px; border: 1px solid var(--fb-border); border-radius: 8px; font-weight: bold; text-align: center; }
+        .generate-box button { background: var(--fb-blue); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        .menu-wrapper { 
-            position: relative; flex: 1 1 calc(50% - 20px); min-width: 180px; 
-            overflow: hidden; border-radius: 20px; transition: 0.3s;
-            display: flex; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
+        .shopee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+        .shopee-item-wrapper { display: flex; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .shopee-copy-btn { width: 50px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .shopee-copy-btn:hover { background: rgba(0,0,0,0.3); }
+        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 85px;}
+        .shopee-details { display: flex; gap: 5px; font-size: 11px; }
+        .badge-status { background: rgba(0,0,0,0.2); padding: 3px 6px; border-radius: 6px; }
+        .admin-controls { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 5px; }
+        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+
+        /* ================= CSS NOTES (A2) ================= */
+        .notes-subnav { display: flex; gap: 10px; margin-bottom: 15px; background: #e4e6eb; padding: 5px; border-radius: 20px; width: fit-content; }
+        .note-tab { border: none; background: transparent; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--fb-muted); }
+        .note-tab.active { background: white; color: var(--fb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        .menu-item {
-            display: flex; align-items: center; justify-content: center;
-            width: 100%; min-height: 100px; padding: 20px 55px; 
-            font-weight: 800; text-decoration: none; color: white; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 1.75em; text-align: center; text-transform: uppercase; line-height: 1.2;
-        }
-        .menu-item:hover { transform: translateY(-5px); filter: brightness(1.1); }
-
-        .copy-zone {
-            position: absolute; left: 0; top: 0; bottom: 0; width: 50px; 
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.1); border-right: 1.5px solid rgba(255,255,255,0.3);
-            cursor: pointer; color: white; transition: 0.3s; z-index: 5;
-        }
-        .copy-zone:hover { background: rgba(255,255,255,0.2); }
-
-        .download-zone {
-            position: absolute; right: 0; top: 0; bottom: 0; width: 50px; 
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.1); border-left: 1.5px solid rgba(255,255,255,0.3);
-            text-decoration: none; color: white; transition: 0.3s; z-index: 5;
-        }
-        .download-zone:hover { background: rgba(255,255,255,0.2); }
-
-        .admin-controls { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 10; }
-        .btn-ctrl {
-            background: rgba(0,0,0,0.2); color: white; border: none;
-            width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 10px;
-        }
-
-        .sortable-ghost { opacity: 0.4; background: #c8ebfb !important; }
-        .drag-handle { cursor: move !important; }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .note-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--fb-border); cursor: pointer; height: 110px; position: relative; }
+        .note-card:hover { background: #f8f9fa; }
+        .note-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-preview { font-size: 11px; color: var(--fb-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .note-date { position: absolute; bottom: 10px; left: 10px; font-size: 8.5px; background: #f8f9fa; padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 600; border: 1px solid #eee; text-transform: uppercase; }
         
-        footer { width: 100%; padding: 25px; background: rgba(255,255,255,0.8); text-align: center; color: #666; margin-top: auto; font-family: 'Orbitron'; font-size: 0.7em; letter-spacing: 2px; }
-        .badge-new { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ff4757; color: white; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: bold; z-index: 2; }
+        .text-link { color: var(--fb-blue); text-decoration: none; font-weight: 500; }
+        .text-link:hover { text-decoration: underline; color: #1558b0; }
 
-        @media (max-width: 480px) { 
-            .menu-wrapper { flex: 1 1 100%; }
-            .menu-item { font-size: 1.4em; min-height: 85px; }
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--fb-blue); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 4px 10px rgba(24,119,242,0.4); cursor: pointer; border: none; z-index: 500; }
+
+        /* ================= CSS SMS ================= */
+        .sms-wrapper { --sms-grn: var(--fb-green); --sms-blu: var(--fb-blue); --sms-org: var(--fb-red); }
+        .sms-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .sms-select { padding: 8px; border-radius: 8px; border: 1px solid var(--fb-border); font-weight: bold; outline: none; }
+        .sms-select:disabled { opacity: 0.6; cursor: not-allowed; }
+        .bal-val { font-weight: bold; color: var(--sms-grn); font-size: 16px; background: #e6f4ea; padding: 5px 12px; border-radius: 15px; }
+        
+        .price-list { border: 1px solid var(--fb-border); border-radius: 12px; overflow: hidden; background: white; }
+        .price-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--fb-border); cursor: pointer; }
+        .price-item:hover { background: #f8f9fa; }
+        .price-item:last-child { border-bottom: none; }
+        
+        .order-card { border: 1px solid var(--fb-border); background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        .phone-box { 
+            font-size: 24px; font-weight: bold; font-family: monospace; cursor: pointer; 
+            padding: 10px 0; color: var(--fb-text); display: flex; align-items: center; justify-content: flex-start; gap: 10px; 
+            width: 100%;
         }
+        .phone-box i { font-size: 20px; transition: color 0.2s ease; }
+        
+        .btn-grid-4 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .sms-btn { flex: 1 1 calc(50% - 8px); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 11px; cursor: pointer; border: 1px solid var(--fb-border); background: var(--fb-bg); color: var(--fb-muted); text-transform: uppercase; text-align: center; transition: 0.2s;}
+        .sms-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sms-btn:not(:disabled):hover { background: var(--fb-hover); color: var(--fb-text); }
+
+        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: var(--fb-muted); border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
+        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
+        .loader-bars span:nth-child(3) { animation-delay: 0s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: var(--fb-blue); } }
+
+        /* ================= MODAL UNIVERSAL & NOTES ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        #universal-modal { z-index: 9999 !important; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        
+        /* Tombol Konfirmasi Diperbesar */
+        .m-btn { padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; margin-left: 8px; transition: 0.2s; text-transform: uppercase; }
+        .m-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <nav class="toolbar">
-        <div class="nav-links">
-            <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i></a>
-            <div class="nav-divider"></div>
-            <a href="javascript:void(0)" onclick="location.href='note.html'" class="nav-item"><i class="fa-solid fa-sticky-note"></i></a>
-            <a href="#" class="nav-item"><i class="fa-solid fa-cloud"></i></a>
-        </div>
-        <div class="auth-container" id="auth-wrapper">
-            <button onclick="toggleLoginForm(event)" style="background:none; color:#555; border:1px solid #ddd; padding:8px 12px; border-radius:20px; cursor:pointer"><i class="fa-solid fa-user-lock"></i> Login</button>
-            <div class="login-popup" id="login-popup">
-                <input type="email" id="email" placeholder="Email Admin">
-                <input type="password" id="password" placeholder="Password">
-                <button class="btn-add" onclick="login()">Masuk</button>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <button class="menu-btn" onclick="toggleMainMenu()"><i class="fa-solid fa-bars"></i></button>
+            <div id="main-menu-popup" class="global-login">
+                <div id="login-form">
+                    <div style="font-weight: bold; margin-bottom: 15px; color: var(--fb-muted); font-size: 11px; letter-spacing: 1px;">SISTEM ADMIN</div>
+                    <input type="email" id="global-email" class="form-input" placeholder="Email">
+                    <input type="password" id="global-pass" class="form-input" placeholder="Password">
+                    <button class="btn-primary" onclick="globalLogin()">Masuk</button>
+                </div>
+                <div id="logout-form" class="hidden">
+                    <p style="text-align: center; font-weight: bold; color: var(--fb-green); margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                    <button class="btn-danger" onclick="globalLogout()">Keluar (Logout)</button>
+                </div>
             </div>
-            <button id="btn-logout" style="display:none; background: #ff4757; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer" onclick="logout()">Logout</button>
         </div>
+        <div class="nav-tabs-center">
+            <button class="nav-btn active" onclick="switchApp('shopee', this)"><i class="fa-solid fa-store"></i></button>
+            <button class="nav-btn" onclick="switchApp('notes', this)"><i class="fa-solid fa-note-sticky"></i></button>
+            <button class="nav-btn" onclick="switchApp('sms', this)"><i class="fa-solid fa-message"></i></button>
+        </div>
+        <div class="nav-right"></div>
     </nav>
 
-    <div class="brand-logo">SANTRIDROID</div>
+    <div id="app-shopee" class="app-section active">
+        <div id="shopee-admin" class="content-card hidden" style="border: 2px solid var(--fb-blue);">
+            <h3 style="margin-bottom: 10px; font-size: 16px;">Tambah Link Shopee</h3>
+            <input type="text" id="shopee-title" class="form-input" placeholder="Nama Produk">
+            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link">
+            <input type="text" id="shopee-price" class="form-input" placeholder="Harga (Misal: 150000)" oninput="formatRupiah(this)">
+            <select id="shopee-status" class="form-input">
+                <option value="">-- Tanpa Label --</option>
+                <option value="STAR">Star</option>
+                <option value="MALL">Mall</option>
+            </select>
+            <button class="btn-primary" onclick="addShopeeMenu()">Terbitkan</button>
+        </div>
 
-    <div class="email-section">
-        <input type="text" class="email-box" id="display-email" value="masukkan email disini" oninput="saveEmailToCache()">
-        <button class="btn-copy-email" onclick="copyAndIncrement()"><i class="fa-solid fa-copy"></i> COPY EMAIL</button>
+        <div class="content-card">
+            <div class="generate-box" style="margin-bottom: 15px;">
+                <input type="text" id="genEmailInput" placeholder="Masukkan email (contoh: user1@gmail.com)">
+                <button id="btn-copy-email" onclick="copyAndIncrementEmail()"><i class="fa-solid fa-copy"></i> Copy Email</button>
+            </div>
+            <div class="generate-box">
+                <input type="text" id="genNameOutput" placeholder="---" readonly>
+                <button id="btn-gen" onclick="generateName()"><i class="fa-solid fa-shuffle"></i> Acak Nama</button>
+                <button id="btn-gen-phone" onclick="generatePhone()" style="background: var(--fb-green);"><i class="fa-solid fa-phone"></i> Acak Nomor</button>
+            </div>
+        </div>
+
+        <h3 style="color: var(--fb-muted); font-size: 14px;">LINK SHOPEE</h3>
+        <div id="shopee-container" class="shopee-grid"></div>
+    </div>
+
+    <div id="app-notes" class="app-section">
+        <div class="notes-subnav">
+            <button id="tab-pub" class="note-tab active" onclick="switchNoteTab('public')">Publik</button>
+            <button id="tab-priv" class="note-tab" onclick="switchNoteTab('private')"><i class="fa-solid fa-lock"></i> Privat</button>
+        </div>
         
-        <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <button class="btn-copy-email" style="background: #3498db; padding: 10px 15px; font-size: 0.8rem;" onclick="generateRandomName()">
-                <i class="fa-solid fa-user"></i> ACAK NAMA
-            </button>
-            <button class="btn-copy-email" style="background: #9b59b6; padding: 10px 15px; font-size: 0.8rem;" onclick="generateRandomPhone()">
-                <i class="fa-solid fa-phone"></i> ACAK NO.HP
-            </button>
+        <div id="note-lock-section" class="content-card hidden" style="text-align: center; padding: 40px 20px;">
+            <i class="fa-solid fa-lock" style="font-size: 40px; color: var(--fb-muted); margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom: 10px; font-size: 16px; color: var(--fb-text);">Catatan Terkunci</h3>
+            <p style="font-size: 12px; color: var(--fb-muted); margin-bottom: 20px;">Silakan login melalui <b>Menu Utama (Garis tiga di pojok kiri atas)</b> untuk melihat catatan privat Anda.</p>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="toggleMainMenu()">Buka Menu Login</button>
+        </div>
+
+        <div id="notes-grid" class="notes-grid"></div>
+    </div>
+    <button id="fab-note" class="fab" onclick="openNoteModal()"><i class="fas fa-plus"></i></button>
+
+    <div id="app-sms" class="app-section sms-wrapper">
+        <div class="content-card sms-top" style="padding: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="sms-server" class="sms-select" onchange="changeSmsServer()"></select>
+                <button onclick="toggleSmsLock()" style="background:none; border:none; cursor:pointer; font-size:18px;">
+                    <i id="sms-lock-icon" class="fa-solid fa-unlock" style="color: var(--fb-muted);"></i>
+                </button>
+            </div>
+            <div class="bal-val" id="sms-balance">Rp 0</div>
+        </div>
+        
+        <div id="sms-active-orders"></div>
+        
+        <h3 style="color: var(--fb-muted); font-size: 14px; margin-bottom: 10px;">PESAN NOMOR BARU</h3>
+        <div class="price-list" id="sms-prices">
+            <div style="padding:30px; text-align:center; color:#888;">Memuat data...</div>
         </div>
     </div>
 
-    <div id="toast">Tersalin!</div>
-
-    <div id="admin-panel">
-        <h4 style="margin-bottom:10px">Tambah Menu</h4>
-        <input type="text" id="title" class="admin-input" placeholder="Nama Menu">
-        <input type="text" id="url" class="admin-input" placeholder="Link Tujuan">
-        <input type="text" id="downloadUrl" class="admin-input" placeholder="Link Download (Opsional)">
-        <button class="btn-add" onclick="addMenu()">Tambahkan Menu</button>
+    <div id="universal-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="u-modal-title" style="margin-bottom:10px;">Konfirmasi</h3>
+            <p id="u-modal-msg" style="color:var(--fb-muted); font-size:14px; margin-bottom:20px; line-height:1.5;"></p>
+            <div id="u-modal-actions" style="display:flex; justify-content:flex-end; gap:0;"></div>
+        </div>
     </div>
 
-    <div class="container">
-        <div id="menu-container" class="menu-list"></div>
+    <div id="modal-note-form" class="modal-overlay" onclick="closeModal('modal-note-form')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3 style="margin-bottom:15px;">Catatan</h3>
+            <input type="text" id="note-title" class="form-input" placeholder="Judul (Kosongkan utk auto-number)">
+            <textarea id="note-content" class="form-input" style="min-height: 150px; resize: vertical;" placeholder="Tulis sesuatu..."></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="m-btn" style="flex: 1; background: var(--fb-bg); color:var(--fb-muted); margin-left:0;" onclick="closeModal('modal-note-form')">BATAL</button>
+                <button class="m-btn btn-primary" style="flex: 2; margin-left: 0;" onclick="saveNote()">SIMPAN</button>
+            </div>
+        </div>
     </div>
 
-    <footer>
-        &copy; Shopee Link • Powered By SANTRIDROID
-    </footer>
+    <div id="modal-note-view" class="modal-overlay" onclick="closeModal('modal-note-view')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span id="view-tag" style="font-size:10px; font-weight:bold; background:#eee; padding:4px 10px; border-radius:20px; color:#555"></span>
+                <i class="fa-solid fa-times" style="cursor:pointer; color:#888; font-size:18px;" onclick="closeModal('modal-note-view')"></i>
+            </div>
+            <h2 id="view-title" style="margin-bottom:15px; font-weight:800; font-size:20px;"></h2>
+            <div id="view-content" style="background:#f8f9fa; padding:15px; border-radius:8px; min-height:150px; max-height:50vh; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-size:14px;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="m-btn btn-primary" style="flex:1; margin-left:0; padding:12px;" onclick="editNote()"><i class="fas fa-edit"></i> Edit</button>
+                <button class="m-btn btn-primary" style="flex:1; background:#f39c12; margin-left:0; padding:12px;" onclick="copyNoteContent(this)"><i class="fas fa-copy"></i> Salin</button>
+                <button class="m-btn btn-danger" style="width:50px; margin-left:0; padding:12px;" onclick="deleteNote()"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const firebaseConfig = {
+        // ================= 0. UNIVERSAL MODAL SYSTEM =================
+        function showModal(title, msg, type='confirm') {
+            return new Promise(resolve => {
+                const ov = document.getElementById('universal-modal');
+                document.getElementById('u-modal-title').innerText = title;
+                document.getElementById('u-modal-msg').innerText = msg;
+                const actions = document.getElementById('u-modal-actions');
+                actions.innerHTML = '';
+                
+                // Kata dirubah menjadi BATAL dan OKE
+                if (type === 'confirm' || type === 'danger') {
+                    const btnCancel = document.createElement('button');
+                    btnCancel.className = 'm-btn'; 
+                    btnCancel.style.background = 'var(--fb-hover)'; btnCancel.style.color = 'var(--fb-text)';
+                    btnCancel.innerText = 'BATAL';
+                    btnCancel.onclick = () => { ov.classList.remove('active'); resolve(false); };
+                    
+                    const btnOk = document.createElement('button');
+                    btnOk.className = 'm-btn ' + (type === 'danger' ? 'btn-danger' : 'btn-primary'); 
+                    btnOk.innerText = 'OKE';
+                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
+                    
+                    actions.appendChild(btnCancel);
+                    actions.appendChild(btnOk);
+                } else {
+                    const btnOk = document.createElement('button');
+                    btnOk.className = 'm-btn btn-primary'; 
+                    btnOk.innerText = 'OKE';
+                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
+                    actions.appendChild(btnOk);
+                }
+                
+                ov.classList.add('active');
+            });
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // ================= 1. TAB & UI NAVIGATION =================
+        function switchApp(appId, btnElement) {
+            document.querySelectorAll('.app-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('app-' + appId).classList.add('active');
+            btnElement.classList.add('active');
+            
+            document.getElementById('fab-note').style.display = (appId === 'notes' && document.getElementById('note-lock-section').classList.contains('hidden')) ? 'flex' : 'none';
+            if(appId === 'sms' && !smsInitialized) initSms();
+        }
+
+        function toggleMainMenu() { document.getElementById('main-menu-popup').classList.toggle('active'); }
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('main-menu-popup');
+            const btn = document.querySelector('.menu-btn');
+            if(popup.classList.contains('active') && !popup.contains(e.target) && !btn.contains(e.target)) {
+                popup.classList.remove('active');
+            }
+        });
+
+        // ================= 2. FIREBASE INITIALIZATION (GABUNGAN MASTER) =================
+        // HANYA MENGGUNAKAN SATU DATABASE MASTER AGAR TIDAK EROR
+        const configMaster = { 
             apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
             authDomain: "santridroid-link.firebaseapp.com",
             databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -220,176 +342,489 @@
             measurementId: "G-6YM0LDQTHN"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        firebase.initializeApp(configMaster);
+
+        const db = firebase.database(); 
         const auth = firebase.auth();
 
-        let isAdmin = false;
-        let editingKey = null;
-        let menuDataCache = {};
-        let sortableInstance = null;
-        const linkColors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#e74c3c', '#2c3e50'];
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 500);
-        }
-
-        function loadEmailConfig() {
-            const cachedEmail = localStorage.getItem('santridroid_email');
-            if (cachedEmail) document.getElementById('display-email').value = cachedEmail;
-        }
-
-        function saveEmailToCache() {
-            localStorage.setItem('santridroid_email', document.getElementById('display-email').value);
-        }
-
-        function copyAndIncrement() {
-            const emailInput = document.getElementById('display-email');
-            const emailValue = emailInput.value;
-            navigator.clipboard.writeText(emailValue).then(() => {
-                showToast("Email disalin!");
-                const nextEmail = emailValue.replace(/(\d+)/, (match) => parseInt(match) + 1);
-                emailInput.value = nextEmail;
-                saveEmailToCache();
-            });
-        }
-
-        function generateRandomName() {
-            const depan = [
-                "Budi", "Siti", "Agus", "Dewi", "Eko", "Rina", "Joko", "Maya", "Andi", "Lestari", "Ahmad", "Bambang", "Candra", "Dedi", "Erika", "Farhan", "Gita", "Hadi", "Indah", "Jaka", "Kurnia", "Linda", "Mulyadi", "Nina", "Oscar", "Putri", "Qori", "Rahmat", "Sari", "Taufik", "Usman", "Vina", "Wahyu", "Xena", "Yanto", "Zainal", "Abadi", "Aditya", "Amalia", "Anisa", "Arya", "Aziz", "Bagusp", "Bayu", "Citra", "Danang", "Dian", "Doni", "Endang", "Fajar", "Galih", "Hany", "Irfan", "Ivan", "Julia", "Krisna", "Laras", "Maulana", "Nanda", "Okta", "Panji", "Rangga", "Siska", "Teguh", "Utari", "Veri", "Wulan", "Yuda", "Zaki", "Adam", "Bella", "Cecep", "Dina", "Ervan", "Fina", "Gilang", "Hera", "Indra", "Jarot", "Kevin", "Lilis", "Mira", "Niko", "Oki", "Puji", "Rama", "Soni", "Tiara", "Ujang", "Vivi", "Widi", "Yoga", "Zora", "Akbar", "Bagas", "Cindy", "Dora", "Edi", "Feri", "Gani", "Hana", "Iis", "Joni", "Kiki", "Lulu", "Maman", "Nana", "Oni", "Pipit", "Rudi", "Santi", "Tono", "Umar", "Vera", "Wawan", "Yani", "Zul", "Anton", "Bunga", "Cucu", "Dede", "Elia", "Fadil", "Gatot", "Hesti", "Imron", "Jati", "Kusno", "Lia", "Mita", "Novi", "Oman", "Parno", "Rani", "Soleh", "Totok", "Untung", "Vina", "Willy", "Yessi", "Zaira", "Asep", "Basuki", "Cahya", "Darsa", "Eman", "Fatah", "Guruh", "Hasna", "Iwan", "Jajang", "Komar", "Lely", "Mumu", "Neneng", "Odang", "Pepen", "Rika", "Suryo", "Tarsan", "Udin", "Vicky", "Wawan", "Yuyun", "Zain", "Abimanyu", "Bratasena", "Cakrawala", "Dirgantara", "Erlangga", "Fathir", "Gibran", "Haikal", "Ikhsan", "Januar", "Kenzie", "Lutfi", "Mufid", "Naufal", "Oza", "Prasetyo", "Qubil", "Rafif", "Satria", "Tristan", "Ubaid", "Vino", "Wildan", "Xander", "Yusuf", "Zidan", "Aris", "Beni", "Cipto", "Darmono", "Edy", "Fahmi", "Gito", "Harno", "Ipul", "Jojo", "Kasino", "Leman", "Munir", "Nanang", "Oding", "Parto", "Rudy", "Slamet", "Timbul", "Uus", "Vikri", "Wongso", "Yosep", "Zoro", "Andre", "Baim", "Chika", "Dodo", "Eni", "Fifi", "Gery", "Hani", "Ira", "Jery", "Koko", "Lusi", "Mono", "Noni", "Oce", "Pian", "Rere", "Sasa", "Titi", "Ute", "Vani", "Wira", "Yaya", "Zizi", "Aldi", "Boby", "Caca", "Didi", "Euis", "Fafa", "Gogo", "Huhu", "Ina", "Juju", "Kaka", "Lala", "Mama", "Nana", "Opa", "Papa", "Rara", "Sasa", "Tata", "Uu", "Vv", "Ww", "Yy", "Zz"
-            ];
-            const belakang = [
-                "Saputra", "Wijaya", "Kusuma", "Pratama", "Sari", "Utami", "Hidayat", "Setiawan", "Nugroho", "Santoso", "Siregar", "Nasution", "Ginting", "Pane", "Lubis", "Simanjuntak", "Situmorang", "Harahap", "Batubara", "Pasaribu", "Daulay", "Tanjung", "Pohan", "Sitorus", "Sinaga", "Saragih", "Damanik", "Purba", "Sumbayak", "Tarigan", "Bangun", "Sembiring", "Perangin-angin", "Munthe", "Gulo", "Zega", "Hia", "Lase", "Bawamenewi", "Harefa", "Mendrofa", "Waruwu", "Halawa", "Telaumbanua", "Gea", "Wau", "Duha", "Manaö", "Maru'ao", "Ndruru", "Zalukhu", "Zalogo", "Ziduhu", "Gulö", "Löi", "Nazara", "Tanjung", "Chaniago", "Paniang", "Sikumbang", "Koto", "Piliang", "Guci", "Melayu", "Jambak", "Mandaliko", "Bodi", "Singkuang", "Sumpu", "Dalimo", "Simalaba", "Simalingkung", "Simabur", "Siahaan", "Silalahi", "Manurung", "Gultom", "Hasibuan", "Ritonga", "Dalimunthe", "Rangkuti", "Matondang", "Pulungan", "Harahap", "Siregar", "Nasution", "Lubis", "Daulay", "Batubara", "Tanjung", "Pohan", "Sitorus", "Sinaga", "Saragih", "Damanik", "Purba", "Tarigan", "Bangun", "Sembiring", "Karo-karo", "Ginting", "Milala", "Pelawi", "Pinem", "Brahmana", "Surbakti", "Depari", "Kaban", "Bukit", "Gurusinga", "Sitepu", "Kembaren", "Barus", "Sinuraya", "Sinuhaji", "Samilala", "Sinukaban", "Singarimbun", "Sebayang", "Kacaribu", "Manik", "Gajah", "Maha", "Sambo", "Capah", "Bako", "Kudadiri", "Sinamo", "Banurea", "Boangmanalu", "Anakampun", "Maibang", "Lumban Tobing", "Lumban Gaol", "Lumban Raja", "Lumban Siantar", "Lumban Nahor", "Pangaribuan", "Simatupang", "Tampubolon", "Aritonang", "Sianipar", "Simanjuntak", "Situmorang", "Sidabutar", "Sidauruk", "Sihaloho", "Sitompul", "Hutajulu", "Hutahaean", "Hutapea", "Hutagalung", "Hutabarat", "Hutasoit", "Hutauruk", "Manalu", "Purba", "Siburian", "Sihombing", "Silaban", "Situmorang", "Nainggolan", "Sarumpaet", "Panggabean", "Panjaitan", "Siagian", "Silitonga", "Samosir", "Napitupulu", "Pardede", "Pardosi", "Sitorus", "Marpaung", "Simangunsong", "Sibarani", "Siahaan", "Sihotang", "Banjarnahor", "Bakara", "Sinambela", "Simanullang", "Simbolon", "Simalango", "Saing", "Sigalingging", "Tambunan", "Tambu", "Girsang", "Lingga", "Munthe", "Saragih", "Sinaga", "Sipayung", "Haloho", "Purba", "Sumbayak", "Dasuha", "Damanik", "Sinurat", "Sitohang", "Sitopu", "Sidebang", "Sijabat", "Siadari", "Sidabalok", "Rumapea", "Turnip", "Ambarita", "Sidauruk", "Limbong", "Sagala", "Malau", "Sinurat", "Manurung", "Gultom", "Samosir", "Pakpahan", "Situmorang", "Naibaho", "Simarmata", "Sitanggang", "Sigiro", "Sidauruk", "Munthe", "Simalango", "Simanullang", "Sitohang", "Sinurat", "Samosir", "Tarihoran", "Habeahan", "Bondar", "Silaban", "Tampubolon", "Siahaan", "Simanjuntak", "Sitompul", "Hasibuan", "Siregar", "Nasution", "Lubis", "Daulay", "Tanjung", "Pohan", "Sitorus", "Sinaga"
-            ];
-            const namaAcak = depan[Math.floor(Math.random() * depan.length)] + " " + belakang[Math.floor(Math.random() * belakang.length)];
-            navigator.clipboard.writeText(namaAcak).then(() => showToast("Nama disalin!"));
-        }
-
-        function generateRandomPhone() {
-            // PERUBAHAN: Daftar awalan nomor HP minimal 15 pilihan
-            const awalan = [
-                "0811", "0812", "0813", "0821", "0822", "0823", "0852", "0853", // Telkomsel
-                "0817", "0818", "0819", "0859", "0877", "0878", // XL
-                "0814", "0815", "0816", "0855", "0856", "0857", "0858", // Indosat
-                "0895", "0896", "0897", "0898", "0899", // Tri
-                "0881", "0882", "0883", "0884", "0885", "0886", "0887", "0888", "0889" // Smartfren
-            ];
-            let nomor = awalan[Math.floor(Math.random() * awalan.length)];
-            const sisaDigit = Math.floor(Math.random() * 2) + 7; // Random 7-8 digit tambahan
-            for (let i = 0; i < sisaDigit; i++) { nomor += Math.floor(Math.random() * 10); }
-            navigator.clipboard.writeText(nomor).then(() => showToast("No. HP disalin!"));
-        }
-
-        function toggleLoginForm(event) {
-            event.stopPropagation();
-            const popup = document.getElementById('login-popup');
-            popup.style.display = (popup.style.display === 'flex') ? 'none' : 'flex';
-        }
-
-        function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, pass).catch((err) => showToast("Gagal Login!"));
-        }
-
-        function logout() { auth.signOut(); }
+        let globalUser = null;
 
         auth.onAuthStateChanged(user => {
-            isAdmin = !!user;
-            document.getElementById('admin-panel').style.display = isAdmin ? 'block' : 'none';
-            document.getElementById('btn-logout').style.display = isAdmin ? 'block' : 'none';
-            document.querySelector('[onclick="toggleLoginForm(event)"]').style.display = isAdmin ? 'none' : 'block';
-            initSortable();
-            loadEmailConfig();
-            renderMenus(); 
+            globalUser = user; const isAdmin = !!user;
+            
+            // Atur Menu Utama Login/Logout
+            document.getElementById('login-form').classList.toggle('hidden', isAdmin);
+            document.getElementById('logout-form').classList.toggle('hidden', !isAdmin);
+            
+            // Atur Shopee
+            document.getElementById('shopee-admin').classList.toggle('hidden', !isAdmin);
+            renderShopee();
+            
+            // Atur Note
+            if(currentNoteTab === 'private' && !isAdmin) {
+                switchNoteTab('public');
+            } else {
+                syncNotes();
+            }
         });
 
-        function initSortable() {
-            const el = document.getElementById('menu-container');
-            if (isAdmin) {
-                if (sortableInstance) sortableInstance.destroy();
-                sortableInstance = new Sortable(el, { animation: 150, ghostClass: 'sortable-ghost', onEnd: function() { saveNewOrder(); } });
-            }
+        function globalLogin() {
+            const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => auth.signInWithEmailAndPassword(e, p))
+            .then(() => {
+                document.getElementById('main-menu-popup').classList.remove('active');
+            }).catch(() => showModal("Gagal Login", "Periksa kembali Email atau Password Anda.", "alert"));
+        }
+        
+        function globalLogout() { 
+            auth.signOut(); 
+            document.getElementById('main-menu-popup').classList.remove('active'); 
         }
 
-        function saveNewOrder() {
-            const wrappers = document.querySelectorAll('.menu-wrapper');
-            const updates = {};
-            wrappers.forEach((el, index) => {
-                const key = el.getAttribute('data-key');
-                updates[`ubaid/${key}/order`] = index;
-            });
-            db.ref().update(updates);
+        // ================= 3. LOGIKA SHOPEE =================
+        let shopeeDataCache = {}; let editingShopeeKey = null;
+        db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+
+        function formatRupiah(el) {
+            let angka = el.value.replace(/[^,\d]/g, '').toString(); let split = angka.split(','); let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa); let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+            if (ribuan) { rupiah += (sisa ? '.' : '') + ribuan.join('.'); }
+            el.value = rupiah ? 'Rp ' + rupiah : '';
         }
 
-        function addMenu() {
-            const title = document.getElementById('title').value;
-            const url = document.getElementById('url').value;
-            if(title) {
-                db.ref('ubaid').push({
-                    title, url: url.startsWith('http') ? url : 'https://' + url,
-                    downloadUrl: document.getElementById('downloadUrl').value,
-                    createdAt: new Date().toISOString().split('T')[0], order: Object.keys(menuDataCache).length
-                }).then(() => {
-                    document.getElementById('title').value = "";
-                    document.getElementById('url').value = "";
+        async function addShopeeMenu() {
+            const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
+            const p = document.getElementById('shopee-price').value; const s = document.getElementById('shopee-status').value;
+            if(t && u) {
+                db.ref('linkshopee').push({ title: t, url: u, price: p, status: s, createdAt: Date.now() }).then(() => {
+                    document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
+                    document.getElementById('shopee-price').value = ""; document.getElementById('shopee-status').value = "";
                 });
-            }
+            } else showModal("Peringatan", "Nama Produk & URL wajib diisi!", "alert");
         }
 
-        db.ref('ubaid').on('value', (snap) => {
-            menuDataCache = snap.val() || {};
-            renderMenus();
-        });
-
-        function renderMenus() {
-            const container = document.getElementById('menu-container');
-            container.innerHTML = "";
-            const sortedMenus = Object.keys(menuDataCache).map(key => ({
-                key: key, ...menuDataCache[key]
-            })).sort((a, b) => (a.order || 0) - (b.order || 0));
-
-            sortedMenus.forEach((data, i) => {
-                const key = data.key;
-                const isNew = Math.ceil(Math.abs(new Date() - new Date(data.createdAt)) / (1000 * 60 * 60 * 24)) <= 7;
-                const themeColor = linkColors[i % linkColors.length];
+        function renderShopee() {
+            const container = document.getElementById('shopee-container'); container.innerHTML = "";
+            const colors = ['#e41e3f', '#1877f2', '#8e44ad', '#f39c12', '#2ecc71', '#1abc9c', '#d35400'];
+            
+            Object.keys(shopeeDataCache).reverse().forEach((key, idx) => {
+                const data = shopeeDataCache[key]; const isAdmin = !!globalUser;
                 const wrapper = document.createElement('div');
-                wrapper.className = 'menu-wrapper' + (isAdmin ? ' drag-handle' : '');
-                wrapper.setAttribute('data-key', key);
-
-                if (isAdmin && editingKey === key) {
+                
+                if (isAdmin && editingShopeeKey === key) {
+                    wrapper.className = 'content-card'; wrapper.style.padding = '10px'; wrapper.style.marginBottom = '0';
                     wrapper.innerHTML = `
-                        <div style="background:#fff; padding:15px; width:100%; border:2px solid ${themeColor}; border-radius:20px;">
-                            <input type="text" id="ed-t-${key}" class="admin-input" value="${data.title}">
-                            <button class="btn-add" style="background:${themeColor}" onclick="saveEdit('${key}')">SIMPAN</button>
-                        </div>`;
+                        <input id="ed-t-${key}" class="form-input" value="${data.title}">
+                        <input id="ed-u-${key}" class="form-input" value="${data.url}">
+                        <button class="btn-primary" onclick="saveEditShopee('${key}')">Simpan</button>`;
                 } else {
+                    wrapper.className = 'shopee-item-wrapper'; wrapper.style.background = colors[idx % colors.length];
+                    let st = data.status ? `<span class="badge-status">${data.status}</span>` : ''; let pr = data.price ? `<span class="badge-status">${data.price}</span>` : '';
+                    
                     wrapper.innerHTML = `
-                        ${isNew ? '<div class="badge-new">NEW</div>' : ''}
-                        <div class="copy-zone" onclick="copyToClipboard('${data.url}')"><i class="fa-solid fa-copy"></i></div>
-                        <a href="javascript:void(0)" onclick="copyToClipboard('${data.url}')" class="menu-item" style="background:${themeColor}"><span>${data.title}</span></a>
-                        ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank" class="download-zone"><i class="fa-solid fa-download"></i></a>` : ''}
-                        ${isAdmin ? `<div class="admin-controls">
-                            <button class="btn-ctrl" onclick="editingKey='${key}';renderMenus()"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-ctrl" style="background:#e74c3c" onclick="deleteMenu('${key}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>` : ''}`;
+                        <div class="shopee-copy-btn" onclick="copyShopeeLink(event, '${data.url}', this)" title="Salin Link"><i class="fa-solid fa-copy"></i></div>
+                        <a href="${data.url}" target="_blank" class="shopee-item">
+                            <span>${data.title}</span><div class="shopee-details">${st}${pr}</div>
+                        </a>
+                        ${isAdmin ? `<div class="admin-controls"><button class="btn-ctrl" onclick="editingShopeeKey='${key}'; renderShopee();"><i class="fa-solid fa-pen" style="font-size:12px;"></i></button><button class="btn-ctrl" style="color:var(--fb-red)" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></button></div>` : ''}`;
                 }
                 container.appendChild(wrapper);
             });
         }
 
-        function saveEdit(key) {
-            const title = document.getElementById(`ed-t-${key}`).value;
-            if(title) db.ref('ubaid/' + key).update({ title }).then(() => { editingKey = null; renderMenus(); });
+        function saveEditShopee(key) { db.ref('linkshopee/'+key).update({ title: document.getElementById(`ed-t-${key}`).value, url: document.getElementById(`ed-u-${key}`).value }).then(() => { editingShopeeKey = null; renderShopee(); }); }
+        async function deleteShopee(key) { if(await showModal("Hapus Link", "Yakin ingin menghapus link Shopee ini?", "danger")) db.ref('linkshopee/'+key).remove(); }
+        function copyShopeeLink(event, url, btnElement) {
+            event.preventDefault(); event.stopPropagation();
+            navigator.clipboard.writeText(url).then(() => {
+                const originalIcon = btnElement.innerHTML; btnElement.innerHTML = '<i class="fa-solid fa-check" style="color:var(--fb-green);"></i>';
+                setTimeout(() => { btnElement.innerHTML = originalIcon; }, 1500);
+            }).catch(() => showModal("Gagal", "Perangkat tidak mendukung fitur salin otomatis.", "alert"));
         }
 
-        function deleteMenu(key) { if(confirm("Hapus?")) db.ref('ubaid/' + key).remove(); }
-        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => showToast("Link disalin!")); }
+        let listFN = [], listLN = [];
+        fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+        
+        function generateName() {
+            if(!listFN.length) return;
+            const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+            document.getElementById('genNameOutput').value = full; 
+            navigator.clipboard.writeText(full);
+        }
 
-        window.onload = loadEmailConfig;
+        function generatePhone() {
+            const prefix = "08";
+            const length = Math.floor(Math.random() * 4) + 8;
+            let number = prefix;
+            for(let i=0; i<length; i++) {
+                number += Math.floor(Math.random() * 10);
+            }
+            document.getElementById('genNameOutput').value = number;
+            navigator.clipboard.writeText(number);
+        }
+
+        function copyAndIncrementEmail() {
+            const emailInput = document.getElementById('genEmailInput');
+            let currentEmail = emailInput.value.trim();
+            if (!currentEmail) return;
+
+            navigator.clipboard.writeText(currentEmail);
+
+            const regex = /(.*?)(\d+)(@[^@]+)$/;
+            const match = currentEmail.match(regex);
+
+            if (match) {
+                const prefix = match[1];
+                const number = parseInt(match[2], 10);
+                const domain = match[3];
+                emailInput.value = `${prefix}${number + 1}${domain}`;
+            } else {
+                const atIndex = currentEmail.lastIndexOf('@');
+                if (atIndex !== -1) {
+                    const prefix = currentEmail.substring(0, atIndex);
+                    const domain = currentEmail.substring(atIndex);
+                    emailInput.value = `${prefix}1${domain}`;
+                }
+            }
+        }
+
+        // ================= 4. LOGIKA NOTES =================
+        let currentNoteTab = 'public'; let selectedNoteKey = null; let currentNoteRaw = ""; let isEditingNote = false;
+
+        function switchNoteTab(tab) {
+            currentNoteTab = tab;
+            document.getElementById('tab-pub').classList.toggle('active', tab === 'public');
+            document.getElementById('tab-priv').classList.toggle('active', tab === 'private');
+            
+            if (tab === 'private' && !globalUser) {
+                document.getElementById('note-lock-section').classList.remove('hidden');
+                document.getElementById('notes-grid').classList.add('hidden');
+                document.getElementById('fab-note').style.display = 'none';
+            } else {
+                document.getElementById('note-lock-section').classList.add('hidden');
+                document.getElementById('notes-grid').classList.remove('hidden');
+                if (document.getElementById('app-notes').classList.contains('active')) {
+                    document.getElementById('fab-note').style.display = 'flex';
+                }
+                syncNotes();
+            }
+        }
+
+        function getNotesPath() { return (currentNoteTab === 'private' && globalUser) ? `notes/users/${globalUser.uid}` : 'notes/public'; }
+
+        function formatDate(ts) {
+            if(!ts) return "---";
+            const days = ['Ming', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            const d = new Date(ts);
+            const dayName = days[d.getDay()];
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = String(d.getFullYear()).slice(-2);
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${dayName}, ${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+        function autoLinkText(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, function(url) {
+                return `<a href="${url}" target="_blank" class="text-link" onclick="event.stopPropagation()">${url}</a>`;
+            });
+        }
+
+        function escapeHTML(str) {
+            if(!str) return "";
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        }
+
+        function syncNotes() {
+            const path = getNotesPath(); db.ref(path).off();
+            db.ref(path).orderByChild('timestamp').on('value', snap => {
+                const grid = document.getElementById('notes-grid'); grid.innerHTML = ''; let items = [];
+                snap.forEach(child => { items.push({ key: child.key, ...child.val() }); });
+                
+                items.reverse().forEach(d => {
+                    const card = document.createElement('div'); card.className = 'note-card'; card.onclick = () => viewNote(d.key, d);
+                    card.innerHTML = `<div class="note-title">${escapeHTML(d.title) || 'Untitled'}</div>
+                                      <div class="note-preview">${escapeHTML(d.content)}</div>
+                                      <div class="note-date">${formatDate(d.timestamp)}</div>`;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        function openNoteModal() {
+            isEditingNote = false; document.getElementById('note-title').value = ""; document.getElementById('note-content').value = "";
+            document.getElementById('modal-note-form').classList.add('active');
+        }
+
+        function saveNote() {
+            let t = document.getElementById('note-title').value.trim();
+            const c = document.getElementById('note-content').value;
+            if(!c) return showModal("Peringatan", "Konten catatan tidak boleh kosong!", "alert");
+            const path = getNotesPath();
+            
+            if(!t) {
+                db.ref(path).once('value').then(snapshot => {
+                    let usedNumbers = new Set();
+                    snapshot.forEach(child => {
+                        if (isEditingNote && child.key === selectedNoteKey) return; 
+                        let titleStr = child.val().title;
+                        if (titleStr && /^\d+$/.test(titleStr.toString().trim())) usedNumbers.add(parseInt(titleStr.toString().trim()));
+                    });
+                    let nextNum = 1; while (usedNumbers.has(nextNum)) { nextNum++; }
+                    executeNoteSave(nextNum.toString(), c, path);
+                }).catch(e => showModal("Gagal", "Gagal menghubungi database.", "alert"));
+            } else { executeNoteSave(t, c, path); }
+        }
+
+        function executeNoteSave(title, content, path) {
+            const data = { title: title, content: content, timestamp: Date.now() };
+            const req = (isEditingNote && selectedNoteKey) ? db.ref(`${path}/${selectedNoteKey}`).update(data) : db.ref(path).push(data);
+            req.then(() => closeModal('modal-note-form')).catch(() => showModal("Gagal", "Akses Ditolak.", "alert"));
+        }
+
+        function viewNote(key, data) {
+            selectedNoteKey = key; currentNoteRaw = data.content;
+            document.getElementById('view-tag').innerText = (currentNoteTab === 'private' ? "🔒 PRIV | " : "🌐 PUB | ") + formatDate(data.timestamp);
+            document.getElementById('view-title').innerText = data.title;
+            document.getElementById('view-content').innerHTML = autoLinkText(escapeHTML(data.content));
+            document.getElementById('modal-note-view').classList.add('active');
+        }
+
+        function editNote() {
+            closeModal('modal-note-view'); isEditingNote = true;
+            document.getElementById('note-title').value = document.getElementById('view-title').innerText;
+            document.getElementById('note-content').value = currentNoteRaw;
+            document.getElementById('modal-note-form').classList.add('active');
+        }
+
+        async function deleteNote() {
+            if(await showModal("Hapus Catatan", "Yakin ingin menghapus catatan ini secara permanen?", "danger")) {
+                db.ref(`${getNotesPath()}/${selectedNoteKey}`).remove();
+                closeModal('modal-note-view');
+            }
+        }
+        
+        // FUNGSI COPY NOTE TANPA POPUP
+        function copyNoteContent(btn) {
+            navigator.clipboard.writeText(currentNoteRaw);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Tersalin';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
+        }
+
+        // ================= 5. LOGIKA SMS =================
+        const SMS_SERVERS = { "UMAM": "https://umam-santridroid.santridroid.workers.dev", "HP2": "https://smscodezip.aam-zip.workers.dev" };
+        let currentSmsWorker = ""; let smsInitialized = false; let isSmsLocked = false;
+
+        function initSms() {
+            smsInitialized = true; const select = document.getElementById('sms-server');
+            select.innerHTML = Object.keys(SMS_SERVERS).map(k => `<option value="${SMS_SERVERS[k]}">${k}</option>`).join('');
+            isSmsLocked = localStorage.getItem('xurel_locked') === 'true';
+            const savedServer = localStorage.getItem('xurel_selected_hp');
+            if(savedServer && SMS_SERVERS[savedServer]) { currentSmsWorker = SMS_SERVERS[savedServer]; select.value = currentSmsWorker; } 
+            else { currentSmsWorker = SMS_SERVERS["HP1"]; }
+            applySmsLockUI(); refreshSms(); setInterval(pollSms, 5000); setInterval(updateSmsTimers, 1000);
+        }
+
+        function toggleSmsLock() { isSmsLocked = !isSmsLocked; localStorage.setItem('xurel_locked', isSmsLocked); applySmsLockUI(); }
+
+        function applySmsLockUI() {
+            const select = document.getElementById('sms-server'); const icon = document.getElementById('sms-lock-icon'); select.disabled = isSmsLocked;
+            if (isSmsLocked) { icon.className = 'fa-solid fa-lock'; icon.style.color = 'var(--fb-red)'; } 
+            else { icon.className = 'fa-solid fa-unlock'; icon.style.color = 'var(--fb-muted)'; }
+        }
+
+        function changeSmsServer() {
+            if(isSmsLocked) return; currentSmsWorker = document.getElementById('sms-server').value;
+            localStorage.setItem('xurel_selected_hp', document.getElementById('sms-server').options[document.getElementById('sms-server').selectedIndex].text);
+            refreshSms();
+        }
+
+        function refreshSms() {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:30px; text-align:center; color:#888;">Mengambil Data...</div>';
+            updateSmsBal(); loadSmsPrices(); pollSms();
+        }
+
+        async function updateSmsBal() {
+            try {
+                const res = await fetch(`${currentSmsWorker}/get-balance`); const json = await res.json();
+                if(json.success) document.getElementById('sms-balance').innerText = `Rp ${json.data.balance.toLocaleString('id-ID')}`;
+            } catch(e) {}
+        }
+
+        async function loadSmsPrices() {
+            try {
+                const res = await fetch(`${currentSmsWorker}/get-prices`); const json = await res.json();
+                const box = document.getElementById('sms-prices');
+                if (json.success && json.data.length > 0) {
+                    box.innerHTML = json.data.map(i => `
+                        <div class="price-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
+                            <div><div style="font-weight:bold;">${i.name}</div></div>
+                            <div style="font-size:12px; color:var(--fb-muted);"><span style="color:var(--fb-red); font-family:monospace; font-size:14px; font-weight: 900; margin-right: 10px;">Rp ${i.price}</span> ${i.available} stok</div>
+                        </div>`).join('');
+                } else box.innerHTML = '<div style="padding:30px; text-align:center;">Kosong</div>';
+            } catch (e) {}
+        }
+
+        async function buySms(pid, price, name) {
+            if(!await showModal("Pesan Baru", `Beli nomor untuk ${name} seharga Rp ${price}?`, "confirm")) return;
+            try {
+                const res = await fetch(`${currentSmsWorker}/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
+                const j = await res.json();
+                if(j.success) {
+                    const o = j.data.orders[0]; 
+                    localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
+                    pollSms(); updateSmsBal();
+                } else showModal("Gagal", j.error.message || "Gagal memesan stok.", "alert");
+            } catch(e){}
+        }
+
+        async function pollSms() {
+            try { const res = await fetch(`${currentSmsWorker}/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {}
+        }
+
+        // FUNGSI COPY SMS: Ikon Centang Lingkaran (fa-circle-check)
+        function copyPhoneNumber(txt, iconId) {
+            if(txt.includes('Mencari')) return;
+            navigator.clipboard.writeText(txt);
+            
+            const icon = document.getElementById(iconId);
+            if(icon) {
+                icon.className = "fa-solid fa-circle-check";
+                icon.style.color = "var(--fb-green)";
+                setTimeout(() => { 
+                    icon.className = "fa-regular fa-copy";
+                    icon.style.color = "var(--fb-muted)";
+                }, 1500);
+            }
+        }
+
+        function renderSmsOrders(orders) {
+            const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+            Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+            if(!orders || !orders.length) return;
+            
+            orders.forEach(o => {
+                const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari Nomor...';
+                if(o.phone && !localStorage.getItem('phone_'+o.id)) localStorage.setItem('phone_'+o.id, o.phone);
+                
+                const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
+                if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
+                
+                // MENGHITUNG DURASI SECARA ONLINE DARI SERVER CLOUDFLARE
+                let expireTime = 0;
+                if (o.expires_at) expireTime = new Date(o.expires_at).getTime();
+                else if (o.created_at) expireTime = new Date(o.created_at).getTime() + (20 * 60000);
+                else if (o.time) expireTime = new Date(o.time).getTime() + (20 * 60000);
+                else if (o.start_time) expireTime = new Date(o.start_time).getTime() + (20 * 60000);
+                else if (o.timestamp) expireTime = new Date(o.timestamp).getTime() + (20 * 60000);
+                else if (o.date) expireTime = new Date(o.date).getTime() + (20 * 60000);
+                
+                // Fallback Lokal jika server tidak beri waktu sama sekali
+                if (!expireTime || isNaN(expireTime) || expireTime === 0) {
+                    expireTime = localStorage.getItem('timer_' + o.id);
+                    if (!expireTime) expireTime = Date.now() + (20 * 60000);
+                }
+                
+                localStorage.setItem('timer_' + o.id, expireTime); 
+                
+                const endTimeStr = expireTime; 
+                let passed2Mins = false;
+                if (endTimeStr) { const remaining = Math.floor((parseInt(endTimeStr) - Date.now()) / 1000); if (remaining <= 1080) passed2Mins = true; }
+
+                const resendState = o.otp_code ? '' : 'disabled'; const cancelReplaceState = passed2Mins ? '' : 'disabled';
+                let otpDisplay = o.otp_code ? `<span style="color:var(--fb-green); letter-spacing:4px; font-size:26px; font-weight:bold; font-family:monospace;">${o.otp_code}</span>` : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+                const priceDisplay = serverPrice ? parseInt(serverPrice).toLocaleString('id-ID') : '...';
+
+                const existingCard = document.getElementById('order-' + o.id);
+                if (existingCard) {
+                    const phoneBoxSpan = existingCard.querySelector('.phone-text-span'); 
+                    if (phoneBoxSpan && phoneBoxSpan.innerText !== phone && phone !== 'Mencari Nomor...') phoneBoxSpan.innerText = phone; 
+                    
+                    const otpContainer = existingCard.querySelector('.otp-container'); if (otpContainer.innerHTML.trim() !== otpDisplay.trim()) otpContainer.innerHTML = otpDisplay;
+                    const priceBox = existingCard.querySelector('.price-box'); if (priceBox && priceBox.innerText.includes('...') && serverPrice) priceBox.innerText = `Rp ${priceDisplay}`;
+                    if (o.otp_code) {
+                        const btnDone = existingCard.querySelector('.btn-done'); if(btnDone && btnDone.disabled) { btnDone.disabled = false; btnDone.style.color = "var(--fb-green)"; btnDone.style.borderColor = "var(--fb-green)"; btnDone.style.background = "#e6f4ea"; }
+                        const btnResend = existingCard.querySelector('.btn-resend'); if(btnResend && btnResend.disabled) btnResend.disabled = false;
+                    }
+                    if (passed2Mins) {
+                        const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
+                        if(btnCancel) btnCancel.disabled = false; if(btnReplace) btnReplace.disabled = false;
+                    }
+                } else {
+                    const cardHTML = `
+                    <div class="order-card" id="order-${o.id}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed var(--fb-border); padding-bottom:15px; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:var(--fb-blue); font-weight:bold; font-family:monospace; font-size:15px;">#${o.id}</span>
+                                <span class="badge-status" style="font-size:10px; color:var(--fb-text); font-family:sans-serif; background:rgba(0,0,0,0.1);">ACTIVE</span>
+                                <span class="price-box" style="font-size:16px; font-weight:900; color:var(--fb-red); font-family:monospace;">Rp ${priceDisplay}</span>
+                            </div>
+                            <span class="sms-timer" data-id="${o.id}" style="font-family:monospace; font-weight:bold; color:var(--fb-blue);">--:--</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--fb-muted); margin-bottom:5px; text-transform:uppercase;">Tap untuk salin:</div>
+                        
+                        <div class="phone-box" onclick="copyPhoneNumber('${phone}', 'copy-icon-${o.id}')">
+                            <span class="phone-text-span">${phone}</span>
+                            <i id="copy-icon-${o.id}" class="fa-regular fa-copy" style="color: var(--fb-muted);"></i>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 10px 0 15px 0; padding: 15px 0; background: #fafafa; border-radius: 8px;">
+                            <div style="font-size:11px; color:var(--fb-muted); font-weight:bold; letter-spacing:1px; margin-bottom:5px;">KODE OTP</div>
+                            <div class="otp-container" style="min-height:35px; display:flex; align-items:center; justify-content:center;">${otpDisplay}</div>
+                        </div>
+
+                        <div class="btn-grid-4">
+                            <button class="sms-btn btn-done" onclick="actSms('finish', ${o.id})" ${o.otp_code?'style="background:#e6f4ea; color:var(--fb-green); border-color:var(--fb-green);"':'disabled'}>✓ DONE</button>
+                            <button class="sms-btn btn-resend" onclick="actSms('resend', ${o.id})" ${resendState}>↻ RESEND</button>
+                            <button class="sms-btn btn-cancel" onclick="actSms('cancel', ${o.id})" ${cancelReplaceState}>✕ CANCEL</button>
+                            <button class="sms-btn btn-replace" onclick="actSms('replace', ${o.id})" ${cancelReplaceState}>⇄ REPLACE</button>
+                        </div>
+                    </div>`;
+                    container.insertAdjacentHTML('afterbegin', cardHTML);
+                }
+            });
+            updateSmsTimers();
+        }
+
+        function updateSmsTimers() {
+            document.querySelectorAll('.sms-timer').forEach(el => {
+                const id = el.dataset.id; const end = localStorage.getItem('timer_'+id);
+                if(end) {
+                    const diff = Math.max(0, Math.floor((parseInt(end) - Date.now())/1000));
+                    el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+                    el.style.color = diff < 600 ? "var(--fb-red)" : "var(--fb-blue)";
+                    if (diff <= 1080) {
+                        const existingCard = document.getElementById('order-' + id);
+                        if(existingCard) {
+                            const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
+                            if(btnCancel && btnCancel.disabled) btnCancel.disabled = false; if(btnReplace && btnReplace.disabled) btnReplace.disabled = false;
+                        }
+                    }
+                }
+            });
+        }
+
+        async function actSms(action, id) {
+            let title = "Konfirmasi", msg = "Lanjutkan?", type = "confirm";
+            if(action === 'cancel') { title = "Batalkan"; msg = "Yakin batalkan pesanan ini? Saldo dikembalikan."; type = "danger"; }
+            if(action === 'replace') { title = "Ganti Nomor"; msg = "Batalkan pesanan ini dan ganti nomor baru?"; }
+            if(action === 'resend') { title = "Kirim Ulang"; msg = "Meminta kode OTP baru?"; }
+            if(action === 'finish') { title = "Selesaikan"; msg = "Konfirmasi pesanan selesai."; }
+
+            if(!await showModal(title, msg, type)) return;
+            try {
+                const res = await fetch(`${currentSmsWorker}/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
+                const j = await res.json();
+                if(j.success) {
+                    if(action === 'cancel' || action === 'finish' || action === 'replace') { localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); }
+                    pollSms(); updateSmsBal();
+                } else showModal("Gagal", "Ditolak oleh server.", "alert");
+            } catch(e){}
+        }
     </script>
 </body>
 </html>
