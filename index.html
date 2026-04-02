@@ -19,12 +19,12 @@
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
 
-        .header { background-color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: wrap; gap: 10px; }
-        .menu-icon { font-size: 20px; color: #555; cursor: pointer; }
-        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; }
-        .dropdown-group select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 13px; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 10px; border-radius: 15px; font-size: 14px; color: #000; }
+        .header { background-color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: nowrap; gap: 8px; }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; min-width: 24px; }
+        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
+        .dropdown-group select { padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; max-width: 110px; text-overflow: ellipsis; }
+        .header-right { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
         .lock-icon { color: #666; font-size: 18px; cursor: pointer; }
 
         .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
@@ -53,7 +53,6 @@
         .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
         .item-stock { color: #7f8c8d; font-size: 12px; }
 
-        /* Kustomisasi Background Order Berdasarkan Provider */
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
@@ -87,7 +86,12 @@
         <div class="menu-icon" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i></div>
         <div class="dropdown-group">
             <select id="provider-selector" onchange="changeProvider()">
-                <option value="smscode">SMS Code</option>
+                <option value="smscode1">SMS Code 1</option>
+                <option value="smscode2">SMS Code 2</option>
+                <option value="smscode3">SMS Code 3</option>
+                <option value="smscode4">SMS Code 4</option>
+                <option value="smscode5">SMS Code 5</option>
+                <option value="smscode6">SMS Code 6</option>
                 <option value="herosms">Hero SMS</option>
             </select>
             <select id="user-selector" onchange="changeGlobalUser()"></select>
@@ -151,9 +155,8 @@
 </div>
 
 <script>
-    // ================= PENGATURAN AWAL =================
     const USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
-    const WORKER_URL = "https://sms-virtual.santridroid.workers.dev"; 
+    const WORKER_URL = "https://sms.santridroid.workers.dev"; 
     
     let currentUser = "UMAM";
     let isUserLocked = false;
@@ -169,7 +172,6 @@
         }, { once: true });
     });
 
-    // ================= FUNGSI DASAR UI =================
     function initUserDropdown() {
         const select = document.getElementById('user-selector');
         select.innerHTML = USERS.map(u => `<option value="${u}">${u}</option>`).join('');
@@ -226,7 +228,6 @@
         setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
     }
 
-    // ================= MODAL & AUDIO =================
     function showModal(title, msg, type='confirm') {
         return new Promise(resolve => {
             const ov = document.getElementById('universal-modal');
@@ -269,7 +270,6 @@
         setTimeout(() => { toast.remove(); }, 5000);
     }
 
-    // ================= FIREBASE & ADMIN =================
     const configMaster = { 
         apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
         databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -296,7 +296,6 @@
     }
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
 
-    // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
     db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
 
@@ -317,11 +316,14 @@
             if(data.title.toUpperCase() === currentUser.toUpperCase()) {
                 found = true;
                 container.innerHTML += `
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-purple" style="flex:1;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <button class="btn btn-purple" style="flex:1; margin-bottom:0;" onclick="copyShopeeLink(event, '${data.url}', this)">
                             ${data.title}
                         </button>
-                        ${!!globalUser ? `<button class="btn btn-red" style="width:40px; margin-bottom:5px;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${!!globalUser ? `
+                            <button class="btn btn-orange" style="width:40px; margin-bottom:0; padding:0;" onclick="editShopee('${key}', '${data.title}', '${data.url}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-red" style="width:40px; margin-bottom:0; padding:0;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
                     </div>
                 `;
             }
@@ -329,12 +331,29 @@
         if(!found) container.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center;">Kosong</div>`;
     }
 
+    // Fungsi Baru: Edit Link Shopee
+    function editShopee(key, oldTitle, oldUrl) {
+        const newTitle = prompt("Edit Nama User:", oldTitle);
+        if (newTitle === null) return;
+        const newUrl = prompt("Edit URL Link Shopee:", oldUrl);
+        if (newUrl === null) return;
+
+        if(newTitle.trim() !== "" && newUrl.trim() !== "") {
+            db.ref('linkshopee/'+key).update({
+                title: newTitle.toUpperCase(),
+                url: newUrl
+            }).then(() => showModal("Sukses", "Link berhasil diubah", "alert"));
+        } else {
+            showModal("Peringatan", "Nama & URL tidak boleh kosong!", "alert");
+        }
+    }
+
     async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
+    
     function copyShopeeLink(event, url, btnElement) {
         event.preventDefault(); navigator.clipboard.writeText(url).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', btnElement.innerText); });
     }
 
-    // ================= TOOLS GENERATOR =================
     let listFN = [], listLN = [];
     fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
     
@@ -362,9 +381,8 @@
         });
     }
 
-    // ================= LOGIKA SMS =================
     async function fetchWorker(path, options = {}) {
-        const provider = document.getElementById('provider-selector').value || "smscode";
+        const provider = document.getElementById('provider-selector').value || "smscode1";
         return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser, "X-Provider": provider } });
     }
 
@@ -420,7 +438,6 @@
                 const o = j.data.orders[0]; 
                 localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
                 localStorage.setItem(`${currentUser}_price_${o.id}`, price);
-                // SIMPAN PROVIDERNYA SAAT ORDER DIBUAT
                 localStorage.setItem(`${currentUser}_provider_${o.id}`, provider); 
                 pollSms(); updateSmsBal();
             } else showModal("Gagal", j.error?.message || "Gagal order", "alert");
@@ -433,12 +450,11 @@
             let idsSmsCode = [];
             const prefix = `${currentUser}_phone_`;
             
-            // PISAHKAN PENCARIAN BERDASARKAN PROVIDER YANG TERSIMPAN
             for(let i=0; i<localStorage.length; i++) {
                 let key = localStorage.key(i);
                 if(key.startsWith(prefix)) {
                     let id = key.replace(prefix, '');
-                    let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
+                    let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode1';
                     if (prov === 'herosms') idsHero.push(id);
                     else idsSmsCode.push(id);
                 }
@@ -446,7 +462,6 @@
             
             let allOrders = [];
 
-            // FUNGSI TARIK DATA
             const fetchOrders = async (provider, ids) => {
                 if (ids.length === 0) return;
                 const res = await fetch(`${WORKER_URL}/get-active`, {
@@ -456,15 +471,14 @@
                 });
                 const j = await res.json();
                 if (j.success && j.data) {
-                    j.data.forEach(o => o._provider = provider); // Berikan tanda provider ke data yang ditarik
+                    j.data.forEach(o => o._provider = provider); 
                     allOrders = allOrders.concat(j.data);
                 }
             };
 
-            // CEK KE KEDUA SERVER JIKA ADA ID AKTIF
             await Promise.all([
                 fetchOrders('herosms', idsHero),
-                fetchOrders('smscode', idsSmsCode)
+                fetchOrders('smscode1', idsSmsCode)
             ]);
             
             renderSmsOrders(allOrders); 
@@ -485,8 +499,7 @@
         if(!orders || !orders.length) return;
 
         orders.forEach(o => {
-            // TENTUKAN PROVIDER UNTUK MENGATUR WARNA DAN MATA UANG
-            const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
+            const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode1';
             const currStr = orderProv === "herosms" ? "$" : "Rp ";
             const cardClass = orderProv === "herosms" ? "card-herosms" : "card-smscode";
 
@@ -508,7 +521,6 @@
             
             const existing = document.getElementById('order-' + o.id);
             if (existing) {
-                // UPDATE KARTU YANG SUDAH ADA
                 existing.className = `order-card ${cardClass}`;
                 existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
                 existing.querySelector('.order-phone').innerText = phone;
@@ -516,7 +528,6 @@
                 if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
                 if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
             } else {
-                // BUAT KARTU BARU DENGAN KELAS CSS YANG SESUAI
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="order-${o.id}">
                     <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
@@ -552,7 +563,6 @@
     async function actSms(action, id) {
         if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
         try {
-            // PASTIKAN MENGGUNAKAN PROVIDER YANG TEPAT SAAT MELAKUKAN AKSI (CANCEL/DONE)
             const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
 
             const res = await fetch(`${WORKER_URL}/order-action`, { 
