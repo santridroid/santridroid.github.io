@@ -19,13 +19,13 @@
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
 
-        .header { background-color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: wrap; gap: 10px; }
-        .menu-icon { font-size: 20px; color: #555; cursor: pointer; }
-        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; }
-        .dropdown-group select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 13px; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 10px; border-radius: 15px; font-size: 14px; color: #000; }
-        .lock-icon { color: #666; font-size: 18px; cursor: pointer; }
+        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: nowrap; gap: 8px; }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
+        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
+        .dropdown-group select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 105px; text-overflow: ellipsis; }
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
 
         .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
         .admin-popup.active { display: block; }
@@ -35,10 +35,10 @@
         .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn-orange { background-color: #f39c12; margin-bottom: 10px; }
+        .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
-        .btn-purple { background-color: #8e44ad; margin-bottom: 5px; }
+        .btn-purple { background-color: #8e44ad; }
         .btn-red { background-color: #e74c3c; }
         .btn-row { display: flex; gap: 10px; }
 
@@ -53,7 +53,7 @@
         .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
         .item-stock { color: #7f8c8d; font-size: 12px; }
 
-        /* Kustomisasi Background Order Berdasarkan Provider */
+        /* Kustomisasi Background Order */
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
@@ -107,7 +107,7 @@
         </div>
         <div id="logout-form" class="hidden">
             <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-            <button class="btn btn-red" onclick="globalLogout()">Logout</button>
+            <button class="btn btn-red" style="margin-bottom: 15px;" onclick="globalLogout()">Logout</button>
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
             <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
             <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
@@ -118,7 +118,7 @@
 
     <div class="card">
         <input type="text" id="genEmailInput" class="email-input" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
-        <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+        <button id="btn-copy-email" class="btn btn-orange" style="margin-bottom:10px;" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
         <div class="btn-row">
             <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
             <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
@@ -150,10 +150,25 @@
     </div>
 </div>
 
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Link User</h3>
+        <input type="hidden" id="edit-key">
+        <input type="text" id="edit-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
+        <input type="text" id="edit-url" class="form-input" placeholder="URL Link Shopee">
+        <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
+            <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // ================= PENGATURAN AWAL =================
-    const USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
-    const WORKER_URL = "https://sms-virtual.santridroid.workers.dev"; 
+    const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
+    let dynamicUsers = [...DEFAULT_USERS]; // Menampung gabungan user bawaan dan hasil fetch dari database
+    
+    const WORKER_URL = "https://sms.santridroid.workers.dev"; 
     
     let currentUser = "UMAM";
     let isUserLocked = false;
@@ -171,25 +186,34 @@
 
     // ================= FUNGSI DASAR UI =================
     function initUserDropdown() {
-        const select = document.getElementById('user-selector');
-        select.innerHTML = USERS.map(u => `<option value="${u}">${u}</option>`).join('');
-        
         isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
         const savedUser = localStorage.getItem('xurel_selected_user');
         
-        if(savedUser && USERS.includes(savedUser)) {
-            currentUser = savedUser;
-            select.value = currentUser;
-        }
-
+        if(savedUser) currentUser = savedUser;
         const savedProvider = localStorage.getItem('xurel_provider');
         if(savedProvider) document.getElementById('provider-selector').value = savedProvider;
 
+        updateDropdownUI(); // Update tampilan awal
         applyUserLockUI();
         refreshAllData();
         
         setInterval(pollSms, 5000); 
         setInterval(updateSmsTimers, 1000);
+    }
+
+    function updateDropdownUI() {
+        const select = document.getElementById('user-selector');
+        // Render ulang isi option berdasarkan array dinamis
+        select.innerHTML = dynamicUsers.map(u => `<option value="${u}">${u}</option>`).join('');
+        
+        // Pilih opsi sesuai user saat ini (jika ada)
+        if (dynamicUsers.includes(currentUser)) {
+            select.value = currentUser;
+        } else {
+            // Kalau user tidak ditemukan di list (kasus dihapus), reset ke user pertama
+            currentUser = dynamicUsers[0] || "UMAM";
+            select.value = currentUser;
+        }
     }
 
     function toggleUserLock() { 
@@ -298,7 +322,17 @@
 
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
-    db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+    db.ref('linkshopee').on('value', snap => { 
+        shopeeDataCache = snap.val() || {}; 
+        
+        // Membangun daftar user unik untuk dropdown secara dinamis
+        const firebaseUsers = Object.values(shopeeDataCache).map(data => data.title.toUpperCase());
+        // Menggabungkan array DEFAULT_USERS dan firebaseUsers tanpa menduplikasi nilai
+        dynamicUsers = [...new Set([...DEFAULT_USERS, ...firebaseUsers])];
+        
+        updateDropdownUI(); // Update UI Dropdown
+        renderShopee();     // Render ulang panel tautan
+    });
 
     async function addShopeeMenu() {
         const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
@@ -317,11 +351,14 @@
             if(data.title.toUpperCase() === currentUser.toUpperCase()) {
                 found = true;
                 container.innerHTML += `
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-purple" style="flex:1;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <button class="btn btn-purple" style="flex:1; margin-bottom:0;" onclick="copyShopeeLink(event, '${data.url}', this)">
                             ${data.title}
                         </button>
-                        ${!!globalUser ? `<button class="btn btn-red" style="width:40px; margin-bottom:5px;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${!!globalUser ? `
+                        <button class="btn btn-orange" style="width:40px; margin-bottom:0; padding:0;" onclick="openEditModal('${key}', '${data.title}', '${data.url}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-red" style="width:40px; margin-bottom:0; padding:0;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
                     </div>
                 `;
             }
@@ -330,6 +367,34 @@
     }
 
     async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
+    
+    // Fitur Edit Modal (Admin)
+    function openEditModal(key, oldTitle, oldUrl) {
+        document.getElementById('edit-key').value = key;
+        document.getElementById('edit-title').value = oldTitle;
+        document.getElementById('edit-url').value = oldUrl;
+        document.getElementById('edit-modal').classList.add('active');
+    }
+    
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('active');
+    }
+    
+    function saveEditShopee() {
+        const key = document.getElementById('edit-key').value;
+        const newTitle = document.getElementById('edit-title').value.trim();
+        const newUrl = document.getElementById('edit-url').value.trim();
+        
+        if(!newTitle || !newUrl) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
+        
+        db.ref('linkshopee/' + key).update({
+            title: newTitle.toUpperCase(),
+            url: newUrl
+        }).then(() => {
+            closeEditModal();
+        });
+    }
+
     function copyShopeeLink(event, url, btnElement) {
         event.preventDefault(); navigator.clipboard.writeText(url).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', btnElement.innerText); });
     }
