@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANTRIDROID - HERO SMS</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
+        input, select, button { outline: none; }
+        .hidden { display: none !important; }
+
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
+
+        .header { background-color: white; padding: 15px 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: nowrap; gap: 8px; }
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #eafaf1; padding: 5px 12px; border-radius: 15px; font-size: 14px; color: #27ae60; border: 1px solid #2ecc71; }
+
+        .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
+        .admin-popup.active { display: block; }
+        .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
+        
+        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
+        .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-orange { background-color: #f39c12; }
+        .btn-blue { background-color: #2e86de; }
+        .btn-green { background-color: #27ae60; }
+        .btn-purple { background-color: #8e44ad; }
+        .btn-red { background-color: #e74c3c; }
+        .btn-row { display: flex; gap: 10px; }
+
+        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
+
+        /* Grid Shopee Button */
+        .shopee-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .shopee-item { display: flex; flex-direction: column; gap: 5px; }
+        .shopee-admin-actions { display: flex; gap: 5px; }
+
+        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
+        .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
+        .list-item:hover { background-color: #f9f9f9; }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-weight: bold; }
+        .item-price { color: #27ae60; font-weight: bold; margin-left: auto; margin-right: 15px; }
+        .item-stock { color: #7f8c8d; font-size: 12px; }
+
+        /* Kustomisasi Background Order */
+        .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
+        .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
+        .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
+        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
+        .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
+        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #27ae60; } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
+        
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="header">
+        <button class="btn btn-blue" style="padding: 6px 15px; font-size: 13px; margin: 0; width: auto; border-radius: 20px;" onclick="toggleAdminMenu()">
+            <i class="fas fa-user-shield"></i> Admin Panel
+        </button>
+        <div class="header-right">
+            <span class="saldo-text" id="sms-balance">$ 0</span>
+        </div>
+    </header>
+
+    <div id="admin-menu" class="admin-popup">
+        <div id="login-form">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+            <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
+            <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+            <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+        </div>
+        <div id="logout-form" class="hidden">
+            <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+            <button class="btn btn-red" style="margin-bottom: 15px;" onclick="globalLogout()">Logout</button>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
+            <input type="text" id="shopee-title" class="form-input" placeholder="Nama Link (Cth: TOKO BUKU)">
+            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
+            <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <input type="text" id="genEmailInput" class="email-input" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+        <button id="btn-copy-email" class="btn btn-orange" style="margin-bottom:10px;" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+        <div class="btn-row">
+            <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
+            <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">LINK SHOPEE AKTIF</div>
+        <div id="shopee-container">
+            <div style="color: #aaa; font-size: 13px; text-align: center;">Memuat Link...</div>
+        </div>
+    </div>
+
+    <div id="sms-active-orders"></div>
+
+    <div class="list-header">PESAN NOMOR BARU (HERO-SMS)</div>
+    <div class="list-group" id="sms-prices">
+        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<div id="universal-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
+        <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
+        <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
+    </div>
+</div>
+
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Link Shopee</h3>
+        <input type="hidden" id="edit-key">
+        <input type="text" id="edit-title" class="form-input" placeholder="Nama Link (Cth: TOKO BUKU)">
+        <input type="text" id="edit-url" class="form-input" placeholder="URL Link Shopee">
+        <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
+            <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================= PENGATURAN AWAL =================
+    const WORKER_URL = "https://ayub.santridroid.workers.dev"; 
+    let audioCtx;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('xurel_saved_email');
+        if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
+        
+        refreshAllData();
+        
+        setInterval(pollSms, 5000); 
+        setInterval(updateSmsTimers, 1000);
+
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+    });
+
+    // ================= FUNGSI DASAR UI =================
+    function refreshAllData() { 
+        renderShopee(); 
+        refreshSms(); 
+    }
+
+    function showTempNotif(btnElement, notifText, originalHTML) {
+        btnElement.innerHTML = notifText;
+        setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
+    }
+
+    // ================= MODAL & AUDIO =================
+    function showModal(title, msg, type='confirm') {
+        return new Promise(resolve => {
+            const ov = document.getElementById('universal-modal');
+            document.getElementById('u-modal-title').innerText = title;
+            document.getElementById('u-modal-msg').innerText = msg;
+            const actions = document.getElementById('u-modal-actions');
+            actions.innerHTML = '';
+            if (type === 'confirm') {
+                actions.innerHTML = `
+                    <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
+                    <button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>
+                `;
+            } else {
+                actions.innerHTML = `<button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>`;
+            }
+            window.modalResolve = resolve;
+            ov.classList.add('active');
+        });
+    }
+
+    function playNotifSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
+    function showOtpToast(otpCode) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'otp-toast';
+        toast.innerHTML = `<i class="fa-solid fa-bell"></i> OTP: <span>${otpCode}</span>`;
+        container.appendChild(toast);
+        playNotifSound();
+        setTimeout(() => { toast.remove(); }, 5000);
+    }
+
+    // ================= FIREBASE & ADMIN =================
+    const configMaster = { 
+        apiKey: "AIzaSyD817HCcmkBbAfmX4QLQl95i7QkyyRQqn8",
+        authDomain: "sms-santridroid.firebaseapp.com",
+        projectId: "sms-santridroid",
+        storageBucket: "sms-santridroid.firebasestorage.app",
+        messagingSenderId: "267765525556",
+        appId: "1:267765525556:web:945abb4b18053c8f866e61",
+        measurementId: "G-KXVJEBPGG3",
+        databaseURL: "https://sms-santridroid-default-rtdb.firebaseio.com"
+    };
+    
+    firebase.initializeApp(configMaster);
+    const db = firebase.database(); const auth = firebase.auth();
+    let globalUser = null;
+
+    function toggleAdminMenu() { document.getElementById('admin-menu').classList.toggle('active'); }
+    
+    auth.onAuthStateChanged(user => {
+        globalUser = user; 
+        document.getElementById('login-form').classList.toggle('hidden', !!user);
+        document.getElementById('logout-form').classList.toggle('hidden', !user);
+        renderShopee();
+    });
+
+    function globalLogin() {
+        const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            document.getElementById('admin-menu').classList.remove('active');
+        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
+    }
+    function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    // ================= LOGIKA SHOPEE =================
+    let shopeeDataCache = {}; 
+    db.ref('linkshopee').on('value', snap => { 
+        shopeeDataCache = snap.val() || {}; 
+        renderShopee();     
+    });
+
+    async function addShopeeMenu() {
+        const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
+        if(!t || !u) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
+        db.ref('linkshopee').push({ title: t.toUpperCase(), url: u, createdAt: Date.now() }).then(() => {
+            document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
+            showModal("Sukses", "Link berhasil ditambahkan", "alert");
+        });
+    }
+
+    // FUNGSI UNTUK MENGHASILKAN WARNA ACAK BERDASARKAN STRING NAMA (AGAR KONSISTEN)
+    function getColorFromString(str) {
+        const colors = ['#8e44ad', '#2980b9', '#27ae60', '#e67e22', '#c0392b', '#16a085', '#d35400', '#34495e', '#f39c12', '#1abc9c', '#9b59b6'];
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    function renderShopee() {
+        const container = document.getElementById('shopee-container'); 
+        container.innerHTML = "";
+        
+        let found = false;
+        const keys = Object.keys(shopeeDataCache).reverse();
+        
+        if (keys.length > 0) {
+            found = true;
+            container.className = "shopee-grid"; // Terapkan format Grid (2 Kolom)
+            
+            keys.forEach(key => {
+                const data = shopeeDataCache[key];
+                const btnColor = getColorFromString(data.title);
+                
+                container.innerHTML += `
+                    <div class="shopee-item">
+                        <button class="btn" style="background-color: ${btnColor}; flex: 1; margin-bottom: 0;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                            ${data.title}
+                        </button>
+                        ${!!globalUser ? `
+                        <div class="shopee-admin-actions">
+                            <button class="btn btn-orange" style="flex:1; padding: 6px; font-size: 12px; margin-bottom:0;" onclick="openEditModal('${key}', '${data.title}', '${data.url}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-red" style="flex:1; padding: 6px; font-size: 12px; margin-bottom:0;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        }
+        
+        if(!found) {
+            container.className = ""; // Hapus grid class jika kosong
+            container.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center;">Kosong</div>`;
+        }
+    }
+
+    async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
+    
+    function openEditModal(key, oldTitle, oldUrl) {
+        document.getElementById('edit-key').value = key;
+        document.getElementById('edit-title').value = oldTitle;
+        document.getElementById('edit-url').value = oldUrl;
+        document.getElementById('edit-modal').classList.add('active');
+    }
+    
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('active');
+    }
+    
+    function saveEditShopee() {
+        const key = document.getElementById('edit-key').value;
+        const newTitle = document.getElementById('edit-title').value.trim();
+        const newUrl = document.getElementById('edit-url').value.trim();
+        
+        if(!newTitle || !newUrl) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
+        
+        db.ref('linkshopee/' + key).update({
+            title: newTitle.toUpperCase(),
+            url: newUrl
+        }).then(() => {
+            closeEditModal();
+        });
+    }
+
+    function copyShopeeLink(event, url, btnElement) {
+        event.preventDefault(); navigator.clipboard.writeText(url).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', btnElement.innerText); });
+    }
+
+    // ================= TOOLS GENERATOR =================
+    let listFN = [], listLN = [];
+    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+    
+    function generateName(btnElement) {
+        if(!listFN.length) return;
+        const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        navigator.clipboard.writeText(full).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-user"></i> Acak Nama'); });
+    }
+    
+    function generatePhone(btnElement) {
+        let number = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) number += Math.floor(Math.random() * 10);
+        navigator.clipboard.writeText(number).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-phone-alt"></i> Acak Nomor'); });
+    }
+    
+    function copyAndIncrementEmail() {
+        const input = document.getElementById('genEmailInput'); const btn = document.getElementById('btn-copy-email');
+        let email = input.value.trim(); if (!email) return;
+        navigator.clipboard.writeText(email).then(() => {
+            showTempNotif(btn, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Email');
+            const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
+            if (match) input.value = `${match[1]}${parseInt(match[2], 10) + 1}${match[3]}`;
+            else { const atIdx = email.lastIndexOf('@'); if (atIdx !== -1) input.value = `${email.substring(0, atIdx)}1${email.substring(atIdx)}`; }
+            localStorage.setItem('xurel_saved_email', input.value);
+        });
+    }
+
+    // ================= LOGIKA SMS =================
+    async function fetchWorker(path, options = {}) {
+        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers } });
+    }
+
+    function refreshSms() {
+        document.getElementById('sms-active-orders').innerHTML = ''; 
+        document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
+        updateSmsBal(); loadSmsPrices(); pollSms();
+    }
+
+    async function updateSmsBal() {
+        try {
+            const res = await fetchWorker(`/get-balance`); const json = await res.json();
+            if (json.success) {
+                document.getElementById('sms-balance').innerText = `$ ${json.data.balance}`;
+            } else { document.getElementById('sms-balance').innerText = `$ 0`; }
+        } catch(e) {}
+    }
+
+    async function loadSmsPrices() {
+        try {
+            const res = await fetchWorker(`/get-prices`); 
+            const json = await res.json();
+            const box = document.getElementById('sms-prices');
+            
+            if (json.success && json.data && json.data.length > 0) {
+                box.innerHTML = json.data.map(i => `
+                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${i.name}')">
+                        <span class="item-name">${i.name}</span>
+                        <span class="item-price">$${i.price}</span>
+                        <span class="item-stock">${i.available} stok</span>
+                    </div>`).join('');
+            } else {
+                box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                    ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
+                </div>`;
+            }
+        } catch (e) { document.getElementById('sms-prices').innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`; }
+    }
+
+    async function buySms(pid, price, name) {
+        if(!await showModal("Pesan", `Beli ${name} seharga $${price}?`)) return;
+        try {
+            const res = await fetchWorker(`/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
+            const j = await res.json();
+            if(j.success) {
+                const o = j.data.orders[0]; 
+                localStorage.setItem(`sms_order_phone_${o.id}`, o.phone_number); 
+                localStorage.setItem(`sms_order_price_${o.id}`, price);
+                pollSms(); updateSmsBal();
+            } else showModal("Gagal", j.error?.message || "Gagal order", "alert");
+        } catch(e){}
+    }
+
+    async function pollSms() { 
+        try { 
+            let ids = [];
+            const prefix = `sms_order_phone_`;
+            
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key.startsWith(prefix)) {
+                    ids.push(key.replace(prefix, ''));
+                }
+            }
+            
+            if (ids.length === 0) {
+                renderSmsOrders([]);
+                return;
+            }
+
+            const res = await fetchWorker(`/get-active`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ active_ids: ids })
+            });
+            const j = await res.json();
+            
+            if (j.success && j.data) {
+                renderSmsOrders(j.data); 
+            }
+        } catch(e) {} 
+    }
+
+    function copyPhoneNumber(txt, el) {
+        if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function renderSmsOrders(orders) {
+        const container = document.getElementById('sms-active-orders'); 
+        const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+        
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        
+        if(!orders || !orders.length) return;
+
+        orders.forEach(o => {
+            const phone = o.phone || localStorage.getItem(`sms_order_phone_${o.id}`) || 'Mencari...';
+            if(o.phone) localStorage.setItem(`sms_order_phone_${o.id}`, o.phone);
+            
+            const serverPrice = o.price || o.cost || localStorage.getItem(`sms_order_price_${o.id}`);
+            if(serverPrice) localStorage.setItem(`sms_order_price_${o.id}`, serverPrice);
+            
+            let expireTime = localStorage.getItem(`sms_order_timer_${o.id}`);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`sms_order_timer_${o.id}`, expireTime); }
+            let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
+
+            if (o.otp_code && !localStorage.getItem(`sms_order_notif_otp_${o.id}_${o.otp_code}`)) {
+                showOtpToast(o.otp_code); localStorage.setItem(`sms_order_notif_otp_${o.id}_${o.otp_code}`, 'true');
+            }
+
+            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            
+            const existing = document.getElementById('order-' + o.id);
+            if (existing) {
+                existing.querySelector('.order-header span').innerText = `#${o.id} - $${serverPrice||'...'}`;
+                existing.querySelector('.order-phone').innerText = phone;
+                existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
+                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
+            } else {
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="order-card" id="order-${o.id}">
+                    <div class="order-header"><span>#${o.id} - $${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                    <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
+                    <div class="order-otp">${otpDisplay}</div>
+                    <div class="btn-grid">
+                        <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
+                        <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                        <button class="btn-sm btn-replace" onclick="actSms('replace', '${o.id}')" ${passed2Mins?'':'disabled'}>REPLACE</button>
+                    </div>
+                </div>`);
+            }
+        });
+        updateSmsTimers();
+    }
+
+    function updateSmsTimers() {
+        document.querySelectorAll('.sms-timer').forEach(el => {
+            const expireTime = localStorage.getItem(`sms_order_timer_${el.dataset.id}`);
+            if(!expireTime) return; 
+            
+            const diff = Math.max(0, Math.floor((parseInt(expireTime) - Date.now())/1000));
+            el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+            el.style.color = diff < 600 ? "#e74c3c" : "#555";
+            if (diff <= 1080) {
+                const card = document.getElementById('order-' + el.dataset.id);
+                if(card) { card.querySelector('.btn-cancel').disabled = false; card.querySelector('.btn-replace').disabled = false; }
+            }
+        });
+    }
+
+    async function actSms(action, id) {
+        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        try {
+            const res = await fetchWorker(`/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json" }, 
+                body: JSON.stringify({id, action}) 
+            });
+
+            if((await res.json()).success) {
+                if(action !== 'resend') { 
+                    localStorage.removeItem(`sms_order_phone_${id}`); 
+                    localStorage.removeItem(`sms_order_timer_${id}`); 
+                    localStorage.removeItem(`sms_order_price_${id}`); 
+                    Object.keys(localStorage).forEach(k => { if(k.startsWith(`sms_order_notif_otp_${id}`)) localStorage.removeItem(k); });
+                }
+                pollSms(); updateSmsBal();
+            }
+        } catch(e){}
+    }
+</script>
+</body>
+</html>
