@@ -14,7 +14,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
-        input, select, button { outline: none; }
+        input, select, button, textarea { outline: none; }
         .hidden { display: none !important; }
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
@@ -31,6 +31,12 @@
         .admin-popup.active { display: block; }
         .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
         
+        /* Main Menu Styling */
+        #main-menu { padding: 10px; width: 200px; }
+        .menu-item { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #555; }
+        .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
+        .menu-item:last-child { border-bottom: none; }
+
         .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
         .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
@@ -75,6 +81,19 @@
         .modal-overlay.active { display: flex; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
         
+        /* Notes Grid Styling */
+        .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; }
+        .note-card { background: white; border-radius: 12px; padding: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; min-height: 110px; text-align: left; }
+        .note-card-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #333; text-transform: uppercase; padding-right: 30px; }
+        .note-card-content { font-size: 12px; color: #3498db; white-space: pre-wrap; word-break: break-all; flex-grow: 1; margin-bottom: 15px; }
+        .note-card-badge { position: absolute; bottom: 8px; right: 8px; background: #f0f0f0; color: #777; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+        .note-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; opacity: 0.4; transition: 0.2s; }
+        .note-card:hover .note-card-actions { opacity: 1; }
+        
+        /* FAB Styling */
+        .fab { width: 55px; height: 55px; border-radius: 50%; background-color: #4A90E2; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; right: 20px; z-index: 10; }
+        .fab:hover { background-color: #357ABD; transform: scale(1.05); }
+
         #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -84,7 +103,7 @@
 
 <div class="app-container">
     <header class="header">
-        <div class="menu-icon" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i></div>
+        <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
         <div class="dropdown-group">
             <select id="provider-selector" onchange="changeProvider()">
                 <option value="smscode">SMS Code</option>
@@ -97,6 +116,11 @@
             <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
         </div>
     </header>
+
+    <div id="main-menu" class="admin-popup">
+        <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield"></i> Admin Panel</div>
+        <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note"></i> Catatan Global</div>
+    </div>
 
     <div id="admin-menu" class="admin-popup">
         <div id="login-form">
@@ -142,7 +166,7 @@
 
 <div id="toast-container"></div>
 
-<div id="universal-modal" class="modal-overlay">
+<div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
     <div class="modal-box">
         <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
         <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
@@ -159,6 +183,35 @@
         <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
             <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
             <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="notes-modal" class="modal-overlay">
+    <div class="modal-box" style="width: 95%; max-width: 500px; height: 85vh; display: flex; flex-direction: column; background: #f4f6f8; position: relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="color:#333; margin:0;"><i class="fas fa-sticky-note" style="color: #f39c12;"></i> Catatan Global</h3>
+            <button class="btn" style="background:transparent; color:#555; width:auto; padding:5px 10px; font-size: 18px;" onclick="closeNotesModal()"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div id="notes-container" class="notes-grid">
+            </div>
+        
+        <button class="fab" onclick="openNoteInputModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+</div>
+
+<div id="note-input-modal" class="modal-overlay" style="z-index: 2001;">
+    <div class="modal-box" style="width: 90%; max-width: 350px;">
+        <h3 style="margin-bottom:15px; color:#333;" id="note-modal-title">Tambah Catatan</h3>
+        <input type="hidden" id="note-id">
+        <input type="text" id="note-title" class="form-input" placeholder="Judul Catatan (Opsional)">
+        <textarea id="note-content" class="form-input" placeholder="Tulis catatan di sini..." style="height: 120px; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeNoteInputModal()">Batal</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveNote()">Simpan</button>
         </div>
     </div>
 </div>
@@ -293,7 +346,7 @@
         setTimeout(() => { toast.remove(); }, 5000);
     }
 
-    // ================= FIREBASE & ADMIN =================
+    // ================= FIREBASE, MENU & ADMIN =================
     const configMaster = { 
         apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
         databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -303,8 +356,16 @@
     const db = firebase.database(); const auth = firebase.auth();
     let globalUser = null;
 
-    function toggleAdminMenu() { document.getElementById('admin-menu').classList.toggle('active'); }
+    function toggleMainMenu() { 
+        document.getElementById('main-menu').classList.toggle('active'); 
+        document.getElementById('admin-menu').classList.remove('active');
+    }
     
+    function openAdminMenu() { 
+        document.getElementById('main-menu').classList.remove('active'); 
+        document.getElementById('admin-menu').classList.add('active'); 
+    }
+
     auth.onAuthStateChanged(user => {
         globalUser = user; 
         document.getElementById('login-form').classList.toggle('hidden', !!user);
@@ -320,18 +381,136 @@
     }
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
 
+    // ================= LOGIKA CATATAN GLOBAL (NOTES) =================
+    let notesDataCache = {};
+    
+    function openNotesModal() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('notes-modal').classList.add('active');
+    }
+    
+    function closeNotesModal() {
+        document.getElementById('notes-modal').classList.remove('active');
+    }
+
+    function openNoteInputModal() {
+        document.getElementById('note-id').value = '';
+        document.getElementById('note-title').value = '';
+        document.getElementById('note-content').value = '';
+        document.getElementById('note-modal-title').innerText = 'Tambah Catatan';
+        document.getElementById('note-input-modal').classList.add('active');
+    }
+
+    function closeNoteInputModal() {
+        document.getElementById('note-input-modal').classList.remove('active');
+    }
+
+    db.ref('notes').on('value', snap => {
+        notesDataCache = snap.val() || {};
+        renderNotes();
+    });
+
+    // Mengambil nomor urut terbesar dari database
+    function getNextNoteNumber() {
+        let max = 0;
+        Object.values(notesDataCache).forEach(note => {
+            if (note.seq && !isNaN(note.seq)) {
+                max = Math.max(max, parseInt(note.seq));
+            } else if (!isNaN(note.title) && String(note.title).trim() !== "") {
+                max = Math.max(max, parseInt(note.title));
+            }
+        });
+        return max + 1;
+    }
+
+    function renderNotes() {
+        const container = document.getElementById('notes-container');
+        container.innerHTML = '';
+        const keys = Object.keys(notesDataCache);
+
+        if (keys.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; font-size:13px; padding: 30px;">Belum ada catatan.</div>';
+            return;
+        }
+
+        keys.reverse().forEach(key => {
+            const data = notesDataCache[key];
+            
+            // Pengaturan penomoran di badge pojok
+            const badgeText = data.seq ? data.seq : (isNaN(data.title) ? "-" : data.title);
+            const titleText = data.title || "CATATAN";
+
+            container.innerHTML += `
+                <div class="note-card">
+                    <div class="note-card-actions">
+                        <i class="fas fa-edit" style="color: #f39c12; cursor: pointer;" onclick="editNote('${key}')"></i>
+                        <i class="fas fa-trash" style="color: #e74c3c; cursor: pointer;" onclick="deleteNote('${key}')"></i>
+                    </div>
+                    <div class="note-card-title">${titleText}</div>
+                    <div class="note-card-content">${escapeHTML(data.content)}</div>
+                    <div class="note-card-badge">${badgeText}</div>
+                </div>
+            `;
+        });
+    }
+
+    // Mencegah XSS namun mempertahankan spasi/baris baru
+    function escapeHTML(text) {
+        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function saveNote() {
+        const id = document.getElementById('note-id').value;
+        let title = document.getElementById('note-title').value.trim();
+        const content = document.getElementById('note-content').value.trim();
+
+        if (!content) return showModal("Peringatan", "Isi catatan tidak boleh kosong!", "alert");
+
+        if (id) {
+            // Update catatan lama
+            if (!title) title = "CATATAN";
+            db.ref('notes/' + id).update({ title, content, updatedAt: Date.now() }).then(() => {
+                closeNoteInputModal();
+            });
+        } else {
+            // Simpan catatan baru
+            const seq = getNextNoteNumber();
+            if (!title) title = seq.toString(); // Jika judul kosong saat tambah baru, jadikan angkanya sebagai judul
+
+            db.ref('notes').push({ title, content, seq: seq, createdAt: Date.now() }).then(() => {
+                closeNoteInputModal();
+            }).catch(e => {
+                showModal("Gagal Menyimpan", "Cek aturan rules database Firebase Anda.", "alert");
+            });
+        }
+    }
+
+    function editNote(key) {
+        const data = notesDataCache[key];
+        if(data) {
+            document.getElementById('note-id').value = key;
+            document.getElementById('note-title').value = data.title;
+            document.getElementById('note-content').value = data.content;
+            document.getElementById('note-modal-title').innerText = 'Edit Catatan';
+            document.getElementById('note-input-modal').classList.add('active');
+        }
+    }
+
+    async function deleteNote(key) {
+        if(await showModal("Hapus", "Hapus catatan ini?")) db.ref('notes/' + key).remove();
+    }
+
+
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
     db.ref('linkshopee').on('value', snap => { 
         shopeeDataCache = snap.val() || {}; 
         
-        // Membangun daftar user unik untuk dropdown secara dinamis
         const firebaseUsers = Object.values(shopeeDataCache).map(data => data.title.toUpperCase());
-        // Menggabungkan array DEFAULT_USERS dan firebaseUsers tanpa menduplikasi nilai
         dynamicUsers = [...new Set([...DEFAULT_USERS, ...firebaseUsers])];
         
-        updateDropdownUI(); // Update UI Dropdown
-        renderShopee();     // Render ulang panel tautan
+        updateDropdownUI(); 
+        renderShopee();     
     });
 
     async function addShopeeMenu() {
@@ -368,7 +547,6 @@
 
     async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
     
-    // Fitur Edit Modal (Admin)
     function openEditModal(key, oldTitle, oldUrl) {
         document.getElementById('edit-key').value = key;
         document.getElementById('edit-title').value = oldTitle;
@@ -376,9 +554,7 @@
         document.getElementById('edit-modal').classList.add('active');
     }
     
-    function closeEditModal() {
-        document.getElementById('edit-modal').classList.remove('active');
-    }
+    function closeEditModal() { document.getElementById('edit-modal').classList.remove('active'); }
     
     function saveEditShopee() {
         const key = document.getElementById('edit-key').value;
@@ -387,10 +563,7 @@
         
         if(!newTitle || !newUrl) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
         
-        db.ref('linkshopee/' + key).update({
-            title: newTitle.toUpperCase(),
-            url: newUrl
-        }).then(() => {
+        db.ref('linkshopee/' + key).update({ title: newTitle.toUpperCase(), url: newUrl }).then(() => {
             closeEditModal();
         });
     }
@@ -485,7 +658,6 @@
                 const o = j.data.orders[0]; 
                 localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
                 localStorage.setItem(`${currentUser}_price_${o.id}`, price);
-                // SIMPAN PROVIDERNYA SAAT ORDER DIBUAT
                 localStorage.setItem(`${currentUser}_provider_${o.id}`, provider); 
                 pollSms(); updateSmsBal();
             } else showModal("Gagal", j.error?.message || "Gagal order", "alert");
@@ -498,7 +670,6 @@
             let idsSmsCode = [];
             const prefix = `${currentUser}_phone_`;
             
-            // PISAHKAN PENCARIAN BERDASARKAN PROVIDER YANG TERSIMPAN
             for(let i=0; i<localStorage.length; i++) {
                 let key = localStorage.key(i);
                 if(key.startsWith(prefix)) {
@@ -511,7 +682,6 @@
             
             let allOrders = [];
 
-            // FUNGSI TARIK DATA
             const fetchOrders = async (provider, ids) => {
                 if (ids.length === 0) return;
                 const res = await fetch(`${WORKER_URL}/get-active`, {
@@ -521,12 +691,11 @@
                 });
                 const j = await res.json();
                 if (j.success && j.data) {
-                    j.data.forEach(o => o._provider = provider); // Berikan tanda provider ke data yang ditarik
+                    j.data.forEach(o => o._provider = provider);
                     allOrders = allOrders.concat(j.data);
                 }
             };
 
-            // CEK KE KEDUA SERVER JIKA ADA ID AKTIF
             await Promise.all([
                 fetchOrders('herosms', idsHero),
                 fetchOrders('smscode', idsSmsCode)
@@ -550,7 +719,6 @@
         if(!orders || !orders.length) return;
 
         orders.forEach(o => {
-            // TENTUKAN PROVIDER UNTUK MENGATUR WARNA DAN MATA UANG
             const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
             const currStr = orderProv === "herosms" ? "$" : "Rp ";
             const cardClass = orderProv === "herosms" ? "card-herosms" : "card-smscode";
@@ -573,7 +741,6 @@
             
             const existing = document.getElementById('order-' + o.id);
             if (existing) {
-                // UPDATE KARTU YANG SUDAH ADA
                 existing.className = `order-card ${cardClass}`;
                 existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
                 existing.querySelector('.order-phone').innerText = phone;
@@ -581,7 +748,6 @@
                 if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
                 if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
             } else {
-                // BUAT KARTU BARU DENGAN KELAS CSS YANG SESUAI
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="order-${o.id}">
                     <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
@@ -617,7 +783,6 @@
     async function actSms(action, id) {
         if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
         try {
-            // PASTIKAN MENGGUNAKAN PROVIDER YANG TEPAT SAAT MELAKUKAN AKSI (CANCEL/DONE)
             const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
 
             const res = await fetch(`${WORKER_URL}/order-action`, { 
