@@ -63,6 +63,7 @@
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+        .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; } 
 
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
@@ -139,6 +140,7 @@
             <select id="provider-selector" onchange="changeProvider()">
                 <option value="smscode">SMS Code</option>
                 <option value="herosms">Hero SMS</option>
+                <option value="otpcepat">OTP Cepat</option>
             </select>
             <select id="user-selector" onchange="changeGlobalUser()"></select>
         </div>
@@ -291,7 +293,6 @@
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
 
-        // Auto-fill form login admin dari localStorage
         const savedAdminEmail = localStorage.getItem('xurel_admin_email');
         const savedAdminPass = localStorage.getItem('xurel_admin_pass');
         if (savedAdminEmail && savedAdminPass) {
@@ -302,7 +303,6 @@
         
         initUserDropdown();
 
-        // Inisialisasi Pilihan Tampilan Catatan dari LocalStorage
         const savedNotesView = localStorage.getItem('xurel_notes_view') || 'grid';
         document.getElementById('notes-view-selector').value = savedNotesView;
         document.getElementById('notes-container').className = savedNotesView === 'grid' ? 'notes-grid' : 'notes-list';
@@ -451,7 +451,6 @@
         const rememberMe = document.getElementById('remember-me').checked;
 
         auth.signInWithEmailAndPassword(e, p).then(() => {
-            // Logika Simpan Sandi di Local Storage
             if (rememberMe) {
                 localStorage.setItem('xurel_admin_email', e);
                 localStorage.setItem('xurel_admin_pass', p);
@@ -465,9 +464,9 @@
     
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
 
-    // ================= LOGIKA CATATAN GLOBAL (NOTES) =================
+    // ================= LOGIKA CATATAN GLOBAL =================
     let notesDataCache = {};
-    let autoSaveTimeout; // Variabel untuk fitur autosave
+    let autoSaveTimeout; 
     
     function openNotesModal() {
         document.getElementById('main-menu').classList.remove('active');
@@ -488,7 +487,7 @@
         document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
         document.getElementById('note-color').value = el.getAttribute('data-color');
-        debounceAutoSave(); // Trigger autosave ketika warna diubah
+        debounceAutoSave(); 
     }
 
     function openNoteInputModal() {
@@ -497,7 +496,6 @@
         document.getElementById('note-content').value = '';
         document.getElementById('note-modal-title').innerText = 'Tambah Catatan';
         
-        // Set Default Warna Kuning
         document.getElementById('note-color').value = '#f1c40f';
         document.querySelectorAll('.color-dot').forEach(d => {
             d.classList.toggle('active', d.getAttribute('data-color') === '#f1c40f');
@@ -510,12 +508,11 @@
         document.getElementById('note-input-modal').classList.remove('active');
     }
 
-    // FUNGSI AUTOSAVE (Otomatis Tersimpan)
     function debounceAutoSave() {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(() => {
             performAutoSave();
-        }, 1000); // Otomatis simpan 1 detik setelah user selesai mengetik
+        }, 1000); 
     }
 
     function performAutoSave() {
@@ -525,7 +522,7 @@
         const content = document.getElementById('note-content').value.trim();
         const color = document.getElementById('note-color').value;
 
-        if (!content && !title) return; // Jangan save jika isi & judul kosong
+        if (!content && !title) return; 
 
         if (id) {
             if (!title) title = "CATATAN";
@@ -535,13 +532,13 @@
             if (!title) title = seq.toString(); 
 
             const newRef = db.ref('notes').push();
-            idInput.value = newRef.key; // Simpan ID baru agar ketika lanjut mengetik mereplace note yang sama
+            idInput.value = newRef.key; 
             newRef.set({ title, content, color, seq: seq, createdAt: Date.now() });
         }
     }
 
     function saveNote() {
-        performAutoSave(); // Memaksa save eksekusi
+        performAutoSave(); 
         closeNoteInputModal();
     }
 
@@ -562,7 +559,6 @@
         return max + 1;
     }
 
-    // Fungsi Pengubah Hex menjadi Transparan (RGBA)
     function hexToRgba(hex, alpha) {
         if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return `rgba(241, 196, 15, ${alpha})`;
         let r = parseInt(hex.slice(1, 3), 16),
@@ -584,9 +580,8 @@
         keys.reverse().forEach(key => {
             const data = notesDataCache[key];
             
-            // Menghitung jumlah baris note
             const lineCount = data.content ? data.content.split(/\r\n|\r|\n/).length : 0;
-            const badgeText = lineCount; // Menampilkan jumlah baris bukan ID Seq
+            const badgeText = lineCount; 
             const titleText = data.title || "CATATAN";
             
             const noteColor = data.color || "#f1c40f"; 
@@ -803,6 +798,7 @@
         try { 
             let idsHero = [];
             let idsSmsCode = [];
+            let idsOtpCepat = []; 
             const prefix = `${currentUser}_phone_`;
             
             for(let i=0; i<localStorage.length; i++) {
@@ -810,7 +806,9 @@
                 if(key.startsWith(prefix)) {
                     let id = key.replace(prefix, '');
                     let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
+                    
                     if (prov === 'herosms') idsHero.push(id);
+                    else if (prov === 'otpcepat') idsOtpCepat.push(id);
                     else idsSmsCode.push(id);
                 }
             }
@@ -833,7 +831,8 @@
 
             await Promise.all([
                 fetchOrders('herosms', idsHero),
-                fetchOrders('smscode', idsSmsCode)
+                fetchOrders('smscode', idsSmsCode),
+                fetchOrders('otpcepat', idsOtpCepat) 
             ]);
             
             renderSmsOrders(allOrders); 
@@ -856,7 +855,8 @@
         orders.forEach(o => {
             const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
             const currStr = orderProv === "herosms" ? "$" : "Rp ";
-            const cardClass = orderProv === "herosms" ? "card-herosms" : "card-smscode";
+            
+            const cardClass = orderProv === "herosms" ? "card-herosms" : (orderProv === "otpcepat" ? "card-otpcepat" : "card-smscode");
 
             const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
             if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
