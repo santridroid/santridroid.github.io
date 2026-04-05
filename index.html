@@ -31,7 +31,6 @@
         .admin-popup.active { display: block; }
         .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
         
-        /* Main Menu Styling - Diperbesar */
         #main-menu { padding: 10px; width: 230px; }
         .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
         .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
@@ -59,11 +58,12 @@
         .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
         .item-stock { color: #7f8c8d; font-size: 12px; }
 
-        /* Kustomisasi Background Order */
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
         .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; } 
+        .card-smspool { background-color: #fdf2e9; border-left: 4px solid #e67e22; }
+        .card-5sim { background-color: #f0f3f4; border-left: 4px solid #34495e; }
 
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
@@ -82,47 +82,35 @@
         .modal-overlay.active { display: flex; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
         
-        /* Notes Styling Baru */
         .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
         .notes-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
         
         .note-card { border-radius: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; text-align: left; }
         
-        /* Pengaturan ruang kosong list vs grid */
         .notes-grid .note-card { min-height: 110px; padding: 12px; }
         .notes-list .note-card { min-height: auto; padding: 10px 10px 28px 10px; }
         
         .note-card-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #333; text-transform: uppercase; padding-right: 30px; }
         
-        /* Teks Note hanya tampil 3 baris */
         .note-card-content { font-size: 12px; color: #3498db; white-space: pre-wrap; word-break: break-all; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 55px; }
         
         .notes-grid .note-card-content { margin-bottom: 25px; }
         .notes-list .note-card-content { margin-bottom: 10px; }
         
-        /* Pindah badge ke note-card-bottom-actions */
         .note-card-badge { background: rgba(255,255,255,0.6); color: #777; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
-        
-        /* Tindakan Note: Edit & Line Count di Bawah Kanan */
         .note-card-bottom-actions { position: absolute; bottom: 8px; right: 8px; display: flex; align-items: center; gap: 8px; }
-        
-        /* Tindakan Note: Delete di Atas Kanan */
         .note-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; opacity: 0.4; transition: 0.2s; }
         .note-card:hover .note-card-actions { opacity: 1; }
         
-        /* Tampilan Select Dropdown View */
         .view-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; background: white; font-weight: bold; color: #555; cursor: pointer; }
 
-        /* Pilihan Warna */
         .color-picker { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
         .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .color-dot.active { transform: scale(1.2); border-color: #333; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
 
-        /* FAB Plus Styling */
         .fab { width: 55px; height: 55px; border-radius: 50%; background-color: #4A90E2; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; right: 20px; z-index: 10; }
         .fab:hover { background-color: #357ABD; transform: scale(1.05); }
 
-        /* FAB Close Modal Styling */
         .fab-close { width: 55px; height: 55px; border-radius: 50%; background-color: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
         .fab-close:hover { background-color: #c0392b; transform: translateX(-50%) scale(1.05); }
 
@@ -141,6 +129,8 @@
                 <option value="smscode">SMS Code</option>
                 <option value="herosms">Hero SMS</option>
                 <option value="otpcepat">OTP Cepat</option>
+                <option value="smspool">SMS Pool</option>
+                <option value="5sim">5SIM</option>
             </select>
             <select id="user-selector" onchange="changeGlobalUser()"></select>
         </div>
@@ -239,8 +229,7 @@
             </div>
         </div>
         
-        <div id="notes-container" class="notes-grid">
-            </div>
+        <div id="notes-container" class="notes-grid"></div>
         
         <button class="fab" onclick="openNoteInputModal()">
             <i class="fas fa-plus"></i>
@@ -630,7 +619,6 @@
         if(await showModal("Hapus", "Hapus catatan ini?")) db.ref('notes/' + key).remove();
     }
 
-
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
     db.ref('linkshopee').on('value', snap => { 
@@ -745,17 +733,30 @@
     async function updateSmsBal() {
         try {
             const provider = document.getElementById('provider-selector').value;
-            const res = await fetchWorker(`/get-balance`); const json = await res.json();
+            const res = await fetchWorker(`/get-balance`); 
+            const json = await res.json();
+            
             if (json.success) {
-                document.getElementById('sms-balance').innerText = provider === 'herosms' ? `$ ${json.data.balance}` : `Rp ${json.data.balance.toLocaleString('id-ID')}`;
-            } else { document.getElementById('sms-balance').innerText = `Rp 0`; }
+                let currencyPrefix = "Rp ";
+                if (provider === 'herosms' || provider === 'smspool' || provider === '5sim') currencyPrefix = "$ ";
+                
+                let balanceDisplay = json.data.balance;
+                if (provider === 'smscode' || provider === 'otpcepat') {
+                    balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
+                }
+                
+                document.getElementById('sms-balance').innerText = `${currencyPrefix}${balanceDisplay}`;
+            } else { 
+                document.getElementById('sms-balance').innerText = `Rp 0`; 
+            }
         } catch(e) {}
     }
 
     async function loadSmsPrices() {
         try {
             const provider = document.getElementById('provider-selector').value;
-            const currencyStr = provider === "herosms" ? "$" : "Rp ";
+            let currencyStr = "Rp ";
+            if (provider === "herosms" || provider === "smspool" || provider === "5sim") currencyStr = "$ ";
 
             const res = await fetchWorker(`/get-prices`); 
             const json = await res.json();
@@ -766,7 +767,7 @@
                     <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${i.name}')">
                         <span class="item-name">${i.name}</span>
                         <span class="item-price">${currencyStr}${i.price}</span>
-                        <span class="item-stock">${i.available} stok</span>
+                        <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
                     </div>`).join('');
             } else {
                 box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
@@ -778,7 +779,8 @@
 
     async function buySms(pid, price, name) {
         const provider = document.getElementById('provider-selector').value;
-        const priceTxt = provider === "herosms" ? `$${price}` : `Rp ${price}`;
+        let priceTxt = `Rp ${price}`;
+        if (provider === "herosms" || provider === "smspool" || provider === "5sim") priceTxt = `$${price}`;
 
         if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
         try {
@@ -799,6 +801,9 @@
             let idsHero = [];
             let idsSmsCode = [];
             let idsOtpCepat = []; 
+            let idsSmsPool = []; 
+            let ids5sim = []; 
+            
             const prefix = `${currentUser}_phone_`;
             
             for(let i=0; i<localStorage.length; i++) {
@@ -809,6 +814,8 @@
                     
                     if (prov === 'herosms') idsHero.push(id);
                     else if (prov === 'otpcepat') idsOtpCepat.push(id);
+                    else if (prov === 'smspool') idsSmsPool.push(id);
+                    else if (prov === '5sim') ids5sim.push(id);
                     else idsSmsCode.push(id);
                 }
             }
@@ -832,7 +839,9 @@
             await Promise.all([
                 fetchOrders('herosms', idsHero),
                 fetchOrders('smscode', idsSmsCode),
-                fetchOrders('otpcepat', idsOtpCepat) 
+                fetchOrders('otpcepat', idsOtpCepat),
+                fetchOrders('smspool', idsSmsPool),
+                fetchOrders('5sim', ids5sim)
             ]);
             
             renderSmsOrders(allOrders); 
@@ -854,9 +863,15 @@
 
         orders.forEach(o => {
             const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
-            const currStr = orderProv === "herosms" ? "$" : "Rp ";
             
-            const cardClass = orderProv === "herosms" ? "card-herosms" : (orderProv === "otpcepat" ? "card-otpcepat" : "card-smscode");
+            let currStr = "Rp ";
+            if (orderProv === "herosms" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
+            
+            let cardClass = "card-smscode";
+            if (orderProv === "herosms") cardClass = "card-herosms";
+            else if (orderProv === "otpcepat") cardClass = "card-otpcepat";
+            else if (orderProv === "smspool") cardClass = "card-smspool";
+            else if (orderProv === "5sim") cardClass = "card-5sim";
 
             const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
             if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
