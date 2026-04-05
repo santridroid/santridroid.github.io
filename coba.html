@@ -12,60 +12,45 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        /* ================= GLOBAL STYLES ================= */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
-        input, select, button { outline: none; }
+        input, select, button, textarea { outline: none; }
         .hidden { display: none !important; }
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
 
-        /* ================= HEADER ================= */
-        .header {
-            background-color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px;
-        }
-        .menu-icon { font-size: 20px; color: #555; cursor: pointer; }
-        .user-dropdown select { padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 10px; border-radius: 15px; font-size: 14px; color: #000; }
-        .lock-icon { color: #666; font-size: 18px; cursor: pointer; }
+        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: nowrap; gap: 8px; }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
+        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
+        .dropdown-group select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 105px; text-overflow: ellipsis; }
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
 
-        /* ================= KOTAK MENU ADMIN (POPUP) ================= */
-        .admin-popup {
-            display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; 
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001;
-        }
+        .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
         .admin-popup.active { display: block; }
         .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
         
-        /* ================= CARD & BUTTONS ================= */
+        #main-menu { padding: 10px; width: 230px; }
+        .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
+        .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
+        .menu-item:last-child { border-bottom: none; }
+
         .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
-        
-        .email-input { 
-            width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; 
-            font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px;
-        }
-        
-        .btn {
-            width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white;
-            cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;
-        }
+        .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn-orange { background-color: #f39c12; margin-bottom: 10px; }
+        .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
-        .btn-purple { background-color: #8e44ad; margin-bottom: 5px; }
+        .btn-purple { background-color: #8e44ad; }
         .btn-red { background-color: #e74c3c; }
-        
         .btn-row { display: flex; gap: 10px; }
 
         .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
 
-        /* ================= DAFTAR NOMOR & HARGA ================= */
         .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
         .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
-        
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
         .list-item:hover { background-color: #f9f9f9; }
         .list-item:last-child { border-bottom: none; }
@@ -73,27 +58,66 @@
         .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
         .item-stock { color: #7f8c8d; font-size: 12px; }
 
-        /* ================= ACTIVE ORDERS CARD ================= */
-        .order-card { background: white; border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; border-left: 4px solid #3498db;}
+        .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
+        .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
+        .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+        .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; } 
+        .card-smspool { background-color: #fdf2e9; border-left: 4px solid #e67e22; }
+        .card-5sim { background-color: #f0f3f4; border-left: 4px solid #34495e; }
+
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
         .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
         .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
-        .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
         .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* Loader OTP */
         .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
         .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
         .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
         .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
         @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
 
-        /* ================= MODAL & TOAST ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-overlay.active { display: flex; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
         
+        .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
+        .notes-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
+        
+        .note-card { border-radius: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; text-align: left; }
+        
+        .notes-grid .note-card { min-height: 110px; padding: 12px; }
+        .notes-list .note-card { min-height: auto; padding: 10px 10px 28px 10px; }
+        
+        .note-card-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #333; text-transform: uppercase; padding-right: 30px; }
+        
+        .note-card-content { font-size: 12px; color: #3498db; white-space: pre-wrap; word-break: break-all; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 55px; }
+        
+        .notes-grid .note-card-content { margin-bottom: 25px; }
+        .notes-list .note-card-content { margin-bottom: 10px; }
+        
+        .note-card-badge { background: rgba(255,255,255,0.6); color: #777; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+        .note-card-bottom-actions { position: absolute; bottom: 8px; right: 8px; display: flex; align-items: center; gap: 8px; }
+        .note-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; opacity: 0.4; transition: 0.2s; }
+        .note-card:hover .note-card-actions { opacity: 1; }
+        
+        .view-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; background: white; font-weight: bold; color: #555; cursor: pointer; }
+
+        .color-picker { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
+        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-dot.active { transform: scale(1.2); border-color: #333; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+
+        .fab { width: 55px; height: 55px; border-radius: 50%; background-color: #4A90E2; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; right: 20px; z-index: 10; }
+        .fab:hover { background-color: #357ABD; transform: scale(1.05); }
+
+        .fab-close { width: 55px; height: 55px; border-radius: 50%; background-color: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .fab-close:hover { background-color: #c0392b; transform: translateX(-50%) scale(1.05); }
+
+        /* Kode Baru: Tombol Cepat Notes Melayang */
+        .fab-quick-note { width: 55px; height: 55px; border-radius: 50%; background-color: #f1c40f; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: fixed; bottom: 20px; left: 20px; z-index: 1000; }
+        .fab-quick-note:hover { background-color: #f39c12; transform: scale(1.05); }
+
         #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -102,10 +126,16 @@
 <body>
 
 <div class="app-container">
-    
     <header class="header">
-        <div class="menu-icon" onclick="toggleAdminMenu()"><i class="fas fa-bars"></i></div>
-        <div class="user-dropdown">
+        <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
+        <div class="dropdown-group">
+            <select id="provider-selector" onchange="changeProvider()">
+                <option value="smscode">SMS Code</option>
+                <option value="herosms">Hero SMS</option>
+                <option value="otpcepat">OTP Cepat</option>
+                <option value="smspool">SMS Pool</option>
+                <option value="5sim">5SIM</option>
+            </select>
             <select id="user-selector" onchange="changeGlobalUser()"></select>
         </div>
         <div class="header-right">
@@ -114,18 +144,28 @@
         </div>
     </header>
 
+    <div id="main-menu" class="admin-popup">
+        <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+        <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+    </div>
+
     <div id="admin-menu" class="admin-popup">
         <div id="login-form">
             <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
             <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
             <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+            
+            <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
+                <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
+                <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+            </div>
+
             <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
         </div>
         <div id="logout-form" class="hidden">
             <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-            <button class="btn btn-red" onclick="globalLogout()">Logout</button>
+            <button class="btn btn-red" style="margin-bottom: 15px;" onclick="globalLogout()">Logout</button>
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-            
             <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
             <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
             <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
@@ -135,7 +175,7 @@
 
     <div class="card">
         <input type="text" id="genEmailInput" class="email-input" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
-        <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+        <button id="btn-copy-email" class="btn btn-orange" style="margin-bottom:10px;" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
         <div class="btn-row">
             <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
             <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
@@ -155,12 +195,11 @@
     <div class="list-group" id="sms-prices">
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
-
 </div>
 
 <div id="toast-container"></div>
 
-<div id="universal-modal" class="modal-overlay">
+<div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
     <div class="modal-box">
         <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
         <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
@@ -168,10 +207,80 @@
     </div>
 </div>
 
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Link User</h3>
+        <input type="hidden" id="edit-key">
+        <input type="text" id="edit-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
+        <input type="text" id="edit-url" class="form-input" placeholder="URL Link Shopee">
+        <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
+            <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="notes-modal" class="modal-overlay">
+    <div class="modal-box" style="width: 95%; max-width: 500px; height: 85vh; display: flex; flex-direction: column; background: #f4f6f8; position: relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="color:#333; margin:0;"><i class="fas fa-sticky-note" style="color: #f39c12;"></i> Catatan</h3>
+            
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="notes-view-selector" class="view-select" onchange="changeNotesView()">
+                    <option value="grid">Grid (Kotak)</option>
+                    <option value="list">List (Daftar)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="notes-container" class="notes-grid"></div>
+        
+        <button class="fab" onclick="openNoteInputModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+        
+        <button class="fab-close" onclick="closeNotesModal()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<div id="note-input-modal" class="modal-overlay" style="z-index: 2001;">
+    <div class="modal-box" style="width: 90%; max-width: 350px;">
+        <h3 style="margin-bottom:15px; color:#333;" id="note-modal-title">Tambah Catatan</h3>
+        
+        <div class="color-picker">
+            <div class="color-dot active" style="background-color: #f1c40f;" data-color="#f1c40f" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #e74c3c;" data-color="#e74c3c" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #3498db;" data-color="#3498db" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #2ecc71;" data-color="#2ecc71" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #9b59b6;" data-color="#9b59b6" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #e67e22;" data-color="#e67e22" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #fd79a8;" data-color="#fd79a8" onclick="selectColor(this)"></div>
+            <div class="color-dot" style="background-color: #1abc9c;" data-color="#1abc9c" onclick="selectColor(this)"></div>
+        </div>
+        <input type="hidden" id="note-color" value="#f1c40f">
+
+        <input type="hidden" id="note-id">
+        <input type="text" id="note-title" class="form-input" placeholder="Judul Catatan (Opsional)" oninput="debounceAutoSave()">
+        <textarea id="note-content" class="form-input" placeholder="Tulis catatan di sini..." style="height: 120px; resize: vertical;" oninput="debounceAutoSave()"></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeNoteInputModal()">Batal</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveNote()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<button class="fab-quick-note" onclick="openNotesModal()">
+    <i class="fas fa-pencil-alt"></i>
+</button>
+
 <script>
     // ================= PENGATURAN AWAL =================
-    const USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
-    const WORKER_URL = "https://sms.santridroid.workers.dev";
+    const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
+    let dynamicUsers = [...DEFAULT_USERS]; 
+    
+    const WORKER_URL = "https://sms-virtual.santridroid.workers.dev"; 
     
     let currentUser = "UMAM";
     let isUserLocked = false;
@@ -180,8 +289,21 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
+
+        const savedAdminEmail = localStorage.getItem('xurel_admin_email');
+        const savedAdminPass = localStorage.getItem('xurel_admin_pass');
+        if (savedAdminEmail && savedAdminPass) {
+            document.getElementById('global-email').value = savedAdminEmail;
+            document.getElementById('global-pass').value = savedAdminPass;
+            document.getElementById('remember-me').checked = true;
+        }
         
         initUserDropdown();
+
+        const savedNotesView = localStorage.getItem('xurel_notes_view') || 'grid';
+        document.getElementById('notes-view-selector').value = savedNotesView;
+        document.getElementById('notes-container').className = savedNotesView === 'grid' ? 'notes-grid' : 'notes-list';
+
         document.body.addEventListener('click', () => {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }, { once: true });
@@ -189,21 +311,31 @@
 
     // ================= FUNGSI DASAR UI =================
     function initUserDropdown() {
-        const select = document.getElementById('user-selector');
-        select.innerHTML = USERS.map(u => `<option value="${u}">${u}</option>`).join('');
-        
         isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
         const savedUser = localStorage.getItem('xurel_selected_user');
         
-        if(savedUser && USERS.includes(savedUser)) {
-            currentUser = savedUser;
-            select.value = currentUser;
-        }
+        if(savedUser) currentUser = savedUser;
+        const savedProvider = localStorage.getItem('xurel_provider');
+        if(savedProvider) document.getElementById('provider-selector').value = savedProvider;
+
+        updateDropdownUI(); 
         applyUserLockUI();
         refreshAllData();
         
         setInterval(pollSms, 5000); 
         setInterval(updateSmsTimers, 1000);
+    }
+
+    function updateDropdownUI() {
+        const select = document.getElementById('user-selector');
+        select.innerHTML = dynamicUsers.map(u => `<option value="${u}">${u}</option>`).join('');
+        
+        if (dynamicUsers.includes(currentUser)) {
+            select.value = currentUser;
+        } else {
+            currentUser = dynamicUsers[0] || "UMAM";
+            select.value = currentUser;
+        }
     }
 
     function toggleUserLock() { 
@@ -216,7 +348,6 @@
         const select = document.getElementById('user-selector'); 
         const icon = document.getElementById('user-lock-icon'); 
         select.disabled = isUserLocked;
-        
         if (isUserLocked) { icon.className = 'fas fa-lock'; icon.style.color = '#e74c3c'; } 
         else { icon.className = 'fas fa-unlock'; icon.style.color = '#666'; }
     }
@@ -228,10 +359,13 @@
         refreshAllData();
     }
 
-    function refreshAllData() {
-        renderShopee(); 
-        refreshSms();   
+    function changeProvider() {
+        const provider = document.getElementById('provider-selector').value;
+        localStorage.setItem('xurel_provider', provider);
+        refreshSms();
     }
+
+    function refreshAllData() { renderShopee(); refreshSms(); }
 
     function showTempNotif(btnElement, notifText, originalHTML) {
         btnElement.innerHTML = notifText;
@@ -246,7 +380,6 @@
             document.getElementById('u-modal-msg').innerText = msg;
             const actions = document.getElementById('u-modal-actions');
             actions.innerHTML = '';
-            
             if (type === 'confirm') {
                 actions.innerHTML = `
                     <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
@@ -282,7 +415,7 @@
         setTimeout(() => { toast.remove(); }, 5000);
     }
 
-    // ================= FIREBASE & ADMIN =================
+    // ================= FIREBASE, MENU & ADMIN =================
     const configMaster = { 
         apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
         databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -292,8 +425,16 @@
     const db = firebase.database(); const auth = firebase.auth();
     let globalUser = null;
 
-    function toggleAdminMenu() { document.getElementById('admin-menu').classList.toggle('active'); }
+    function toggleMainMenu() { 
+        document.getElementById('main-menu').classList.toggle('active'); 
+        document.getElementById('admin-menu').classList.remove('active');
+    }
     
+    function openAdminMenu() { 
+        document.getElementById('main-menu').classList.remove('active'); 
+        document.getElementById('admin-menu').classList.add('active'); 
+    }
+
     auth.onAuthStateChanged(user => {
         globalUser = user; 
         document.getElementById('login-form').classList.toggle('hidden', !!user);
@@ -302,16 +443,201 @@
     });
 
     function globalLogin() {
-        const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
+        const e = document.getElementById('global-email').value; 
+        const p = document.getElementById('global-pass').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+
         auth.signInWithEmailAndPassword(e, p).then(() => {
+            if (rememberMe) {
+                localStorage.setItem('xurel_admin_email', e);
+                localStorage.setItem('xurel_admin_pass', p);
+            } else {
+                localStorage.removeItem('xurel_admin_email');
+                localStorage.removeItem('xurel_admin_pass');
+            }
             document.getElementById('admin-menu').classList.remove('active');
         }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
     }
+    
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    // ================= LOGIKA CATATAN GLOBAL =================
+    let notesDataCache = {};
+    let autoSaveTimeout; 
+    
+    function openNotesModal() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('notes-modal').classList.add('active');
+    }
+    
+    function closeNotesModal() {
+        document.getElementById('notes-modal').classList.remove('active');
+    }
+
+    function changeNotesView() {
+        const mode = document.getElementById('notes-view-selector').value;
+        localStorage.setItem('xurel_notes_view', mode);
+        document.getElementById('notes-container').className = mode === 'grid' ? 'notes-grid' : 'notes-list';
+    }
+
+    function selectColor(el) {
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('note-color').value = el.getAttribute('data-color');
+        debounceAutoSave(); 
+    }
+
+    function openNoteInputModal() {
+        document.getElementById('note-id').value = '';
+        document.getElementById('note-title').value = '';
+        document.getElementById('note-content').value = '';
+        document.getElementById('note-modal-title').innerText = 'Tambah Catatan';
+        
+        document.getElementById('note-color').value = '#f1c40f';
+        document.querySelectorAll('.color-dot').forEach(d => {
+            d.classList.toggle('active', d.getAttribute('data-color') === '#f1c40f');
+        });
+
+        document.getElementById('note-input-modal').classList.add('active');
+    }
+
+    function closeNoteInputModal() {
+        document.getElementById('note-input-modal').classList.remove('active');
+    }
+
+    function debounceAutoSave() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            performAutoSave();
+        }, 1000); 
+    }
+
+    function performAutoSave() {
+        const idInput = document.getElementById('note-id');
+        let id = idInput.value;
+        let title = document.getElementById('note-title').value.trim();
+        const content = document.getElementById('note-content').value.trim();
+        const color = document.getElementById('note-color').value;
+
+        if (!content && !title) return; 
+
+        if (id) {
+            if (!title) title = "CATATAN";
+            db.ref('notes/' + id).update({ title, content, color, updatedAt: Date.now() });
+        } else {
+            const seq = getNextNoteNumber();
+            if (!title) title = seq.toString(); 
+
+            const newRef = db.ref('notes').push();
+            idInput.value = newRef.key; 
+            newRef.set({ title, content, color, seq: seq, createdAt: Date.now() });
+        }
+    }
+
+    function saveNote() {
+        performAutoSave(); 
+        closeNoteInputModal();
+    }
+
+    db.ref('notes').on('value', snap => {
+        notesDataCache = snap.val() || {};
+        renderNotes();
+    });
+
+    function getNextNoteNumber() {
+        let max = 0;
+        Object.values(notesDataCache).forEach(note => {
+            if (note.seq && !isNaN(note.seq)) {
+                max = Math.max(max, parseInt(note.seq));
+            } else if (!isNaN(note.title) && String(note.title).trim() !== "") {
+                max = Math.max(max, parseInt(note.title));
+            }
+        });
+        return max + 1;
+    }
+
+    function hexToRgba(hex, alpha) {
+        if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return `rgba(241, 196, 15, ${alpha})`;
+        let r = parseInt(hex.slice(1, 3), 16),
+            g = parseInt(hex.slice(3, 5), 16),
+            b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function renderNotes() {
+        const container = document.getElementById('notes-container');
+        container.innerHTML = '';
+        const keys = Object.keys(notesDataCache);
+
+        if (keys.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; font-size:13px; padding: 30px;">Belum ada catatan.</div>';
+            return;
+        }
+
+        keys.reverse().forEach(key => {
+            const data = notesDataCache[key];
+            
+            const lineCount = data.content ? data.content.split(/\r\n|\r|\n/).length : 0;
+            const badgeText = lineCount; 
+            const titleText = data.title || "CATATAN";
+            
+            const noteColor = data.color || "#f1c40f"; 
+            const bgColor = hexToRgba(noteColor, 0.15);
+
+            container.innerHTML += `
+                <div class="note-card" style="border-left: 5px solid ${noteColor}; background-color: ${bgColor};">
+                    <div class="note-card-actions">
+                        <i class="fas fa-trash" style="color: #e74c3c; cursor: pointer;" onclick="deleteNote('${key}')"></i>
+                    </div>
+                    <div class="note-card-title">${titleText}</div>
+                    <div class="note-card-content">${escapeHTML(data.content)}</div>
+                    
+                    <div class="note-card-bottom-actions">
+                        <i class="fas fa-edit" style="color: #f39c12; cursor: pointer; opacity: 0.8;" onclick="editNote('${key}')"></i>
+                        <div class="note-card-badge">${badgeText}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function escapeHTML(text) {
+        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function editNote(key) {
+        const data = notesDataCache[key];
+        if(data) {
+            document.getElementById('note-id').value = key;
+            document.getElementById('note-title').value = data.title;
+            document.getElementById('note-content').value = data.content;
+            document.getElementById('note-modal-title').innerText = 'Edit Catatan';
+            
+            const savedColor = data.color || '#f1c40f';
+            document.getElementById('note-color').value = savedColor;
+            document.querySelectorAll('.color-dot').forEach(d => {
+                d.classList.toggle('active', d.getAttribute('data-color') === savedColor);
+            });
+
+            document.getElementById('note-input-modal').classList.add('active');
+        }
+    }
+
+    async function deleteNote(key) {
+        if(await showModal("Hapus", "Hapus catatan ini?")) db.ref('notes/' + key).remove();
+    }
 
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
-    db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+    db.ref('linkshopee').on('value', snap => { 
+        shopeeDataCache = snap.val() || {}; 
+        
+        const firebaseUsers = Object.values(shopeeDataCache).map(data => data.title.toUpperCase());
+        dynamicUsers = [...new Set([...DEFAULT_USERS, ...firebaseUsers])];
+        
+        updateDropdownUI(); 
+        renderShopee();     
+    });
 
     async function addShopeeMenu() {
         const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
@@ -325,33 +651,51 @@
     function renderShopee() {
         const container = document.getElementById('shopee-container'); container.innerHTML = "";
         let found = false;
-        
         Object.keys(shopeeDataCache).reverse().forEach(key => {
             const data = shopeeDataCache[key];
             if(data.title.toUpperCase() === currentUser.toUpperCase()) {
                 found = true;
-                // Merender tombol ungu polos sesuai desain gambar baru
                 container.innerHTML += `
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-purple" style="flex:1;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <button class="btn btn-purple" style="flex:1; margin-bottom:0;" onclick="copyShopeeLink(event, '${data.url}', this)">
                             ${data.title}
                         </button>
-                        ${!!globalUser ? `<button class="btn btn-red" style="width:40px; margin-bottom:5px;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${!!globalUser ? `
+                        <button class="btn btn-orange" style="width:40px; margin-bottom:0; padding:0;" onclick="openEditModal('${key}', '${data.title}', '${data.url}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-red" style="width:40px; margin-bottom:0; padding:0;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
                     </div>
                 `;
             }
         });
-
         if(!found) container.innerHTML = `<div style="color: #aaa; font-size: 13px; text-align: center;">Kosong</div>`;
     }
 
     async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
     
-    function copyShopeeLink(event, url, btnElement) {
-        event.preventDefault(); navigator.clipboard.writeText(url).then(() => {
-            const ori = btnElement.innerText;
-            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', ori);
+    function openEditModal(key, oldTitle, oldUrl) {
+        document.getElementById('edit-key').value = key;
+        document.getElementById('edit-title').value = oldTitle;
+        document.getElementById('edit-url').value = oldUrl;
+        document.getElementById('edit-modal').classList.add('active');
+    }
+    
+    function closeEditModal() { document.getElementById('edit-modal').classList.remove('active'); }
+    
+    function saveEditShopee() {
+        const key = document.getElementById('edit-key').value;
+        const newTitle = document.getElementById('edit-title').value.trim();
+        const newUrl = document.getElementById('edit-url').value.trim();
+        
+        if(!newTitle || !newUrl) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
+        
+        db.ref('linkshopee/' + key).update({ title: newTitle.toUpperCase(), url: newUrl }).then(() => {
+            closeEditModal();
         });
+    }
+
+    function copyShopeeLink(event, url, btnElement) {
+        event.preventDefault(); navigator.clipboard.writeText(url).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', btnElement.innerText); });
     }
 
     // ================= TOOLS GENERATOR =================
@@ -373,7 +717,6 @@
     function copyAndIncrementEmail() {
         const input = document.getElementById('genEmailInput'); const btn = document.getElementById('btn-copy-email');
         let email = input.value.trim(); if (!email) return;
-        
         navigator.clipboard.writeText(email).then(() => {
             showTempNotif(btn, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Email');
             const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
@@ -385,50 +728,133 @@
 
     // ================= LOGIKA SMS =================
     async function fetchWorker(path, options = {}) {
-        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser } });
+        const provider = document.getElementById('provider-selector').value || "smscode";
+        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser, "X-Provider": provider } });
     }
 
     function refreshSms() {
+        document.getElementById('sms-active-orders').innerHTML = ''; 
         document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
         updateSmsBal(); loadSmsPrices(); pollSms();
     }
 
     async function updateSmsBal() {
         try {
-            const res = await fetchWorker(`/get-balance`); const json = await res.json();
-            document.getElementById('sms-balance').innerText = json.success ? `Rp ${json.data.balance.toLocaleString('id-ID')}` : `Rp 0`;
+            const provider = document.getElementById('provider-selector').value;
+            const res = await fetchWorker(`/get-balance`); 
+            const json = await res.json();
+            
+            if (json.success) {
+                let currencyPrefix = "Rp ";
+                if (provider === 'herosms' || provider === 'smspool' || provider === '5sim') currencyPrefix = "$ ";
+                
+                let balanceDisplay = json.data.balance;
+                if (provider === 'smscode' || provider === 'otpcepat') {
+                    balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
+                }
+                
+                document.getElementById('sms-balance').innerText = `${currencyPrefix}${balanceDisplay}`;
+            } else { 
+                document.getElementById('sms-balance').innerText = `Rp 0`; 
+            }
         } catch(e) {}
     }
 
     async function loadSmsPrices() {
         try {
-            const res = await fetchWorker(`/get-prices`); const json = await res.json();
+            const provider = document.getElementById('provider-selector').value;
+            let currencyStr = "Rp ";
+            if (provider === "herosms" || provider === "smspool" || provider === "5sim") currencyStr = "$ ";
+
+            const res = await fetchWorker(`/get-prices`); 
+            const json = await res.json();
             const box = document.getElementById('sms-prices');
-            if (json.success && json.data.length > 0) {
+            
+            if (json.success && json.data && json.data.length > 0) {
                 box.innerHTML = json.data.map(i => `
-                    <div class="list-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
+                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${i.name}')">
                         <span class="item-name">${i.name}</span>
-                        <span class="item-price">Rp ${i.price}</span>
-                        <span class="item-stock">${i.available} stok</span>
+                        <span class="item-price">${currencyStr}${i.price}</span>
+                        <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
                     </div>`).join('');
-            } else box.innerHTML = '<div style="padding:20px; text-align:center;">Kosong atau Token Error</div>';
-        } catch (e) {}
+            } else {
+                box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                    ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
+                </div>`;
+            }
+        } catch (e) { document.getElementById('sms-prices').innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`; }
     }
 
     async function buySms(pid, price, name) {
-        if(!await showModal("Pesan", `Beli ${name} seharga Rp ${price}?`)) return;
+        const provider = document.getElementById('provider-selector').value;
+        let priceTxt = `Rp ${price}`;
+        if (provider === "herosms" || provider === "smspool" || provider === "5sim") priceTxt = `$${price}`;
+
+        if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
         try {
             const res = await fetchWorker(`/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
             const j = await res.json();
             if(j.success) {
                 const o = j.data.orders[0]; 
-                localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
+                localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
+                localStorage.setItem(`${currentUser}_price_${o.id}`, price);
+                localStorage.setItem(`${currentUser}_provider_${o.id}`, provider); 
                 pollSms(); updateSmsBal();
-            } else showModal("Gagal", j.error.message || "Gagal order", "alert");
+            } else showModal("Gagal", j.error?.message || "Gagal order", "alert");
         } catch(e){}
     }
 
-    async function pollSms() { try { const res = await fetchWorker(`/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {} }
+    async function pollSms() { 
+        try { 
+            let idsHero = [];
+            let idsSmsCode = [];
+            let idsOtpCepat = []; 
+            let idsSmsPool = []; 
+            let ids5sim = []; 
+            
+            const prefix = `${currentUser}_phone_`;
+            
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key.startsWith(prefix)) {
+                    let id = key.replace(prefix, '');
+                    let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
+                    
+                    if (prov === 'herosms') idsHero.push(id);
+                    else if (prov === 'otpcepat') idsOtpCepat.push(id);
+                    else if (prov === 'smspool') idsSmsPool.push(id);
+                    else if (prov === '5sim') ids5sim.push(id);
+                    else idsSmsCode.push(id);
+                }
+            }
+            
+            let allOrders = [];
+
+            const fetchOrders = async (provider, ids) => {
+                if (ids.length === 0) return;
+                const res = await fetch(`${WORKER_URL}/get-active`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-User-Name": currentUser, "X-Provider": provider },
+                    body: JSON.stringify({ active_ids: ids })
+                });
+                const j = await res.json();
+                if (j.success && j.data) {
+                    j.data.forEach(o => o._provider = provider);
+                    allOrders = allOrders.concat(j.data);
+                }
+            };
+
+            await Promise.all([
+                fetchOrders('herosms', idsHero),
+                fetchOrders('smscode', idsSmsCode),
+                fetchOrders('otpcepat', idsOtpCepat),
+                fetchOrders('smspool', idsSmsPool),
+                fetchOrders('5sim', ids5sim)
+            ]);
+            
+            renderSmsOrders(allOrders); 
+        } catch(e) {} 
+    }
 
     function copyPhoneNumber(txt, el) {
         if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
@@ -436,45 +862,60 @@
     }
 
     function renderSmsOrders(orders) {
-        const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
-        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
-        if(!orders || !orders.length) return;
+        const container = document.getElementById('sms-active-orders'); 
+        const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
         
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        
+        if(!orders || !orders.length) return;
+
         orders.forEach(o => {
-            const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari...';
-            if(o.phone) localStorage.setItem('phone_'+o.id, o.phone);
+            const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
             
-            const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
-            if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
+            let currStr = "Rp ";
+            if (orderProv === "herosms" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
             
-            let expireTime = localStorage.getItem('timer_' + o.id);
-            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem('timer_' + o.id, expireTime); }
+            let cardClass = "card-smscode";
+            if (orderProv === "herosms") cardClass = "card-herosms";
+            else if (orderProv === "otpcepat") cardClass = "card-otpcepat";
+            else if (orderProv === "smspool") cardClass = "card-smspool";
+            else if (orderProv === "5sim") cardClass = "card-5sim";
+
+            const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
+            if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
             
+            const serverPrice = o.price || o.cost || localStorage.getItem(`${currentUser}_price_${o.id}`);
+            if(serverPrice) localStorage.setItem(`${currentUser}_price_${o.id}`, serverPrice);
+            
+            let expireTime = localStorage.getItem(`${currentUser}_timer_${o.id}`);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`${currentUser}_timer_${o.id}`, expireTime); }
             let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
 
-            if (o.otp_code && !localStorage.getItem('notif_otp_' + o.id + '_' + o.otp_code)) {
-                showOtpToast(o.otp_code); localStorage.setItem('notif_otp_' + o.id + '_' + o.otp_code, 'true');
+            if (o.otp_code && !localStorage.getItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`)) {
+                showOtpToast(o.otp_code); localStorage.setItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`, 'true');
             }
 
             let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
             
             const existing = document.getElementById('order-' + o.id);
             if (existing) {
+                existing.className = `order-card ${cardClass}`;
+                existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
                 existing.querySelector('.order-phone').innerText = phone;
                 existing.querySelector('.order-otp').innerHTML = otpDisplay;
                 if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
                 if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
             } else {
                 container.insertAdjacentHTML('afterbegin', `
-                <div class="order-card" id="order-${o.id}">
-                    <div class="order-header"><span>#${o.id} - Rp ${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                <div class="order-card ${cardClass}" id="order-${o.id}">
+                    <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
                     <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
                     <div class="order-otp">${otpDisplay}</div>
                     <div class="btn-grid">
-                        <button class="btn-sm" onclick="actSms('finish', ${o.id})">DONE</button>
-                        <button class="btn-sm btn-resend" onclick="actSms('resend', ${o.id})" ${o.otp_code?'':'disabled'}>RESEND</button>
-                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', ${o.id})" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                        <button class="btn-sm btn-replace" onclick="actSms('replace', ${o.id})" ${passed2Mins?'':'disabled'}>REPLACE</button>
+                        <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
+                        <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                        <button class="btn-sm btn-replace" onclick="actSms('replace', '${o.id}')" ${passed2Mins?'':'disabled'}>REPLACE</button>
                     </div>
                 </div>`);
             }
@@ -484,7 +925,10 @@
 
     function updateSmsTimers() {
         document.querySelectorAll('.sms-timer').forEach(el => {
-            const diff = Math.max(0, Math.floor((parseInt(localStorage.getItem('timer_'+el.dataset.id)) - Date.now())/1000));
+            const expireTime = localStorage.getItem(`${currentUser}_timer_${el.dataset.id}`);
+            if(!expireTime) return; 
+            
+            const diff = Math.max(0, Math.floor((parseInt(expireTime) - Date.now())/1000));
             el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
             el.style.color = diff < 600 ? "#e74c3c" : "#555";
             if (diff <= 1080) {
@@ -497,11 +941,21 @@
     async function actSms(action, id) {
         if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
         try {
-            const res = await fetchWorker(`/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
+            const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
+
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": orderProvider }, 
+                body: JSON.stringify({id, action}) 
+            });
+
             if((await res.json()).success) {
                 if(action !== 'resend') { 
-                    localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); 
-                    Object.keys(localStorage).forEach(k => { if(k.startsWith('notif_otp_' + id)) localStorage.removeItem(k); });
+                    localStorage.removeItem(`${currentUser}_phone_${id}`); 
+                    localStorage.removeItem(`${currentUser}_timer_${id}`); 
+                    localStorage.removeItem(`${currentUser}_price_${id}`); 
+                    localStorage.removeItem(`${currentUser}_provider_${id}`); 
+                    Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
                 }
                 pollSms(); updateSmsBal();
             }
