@@ -85,7 +85,7 @@
         .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
         .notes-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
         
-        .note-card { border-radius: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; text-align: left; cursor: pointer; /* Added pointer cursor here */ }
+        .note-card { border-radius: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; text-align: left; cursor: pointer; }
         
         .notes-grid .note-card { min-height: 110px; padding: 12px; }
         .notes-list .note-card { min-height: auto; padding: 10px 10px 28px 10px; }
@@ -169,12 +169,20 @@
             <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
             <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
             <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
+            
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Sistem:</div>
+            <input type="text" id="worker-url-input" class="form-input" placeholder="URL Worker Default">
+            <button class="btn btn-blue" onclick="saveWorkerUrl()">Simpan URL Worker</button>
         </div>
     </div>
 
     <div class="card">
         <input type="text" id="genEmailInput" class="email-input" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
-        <button id="btn-copy-email" class="btn btn-orange" style="margin-bottom:10px;" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+        <div class="btn-row" style="margin-bottom:10px;">
+            <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+            <button id="btn-copy-password" class="btn btn-purple" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
+        </div>
         <div class="btn-row">
             <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
             <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
@@ -279,7 +287,7 @@
     const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
     let dynamicUsers = [...DEFAULT_USERS]; 
     
-    const WORKER_URL = "https://sms.laivia-agassy.workers.dev"; 
+    let WORKER_URL = localStorage.getItem('xurel_worker_url') || "https://sms.laivia-agassy.workers.dev"; 
     
     let currentUser = "UMAM";
     let isUserLocked = false;
@@ -288,6 +296,8 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
+
+        document.getElementById('worker-url-input').value = WORKER_URL;
 
         const savedAdminEmail = localStorage.getItem('xurel_admin_email');
         const savedAdminPass = localStorage.getItem('xurel_admin_pass');
@@ -461,6 +471,18 @@
     
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
 
+    function saveWorkerUrl() {
+        const newUrl = document.getElementById('worker-url-input').value.trim();
+        if(newUrl) {
+            WORKER_URL = newUrl;
+            localStorage.setItem('xurel_worker_url', newUrl);
+            showModal("Sukses", "URL Worker berhasil disimpan", "alert");
+            refreshAllData();
+        } else {
+            showModal("Peringatan", "URL Worker tidak boleh kosong", "alert");
+        }
+    }
+
     // ================= LOGIKA CATATAN GLOBAL =================
     let notesDataCache = {};
     let autoSaveTimeout; 
@@ -590,7 +612,6 @@
             const noteColor = data.color || "#f1c40f"; 
             const bgColor = hexToRgba(noteColor, 0.15);
 
-            // Perubahan: Menambahkan `onclick` pada container utama agar area note bisa diklik
             container.innerHTML += `
                 <div class="note-card" style="border-left: 5px solid ${noteColor}; background-color: ${bgColor};" onclick="editNote('${key}')">
                     <div class="note-card-actions">
@@ -730,6 +751,12 @@
             if (match) input.value = `${match[1]}${parseInt(match[2], 10) + 1}${match[3]}`;
             else { const atIdx = email.lastIndexOf('@'); if (atIdx !== -1) input.value = `${email.substring(0, atIdx)}1${email.substring(atIdx)}`; }
             localStorage.setItem('xurel_saved_email', input.value);
+        });
+    }
+
+    function copyPassword(btnElement) {
+        navigator.clipboard.writeText("santridroid").then(() => {
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-key"></i> Copy Password');
         });
     }
 
