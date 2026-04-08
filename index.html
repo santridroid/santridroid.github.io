@@ -178,7 +178,10 @@
     </div>
 
     <div class="card">
-        <input type="text" id="genEmailInput" class="email-input" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+        <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
+            <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
+            <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
+        </div>
         <div class="btn-row" style="margin-bottom:10px;">
             <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
@@ -740,6 +743,28 @@
         let number = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
         for(let i=0; i<9; i++) number += Math.floor(Math.random() * 10);
         navigator.clipboard.writeText(number).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-phone-alt"></i> Acak Nomor'); });
+    }
+    
+    // Modifikasi: Menambahkan fungsi decrementEmail untuk tombol undo email
+    function decrementEmail() {
+        const input = document.getElementById('genEmailInput');
+        let email = input.value.trim(); 
+        if (!email) return;
+        
+        // Cek jika format email berupa teks + angka + @domain
+        const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
+        if (match) {
+            let num = parseInt(match[2], 10);
+            if (num > 0) {
+                // Kurangi 1 dari angkanya
+                input.value = `${match[1]}${num - 1}${match[3]}`;
+                localStorage.setItem('xurel_saved_email', input.value);
+            } else if (num === 0) {
+                // Jika sudah 0, hilangkan angkanya kembali menjadi normal
+                input.value = `${match[1]}${match[3]}`;
+                localStorage.setItem('xurel_saved_email', input.value);
+            }
+        }
     }
     
     function copyAndIncrementEmail() {
