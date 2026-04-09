@@ -131,7 +131,8 @@
             <select id="provider-selector" onchange="changeProvider()">
                 <option value="smscode">SMS Code</option>
                 <option value="herosms">Hero SMS</option>
-                <option value="otpcepat">OTP Cepat</option>
+                <option value="otpcepat1">OTP Cepat 1</option>
+                <option value="otpcepat2">OTP Cepat 2</option>
                 <option value="smspool">SMS Pool</option>
                 <option value="5sim">5SIM</option>
             </select>
@@ -146,6 +147,7 @@
     <div id="main-menu" class="admin-popup">
         <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
         <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+        <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
     </div>
 
     <div id="admin-menu" class="admin-popup">
@@ -169,11 +171,6 @@
             <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
             <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
             <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
-            
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Sistem:</div>
-            <input type="text" id="worker-url-input" class="form-input" placeholder="URL Worker Default">
-            <button class="btn btn-blue" onclick="saveWorkerUrl()">Simpan URL Worker</button>
         </div>
     </div>
 
@@ -226,6 +223,17 @@
         <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
             <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
             <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="server-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Pilih Server Worker</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-blue" onclick="setServer('https://sms-virtual.santridroid.workers.dev')">Server 1 (santridroid)</button>
+            <button class="btn btn-green" onclick="setServer('https://sms.laivia-agassy.workers.dev')">Server 2 (laivia-agassy)</button>
+            <button class="btn" style="background:#bdc3c7; color:#333; margin-top:10px;" onclick="closeServerModal()">Batal</button>
         </div>
     </div>
 </div>
@@ -290,7 +298,7 @@
     const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
     let dynamicUsers = [...DEFAULT_USERS]; 
     
-    let WORKER_URL = localStorage.getItem('xurel_worker_url') || "https://sms.santridroid.workers.dev"; 
+    let WORKER_URL = localStorage.getItem('xurel_worker_url') || "https://sms.laivia-agassy.workers.dev"; 
     
     let currentUser = "UMAM";
     let isUserLocked = false;
@@ -299,8 +307,6 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
-
-        document.getElementById('worker-url-input').value = WORKER_URL;
 
         const savedAdminEmail = localStorage.getItem('xurel_admin_email');
         const savedAdminPass = localStorage.getItem('xurel_admin_pass');
@@ -441,11 +447,30 @@
     function toggleMainMenu() { 
         document.getElementById('main-menu').classList.toggle('active'); 
         document.getElementById('admin-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.remove('active');
     }
     
     function openAdminMenu() { 
         document.getElementById('main-menu').classList.remove('active'); 
         document.getElementById('admin-menu').classList.add('active'); 
+    }
+
+    // FUNGSI UNTUK MENU SERVER BARU
+    function openServerModal() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.add('active');
+    }
+
+    function closeServerModal() {
+        document.getElementById('server-modal').classList.remove('active');
+    }
+
+    function setServer(url) {
+        WORKER_URL = url;
+        localStorage.setItem('xurel_worker_url', url);
+        showModal("Sukses", "Server Worker berhasil diubah", "alert");
+        closeServerModal();
+        refreshAllData();
     }
 
     auth.onAuthStateChanged(user => {
@@ -473,18 +498,6 @@
     }
     
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
-
-    function saveWorkerUrl() {
-        const newUrl = document.getElementById('worker-url-input').value.trim();
-        if(newUrl) {
-            WORKER_URL = newUrl;
-            localStorage.setItem('xurel_worker_url', newUrl);
-            showModal("Sukses", "URL Worker berhasil disimpan", "alert");
-            refreshAllData();
-        } else {
-            showModal("Peringatan", "URL Worker tidak boleh kosong", "alert");
-        }
-    }
 
     // ================= LOGIKA CATATAN GLOBAL =================
     let notesDataCache = {};
@@ -745,7 +758,6 @@
         navigator.clipboard.writeText(number).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i>', '<i class="fas fa-phone-alt"></i> Acak Nomor'); });
     }
     
-    // Modifikasi: Menambahkan fungsi decrementEmail untuk tombol undo email
     function decrementEmail() {
         const input = document.getElementById('genEmailInput');
         let email = input.value.trim(); 
@@ -808,7 +820,7 @@
                 if (provider === 'herosms' || provider === 'smspool' || provider === '5sim') currencyPrefix = "$ ";
                 
                 let balanceDisplay = json.data.balance;
-                if (provider === 'smscode' || provider === 'otpcepat') {
+                if (provider === 'smscode' || provider.startsWith('otpcepat')) {
                     balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
                 }
                 
@@ -867,7 +879,8 @@
         try { 
             let idsHero = [];
             let idsSmsCode = [];
-            let idsOtpCepat = []; 
+            let idsOtpCepat1 = []; 
+            let idsOtpCepat2 = []; 
             let idsSmsPool = []; 
             let ids5sim = []; 
             
@@ -880,7 +893,9 @@
                     let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
                     
                     if (prov === 'herosms') idsHero.push(id);
-                    else if (prov === 'otpcepat') idsOtpCepat.push(id);
+                    else if (prov === 'otpcepat1') idsOtpCepat1.push(id);
+                    else if (prov === 'otpcepat2') idsOtpCepat2.push(id);
+                    else if (prov === 'otpcepat') idsOtpCepat1.push(id); // Menangkap old data jika ada
                     else if (prov === 'smspool') idsSmsPool.push(id);
                     else if (prov === '5sim') ids5sim.push(id);
                     else idsSmsCode.push(id);
@@ -906,7 +921,8 @@
             await Promise.all([
                 fetchOrders('herosms', idsHero),
                 fetchOrders('smscode', idsSmsCode),
-                fetchOrders('otpcepat', idsOtpCepat),
+                fetchOrders('otpcepat1', idsOtpCepat1),
+                fetchOrders('otpcepat2', idsOtpCepat2),
                 fetchOrders('smspool', idsSmsPool),
                 fetchOrders('5sim', ids5sim)
             ]);
@@ -936,7 +952,7 @@
             
             let cardClass = "card-smscode";
             if (orderProv === "herosms") cardClass = "card-herosms";
-            else if (orderProv === "otpcepat") cardClass = "card-otpcepat";
+            else if (orderProv === "otpcepat" || orderProv === "otpcepat1" || orderProv === "otpcepat2") cardClass = "card-otpcepat";
             else if (orderProv === "smspool") cardClass = "card-smspool";
             else if (orderProv === "5sim") cardClass = "card-5sim";
 
