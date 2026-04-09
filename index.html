@@ -19,7 +19,12 @@
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
 
-        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; border-radius: 8px; flex-wrap: nowrap; gap: 8px; }
+        /* PERUBAHAN: Menghapus margin-bottom di sini untuk dipindah ke wrapper, agar sticky berfungsi sempurna */
+        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
+        
+        /* PERUBAHAN: Tambahan class untuk membuat header & menu melayang saat discroll */
+        .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
+
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
         .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
         .dropdown-group select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 105px; text-overflow: ellipsis; }
@@ -40,6 +45,10 @@
         .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
+        
+        /* PERUBAHAN: Tambahan class agar ukuran 4 tombol tool menjadi lebih besar */
+        .btn-lg { padding: 15px 10px; font-size: 15px; }
+
         .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
@@ -125,67 +134,67 @@
 <body>
 
 <div class="app-container">
-    <header class="header">
-        <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
-        <div class="dropdown-group">
-            <select id="provider-selector" onchange="changeProvider()">
-                <option value="smscode">SMS Code</option>
-                <option value="herosms">Hero SMS</option>
-                <option value="otpcepat1">OTP Cepat 1</option>
-                <option value="otpcepat2">OTP Cepat 2</option>
-                <option value="smspool">SMS Pool</option>
-                <option value="5sim">5SIM</option>
-            </select>
-            <select id="user-selector" onchange="changeGlobalUser()"></select>
-        </div>
-        <div class="header-right">
-            <span class="saldo-text" id="sms-balance">Rp 0</span>
-            <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
-        </div>
-    </header>
-
-    <div id="main-menu" class="admin-popup">
-        <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
-        <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
-        <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
-    </div>
-
-    <div id="admin-menu" class="admin-popup">
-        <div id="login-form">
-            <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
-            <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
-            <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
-            
-            <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
-                <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
-                <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+    <div class="sticky-header-wrapper">
+        <header class="header">
+            <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
+            <div class="dropdown-group">
+                <select id="provider-selector" onchange="changeProvider()">
+                    <option value="smscode">SMS Code</option>
+                    <option value="herosms">Hero SMS</option>
+                    <option value="otpcepat1">OTP Cepat 1</option>
+                    <option value="otpcepat2">OTP Cepat 2</option>
+                    <option value="smspool">SMS Pool</option>
+                    <option value="5sim">5SIM</option>
+                </select>
+                <select id="user-selector" onchange="changeGlobalUser()"></select>
             </div>
+            <div class="header-right">
+                <span class="saldo-text" id="sms-balance">Rp 0</span>
+                <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
+            </div>
+        </header>
 
-            <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+        <div id="main-menu" class="admin-popup">
+            <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
-        <div id="logout-form" class="hidden">
-            <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-            <button class="btn btn-red" style="margin-bottom: 15px;" onclick="globalLogout()">Logout</button>
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-            <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
-            <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
-            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
-            <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
-        </div>
-    </div>
 
-    <div class="card">
+        <div id="admin-menu" class="admin-popup">
+            <div id="login-form">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+                <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
+                <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+                
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
+                    <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
+                    <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+                </div>
+
+                <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+            </div>
+            <div id="logout-form" class="hidden">
+                <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                <button class="btn btn-red" style="margin-bottom: 15px;" onclick="globalLogout()">Logout</button>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
+                <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
+                <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
+                <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
+            </div>
+        </div>
+    </div> <div class="card">
         <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
             <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
         </div>
-        <div class="btn-row" style="margin-bottom:10px;">
-            <button id="btn-copy-email" class="btn btn-orange" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
-            <button id="btn-copy-password" class="btn btn-purple" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
+        <div class="btn-row" style="margin-bottom:15px;">
+            <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+            <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
         </div>
         <div class="btn-row">
-            <button class="btn btn-blue" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
-            <button class="btn btn-green" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
+            <button class="btn btn-blue btn-lg" onclick="generateName(this)"><i class="fas fa-user"></i> Acak Nama</button>
+            <button class="btn btn-green btn-lg" onclick="generatePhone(this)"><i class="fas fa-phone-alt"></i> Acak Nomor</button>
         </div>
     </div>
 
