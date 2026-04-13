@@ -19,10 +19,8 @@
 
         .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
 
-        /* PERUBAHAN: Menghapus margin-bottom di sini untuk dipindah ke wrapper, agar sticky berfungsi sempurna */
         .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
         
-        /* PERUBAHAN: Tambahan class untuk membuat header & menu melayang saat discroll */
         .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
 
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
@@ -46,7 +44,6 @@
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
         
-        /* PERUBAHAN: Tambahan class agar ukuran 4 tombol tool menjadi lebih besar */
         .btn-lg { padding: 15px 10px; font-size: 15px; }
 
         .btn-orange { background-color: #f39c12; }
@@ -179,11 +176,13 @@
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
                 <input type="text" id="shopee-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
-                <input type="text" id="shopee-url" class="form-input" placeholder="URL Link Shopee">
+                <textarea id="shopee-url" class="form-input" placeholder="URL Link Shopee (Bisa lebih dari 1, pisahkan dengan enter untuk Rotator)" style="height: 80px; resize: vertical;"></textarea>
                 <button class="btn btn-green" onclick="addShopeeMenu()">Terbitkan Link</button>
             </div>
         </div>
-    </div> <div class="card">
+    </div> 
+    
+    <div class="card">
         <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
             <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
@@ -228,7 +227,7 @@
         <h3 style="margin-bottom:15px; color:#333;">Edit Link User</h3>
         <input type="hidden" id="edit-key">
         <input type="text" id="edit-title" class="form-input" placeholder="Nama User (Cth: NAZILA)">
-        <input type="text" id="edit-url" class="form-input" placeholder="URL Link Shopee">
+        <textarea id="edit-url" class="form-input" placeholder="URL Link Shopee (Bisa lebih dari 1, pisahkan dengan enter untuk Rotator)" style="height: 80px; resize: vertical;"></textarea>
         <div style="display:flex; justify-content:center; gap:10px; margin-top: 10px;">
             <button class="btn" style="background:#bdc3c7; color:#333;" onclick="closeEditModal()">Batal</button>
             <button class="btn btn-green" onclick="saveEditShopee()">Simpan</button>
@@ -337,6 +336,22 @@
     });
 
     // ================= FUNGSI DASAR UI =================
+    
+    // MENAMBAHKAN DETEKSI KLIK DI LUAR MENU UNTUK MENUTUP MENU OTOMATIS
+    document.addEventListener('click', function(event) {
+        const mainMenu = document.getElementById('main-menu');
+        const adminMenu = document.getElementById('admin-menu');
+        const menuIcon = document.querySelector('.menu-icon');
+
+        if (mainMenu && adminMenu && menuIcon) {
+            // Jika yang diklik BUKAN icon menu, BUKAN kotak main-menu, dan BUKAN kotak admin-menu
+            if (!mainMenu.contains(event.target) && !adminMenu.contains(event.target) && !menuIcon.contains(event.target)) {
+                mainMenu.classList.remove('active');
+                adminMenu.classList.remove('active');
+            }
+        }
+    });
+
     function initUserDropdown() {
         isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
         const savedUser = localStorage.getItem('xurel_selected_user');
@@ -682,6 +697,8 @@
 
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
+    let rotatorIndexes = {}; // Variabel untuk menyimpan posisi indeks link per item
+
     db.ref('linkshopee').on('value', snap => { 
         shopeeDataCache = snap.val() || {}; 
         
@@ -693,9 +710,19 @@
     });
 
     async function addShopeeMenu() {
-        const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
-        if(!t || !u) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
-        db.ref('linkshopee').push({ title: t.toUpperCase(), url: u, createdAt: Date.now() }).then(() => {
+        const t = document.getElementById('shopee-title').value; 
+        const uRaw = document.getElementById('shopee-url').value;
+        if(!t || !uRaw) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
+        
+        // Memecah baris baru menjadi array, membuang spasi kosong
+        const urlsArray = uRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+        db.ref('linkshopee').push({ 
+            title: t.toUpperCase(), 
+            url: urlsArray[0], // Menyimpan link pertama sebagai url utama (format lama)
+            urls: urlsArray,   // Menyimpan semua link dalam array
+            createdAt: Date.now() 
+        }).then(() => {
             document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
             showModal("Sukses", "Link berhasil ditambahkan", "alert");
         });
@@ -710,11 +737,11 @@
                 found = true;
                 container.innerHTML += `
                     <div style="display:flex; gap:5px; margin-bottom:5px;">
-                        <button class="btn btn-purple" style="flex:1; margin-bottom:0;" onclick="copyShopeeLink(event, '${data.url}', this)">
+                        <button class="btn btn-purple" style="flex:1; margin-bottom:0;" onclick="copyShopeeLinkRotator(event, '${key}', this)">
                             ${data.title}
                         </button>
                         ${!!globalUser ? `
-                        <button class="btn btn-orange" style="width:40px; margin-bottom:0; padding:0;" onclick="openEditModal('${key}', '${data.title}', '${data.url}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-orange" style="width:40px; margin-bottom:0; padding:0;" onclick="openEditModal('${key}')"><i class="fa-solid fa-pen"></i></button>
                         <button class="btn btn-red" style="width:40px; margin-bottom:0; padding:0;" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash"></i></button>
                         ` : ''}
                     </div>
@@ -726,10 +753,22 @@
 
     async function deleteShopee(key) { if(await showModal("Hapus", "Hapus link ini?")) db.ref('linkshopee/'+key).remove(); }
     
-    function openEditModal(key, oldTitle, oldUrl) {
+    function openEditModal(key) {
+        const data = shopeeDataCache[key];
+        if(!data) return;
+
         document.getElementById('edit-key').value = key;
-        document.getElementById('edit-title').value = oldTitle;
-        document.getElementById('edit-url').value = oldUrl;
+        document.getElementById('edit-title').value = data.title;
+        
+        // Memunculkan format baris baru di textarea
+        let urlsStr = "";
+        if (data.urls && Array.isArray(data.urls)) {
+            urlsStr = data.urls.join('\n');
+        } else if (data.url) {
+            urlsStr = data.url;
+        }
+
+        document.getElementById('edit-url').value = urlsStr;
         document.getElementById('edit-modal').classList.add('active');
     }
     
@@ -738,17 +777,48 @@
     function saveEditShopee() {
         const key = document.getElementById('edit-key').value;
         const newTitle = document.getElementById('edit-title').value.trim();
-        const newUrl = document.getElementById('edit-url').value.trim();
+        const newUrlRaw = document.getElementById('edit-url').value.trim();
         
-        if(!newTitle || !newUrl) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
+        if(!newTitle || !newUrlRaw) return showModal("Peringatan", "Nama dan URL tidak boleh kosong!", "alert");
         
-        db.ref('linkshopee/' + key).update({ title: newTitle.toUpperCase(), url: newUrl }).then(() => {
+        const urlsArray = newUrlRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+        db.ref('linkshopee/' + key).update({ 
+            title: newTitle.toUpperCase(), 
+            url: urlsArray[0], 
+            urls: urlsArray 
+        }).then(() => {
             closeEditModal();
         });
     }
 
-    function copyShopeeLink(event, url, btnElement) {
-        event.preventDefault(); navigator.clipboard.writeText(url).then(() => { showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin', btnElement.innerText); });
+    // Fungsi baru untuk copy link secara rotator
+    function copyShopeeLinkRotator(event, key, btnElement) {
+        event.preventDefault(); 
+        
+        const data = shopeeDataCache[key];
+        if(!data) return;
+
+        // Ambil array urls, namun bila dari data lama pakai format lama
+        const urls = data.urls || [data.url];
+        if(!urls || urls.length === 0) return;
+
+        // Inisialisasi index rotator
+        if (rotatorIndexes[key] === undefined) rotatorIndexes[key] = 0;
+
+        const urlToCopy = urls[rotatorIndexes[key]];
+
+        navigator.clipboard.writeText(urlToCopy).then(() => { 
+            // Tambahkan indikator angka contoh: (1/8)
+            let indicator = urls.length > 1 ? ` (${rotatorIndexes[key] + 1}/${urls.length})` : '';
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin' + indicator, btnElement.innerText); 
+            
+            // Increment indeks lalu wrap around jika sudah mencapai akhir
+            rotatorIndexes[key]++;
+            if(rotatorIndexes[key] >= urls.length) {
+                rotatorIndexes[key] = 0;
+            }
+        });
     }
 
     // ================= TOOLS GENERATOR =================
