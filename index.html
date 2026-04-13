@@ -697,7 +697,16 @@
 
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
-    let rotatorIndexes = {}; // Variabel untuk menyimpan posisi indeks link per item
+    let rotatorQueues = {}; // Variabel untuk menyimpan antrean link acak per item
+
+    // Helper untuk mengacak urutan (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     db.ref('linkshopee').on('value', snap => { 
         shopeeDataCache = snap.val() || {}; 
@@ -792,7 +801,7 @@
         });
     }
 
-    // Fungsi baru untuk copy link secara rotator
+    // Fungsi baru untuk copy link secara rotator (Random tanpa duplikat per putaran)
     function copyShopeeLinkRotator(event, key, btnElement) {
         event.preventDefault(); 
         
@@ -803,21 +812,24 @@
         const urls = data.urls || [data.url];
         if(!urls || urls.length === 0) return;
 
-        // Inisialisasi index rotator
-        if (rotatorIndexes[key] === undefined) rotatorIndexes[key] = 0;
+        // Jika antrean kosong atau belum dibuat, buat baru dan acak
+        if (!rotatorQueues[key] || rotatorQueues[key].length === 0) {
+            let indices = [];
+            for(let i=0; i<urls.length; i++) indices.push(i);
+            rotatorQueues[key] = shuffleArray(indices);
+        }
 
-        const urlToCopy = urls[rotatorIndexes[key]];
+        // Ambil indeks berikutnya dari antrean
+        const nextIndex = rotatorQueues[key].shift();
+        const urlToCopy = urls[nextIndex];
 
         navigator.clipboard.writeText(urlToCopy).then(() => { 
             // Tambahkan indikator angka contoh: (1/8)
-            let indicator = urls.length > 1 ? ` (${rotatorIndexes[key] + 1}/${urls.length})` : '';
-            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin' + indicator, btnElement.innerText); 
+            // Progress = total url dikurangi sisa antrean
+            const currentStep = urls.length - rotatorQueues[key].length;
+            let indicator = urls.length > 1 ? ` (${currentStep}/${urls.length})` : '';
             
-            // Increment indeks lalu wrap around jika sudah mencapai akhir
-            rotatorIndexes[key]++;
-            if(rotatorIndexes[key] >= urls.length) {
-                rotatorIndexes[key] = 0;
-            }
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Disalin' + indicator, btnElement.innerText); 
         });
     }
 
