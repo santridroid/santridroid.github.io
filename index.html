@@ -43,7 +43,6 @@
         .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
         .btn-lg { padding: 15px 10px; font-size: 15px; }
 
@@ -199,10 +198,6 @@
     </div>
 
     <div class="card">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px;">
-            <span id="ip-container" style="padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 13px; background-color: #f1f2f6; color: #555; border: 1px solid #ddd; letter-spacing: 0.5px; transition: 0.3s;">IP: Mendeteksi...</span>
-            <button id="btn-cek-ip" class="btn btn-blue" style="width: auto; padding: 5px 12px; font-size: 12px; margin: 0; border-radius: 20px;" onclick="manualCheckIP()"><i class="fas fa-sync-alt"></i> Cek</button>
-        </div>
         <div class="section-title">LINK SHOPEE AKTIF</div>
         <div id="shopee-container">
             <div style="color: #aaa; font-size: 13px; text-align: center;">Memuat Link...</div>
@@ -316,23 +311,8 @@
     let currentUser = "UMAM";
     let isUserLocked = false;
     let audioCtx;
-    
-    // Antrean alarm jika diblokir oleh browser saat halaman dimuat
-    let pendingAlarm = false;
-
-    // ================= FIREBASE INITIALIZATION =================
-    const configMaster = { 
-        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
-        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "santridroid-link"
-    };
-    firebase.initializeApp(configMaster);
-    const db = firebase.database(); const auth = firebase.auth();
-    let globalUser = null;
 
     window.addEventListener('DOMContentLoaded', () => {
-        fetchIP(); // Memanggil fungsi untuk menampilkan dan mengecek IP Address pada saat awal load
-
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
 
@@ -349,155 +329,28 @@
         const savedNotesView = localStorage.getItem('xurel_notes_view') || 'grid';
         document.getElementById('notes-view-selector').value = savedNotesView;
         document.getElementById('notes-container').className = savedNotesView === 'grid' ? 'notes-grid' : 'notes-list';
+
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
     });
 
-    // ================= FUNGSI ALARM (ANTI-BLOKIR BROWSER) =================
-    function playAlarmSound() {
-        pendingAlarm = true; // Tandai bahwa alarm harus berbunyi
-        tryAudio();          // Coba bunyikan sekarang
-    }
-
-    function tryAudio() {
-        if (!pendingAlarm) return;
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // Jika status masih suspended (berarti dilarang oleh browser)
-            if (audioCtx.state === 'suspended') return;
-            
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc.type = 'square';
-            const now = audioCtx.currentTime;
-            
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.setValueAtTime(600, now + 0.2);
-            osc.frequency.setValueAtTime(400, now + 0.4);
-            osc.frequency.setValueAtTime(600, now + 0.6);
-            osc.frequency.setValueAtTime(400, now + 0.8);
-            osc.frequency.setValueAtTime(600, now + 1.0);
-            
-            gainNode.gain.setValueAtTime(0.1, now); 
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-            
-            osc.start(now);
-            osc.stop(now + 1.5);
-            
-            pendingAlarm = false; // Jika sukses, matikan status antrean
-        } catch(e) {
-            // Gagal eksekusi audio
-        }
-    }
-
-    // Tangkap klik apa pun di halaman untuk memaksa audio nyala jika sempat diblokir
-    document.body.addEventListener('click', () => {
-        if (pendingAlarm) {
-            tryAudio();
-        } else {
-            // Inisialisasi santai jika belum ada audio context
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-    });
-
-    // ================= FUNGSI DASAR UI & IP =================
+    // ================= FUNGSI DASAR UI =================
     
+    // MENAMBAHKAN DETEKSI KLIK DI LUAR MENU UNTUK MENUTUP MENU OTOMATIS
     document.addEventListener('click', function(event) {
         const mainMenu = document.getElementById('main-menu');
         const adminMenu = document.getElementById('admin-menu');
         const menuIcon = document.querySelector('.menu-icon');
 
         if (mainMenu && adminMenu && menuIcon) {
+            // Jika yang diklik BUKAN icon menu, BUKAN kotak main-menu, dan BUKAN kotak admin-menu
             if (!mainMenu.contains(event.target) && !adminMenu.contains(event.target) && !menuIcon.contains(event.target)) {
                 mainMenu.classList.remove('active');
                 adminMenu.classList.remove('active');
             }
         }
     });
-
-    // Fungsi untuk cek manual lewat tombol
-    async function manualCheckIP() {
-        const btn = document.getElementById('btn-cek-ip');
-        const originalHTML = btn.innerHTML;
-        
-        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Cek`;
-        btn.disabled = true;
-
-        await fetchIP(true); 
-
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-    }
-
-    // Fungsi fetchIP yang sudah dioptimasi super sensitif
-    async function fetchIP(isManualCheck = false) {
-        const ipContainer = document.getElementById('ip-container');
-        
-        if (isManualCheck) {
-            ipContainer.innerText = 'Mengecek...';
-            ipContainer.style.backgroundColor = '#f1f2f6';
-            ipContainer.style.color = '#555';
-        }
-        
-        try {
-            // Menambahkan timestamp agar browser tidak memakai respon IP cache yang lama
-            const response = await fetch('https://api.ipify.org?format=json&_=' + new Date().getTime());
-            const data = await response.json();
-            const currentIP = data.ip;
-            const safeIP = currentIP.replace(/\./g, '_'); 
-
-            // Ambil IP yang terakhir terekam di memori browser perangkat ini
-            const previousIP = localStorage.getItem('xurel_last_ip');
-
-            // VALIDASI SUPER CEPAT (BYPASS FIREBASE LATENCY):
-            // Jika IP saat ini sama persis dengan memori terakhir di perangkat
-            if (currentIP === previousIP) {
-                ipContainer.innerText = `IP: ${currentIP}`;
-                ipContainer.style.backgroundColor = '#e74c3c'; 
-                ipContainer.style.color = 'white';
-                ipContainer.style.border = 'none';
-                playAlarmSound();
-                return; // Langsung selesai, tidak usah menunggu balasan Firebase!
-            }
-
-            // Jika lolos dari cek memori perangkat, lanjutkan tanya ke Firebase
-            db.ref('detected_ips/' + safeIP).once('value').then(snapshot => {
-                ipContainer.innerText = `IP: ${currentIP}`;
-                ipContainer.style.color = 'white';
-                ipContainer.style.border = 'none';
-
-                if (snapshot.exists()) {
-                    // IP ini pernah tercatat oleh perangkat mana pun sebelumnya
-                    ipContainer.style.backgroundColor = '#e74c3c'; 
-                    playAlarmSound();
-                } else {
-                    // IP benar-benar fresh
-                    ipContainer.style.backgroundColor = '#27ae60'; 
-                    db.ref('detected_ips/' + safeIP).set({
-                        ip: currentIP,
-                        firstSeen: Date.now()
-                    });
-                }
-                
-                // Simpan/Timpa IP saat ini ke memori perangkat
-                localStorage.setItem('xurel_last_ip', currentIP);
-
-            }).catch(err => {
-                ipContainer.innerText = `IP: ${currentIP} (Error DB)`;
-            });
-
-        } catch(e) {
-            ipContainer.innerText = `IP: Error Koneksi`;
-            ipContainer.style.backgroundColor = '#95a5a6';
-            ipContainer.style.color = 'white';
-            ipContainer.style.border = 'none';
-        }
-    }
 
     function initUserDropdown() {
         isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
@@ -518,6 +371,7 @@
     function updateDropdownUI() {
         const select = document.getElementById('user-selector');
         
+        // Mencegah auto-reset ke UMAM saat refresh (menahan currentUser agar tidak hilang)
         let optionsToRender = [...dynamicUsers];
         if (currentUser && !optionsToRender.includes(currentUser)) {
             optionsToRender.push(currentUser);
@@ -561,7 +415,7 @@
         setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
     }
 
-    // ================= MODAL =================
+    // ================= MODAL & AUDIO =================
     function showModal(title, msg, type='confirm') {
         return new Promise(resolve => {
             const ov = document.getElementById('universal-modal');
@@ -582,6 +436,18 @@
         });
     }
 
+    function playNotifSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
     function showOtpToast(otpCode) {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
@@ -592,7 +458,16 @@
         setTimeout(() => { toast.remove(); }, 5000);
     }
 
-    // ================= MENU & ADMIN =================
+    // ================= FIREBASE, MENU & ADMIN =================
+    const configMaster = { 
+        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
+        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "santridroid-link"
+    };
+    firebase.initializeApp(configMaster);
+    const db = firebase.database(); const auth = firebase.auth();
+    let globalUser = null;
+
     function toggleMainMenu() { 
         document.getElementById('main-menu').classList.toggle('active'); 
         document.getElementById('admin-menu').classList.remove('active');
@@ -604,6 +479,7 @@
         document.getElementById('admin-menu').classList.add('active'); 
     }
 
+    // FUNGSI UNTUK MENU SERVER BARU
     function openServerModal() {
         document.getElementById('main-menu').classList.remove('active');
         document.getElementById('server-modal').classList.add('active');
@@ -754,6 +630,7 @@
         const container = document.getElementById('notes-container');
         container.innerHTML = '';
         
+        // Sorting berdasarkan waktu terupdate (updatedAt atau createdAt), dari terbaru ke terlama
         const keys = Object.keys(notesDataCache).sort((a, b) => {
             const timeA = notesDataCache[a].updatedAt || notesDataCache[a].createdAt || 0;
             const timeB = notesDataCache[b].updatedAt || notesDataCache[b].createdAt || 0;
@@ -820,8 +697,9 @@
 
     // ================= LOGIKA SHOPEE =================
     let shopeeDataCache = {}; 
-    let rotatorQueues = {}; 
+    let rotatorQueues = {}; // Variabel untuk menyimpan antrean link acak per item
 
+    // Helper untuk mengacak urutan (Fisher-Yates Shuffle)
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -845,12 +723,13 @@
         const uRaw = document.getElementById('shopee-url').value;
         if(!t || !uRaw) return showModal("Peringatan", "Nama & URL wajib diisi!", "alert");
         
+        // Memecah baris baru menjadi array, membuang spasi kosong
         const urlsArray = uRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
 
         db.ref('linkshopee').push({ 
             title: t.toUpperCase(), 
-            url: urlsArray[0], 
-            urls: urlsArray,   
+            url: urlsArray[0], // Menyimpan link pertama sebagai url utama (format lama)
+            urls: urlsArray,   // Menyimpan semua link dalam array
             createdAt: Date.now() 
         }).then(() => {
             document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
@@ -890,6 +769,7 @@
         document.getElementById('edit-key').value = key;
         document.getElementById('edit-title').value = data.title;
         
+        // Memunculkan format baris baru di textarea
         let urlsStr = "";
         if (data.urls && Array.isArray(data.urls)) {
             urlsStr = data.urls.join('\n');
@@ -921,25 +801,31 @@
         });
     }
 
+    // Fungsi baru untuk copy link secara rotator (Random tanpa duplikat per putaran)
     function copyShopeeLinkRotator(event, key, btnElement) {
         event.preventDefault(); 
         
         const data = shopeeDataCache[key];
         if(!data) return;
 
+        // Ambil array urls, namun bila dari data lama pakai format lama
         const urls = data.urls || [data.url];
         if(!urls || urls.length === 0) return;
 
+        // Jika antrean kosong atau belum dibuat, buat baru dan acak
         if (!rotatorQueues[key] || rotatorQueues[key].length === 0) {
             let indices = [];
             for(let i=0; i<urls.length; i++) indices.push(i);
             rotatorQueues[key] = shuffleArray(indices);
         }
 
+        // Ambil indeks berikutnya dari antrean
         const nextIndex = rotatorQueues[key].shift();
         const urlToCopy = urls[nextIndex];
 
         navigator.clipboard.writeText(urlToCopy).then(() => { 
+            // Tambahkan indikator angka contoh: (1/8)
+            // Progress = total url dikurangi sisa antrean
             const currentStep = urls.length - rotatorQueues[key].length;
             let indicator = urls.length > 1 ? ` (${currentStep}/${urls.length})` : '';
             
@@ -968,13 +854,16 @@
         let email = input.value.trim(); 
         if (!email) return;
         
+        // Cek jika format email berupa teks + angka + @domain
         const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
         if (match) {
             let num = parseInt(match[2], 10);
             if (num > 0) {
+                // Kurangi 1 dari angkanya
                 input.value = `${match[1]}${num - 1}${match[3]}`;
                 localStorage.setItem('xurel_saved_email', input.value);
             } else if (num === 0) {
+                // Jika sudah 0, hilangkan angkanya kembali menjadi normal
                 input.value = `${match[1]}${match[3]}`;
                 localStorage.setItem('xurel_saved_email', input.value);
             }
