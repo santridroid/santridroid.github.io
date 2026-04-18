@@ -25,7 +25,6 @@
 
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
         .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
-        /* PERBESAR UKURAN DROPDOWN */
         .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 14px; width: 100%; max-width: 150px; text-overflow: ellipsis; cursor: pointer; }
         .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
         .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
@@ -293,7 +292,7 @@
     
     let currentUser = "UMUM"; 
     let audioCtx;
-    let isWorkerLocked = true; // State Lock = Tersambung
+    let isWorkerLocked = true; // State bawaan tersambung
 
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('xurel_saved_email');
@@ -306,12 +305,6 @@
             document.getElementById('global-pass').value = savedAdminPass;
             document.getElementById('remember-me').checked = true;
         }
-
-        // Inisialisasi State Worker Lock
-        if(localStorage.getItem('xurel_worker_locked') !== null) {
-            isWorkerLocked = localStorage.getItem('xurel_worker_locked') === 'true';
-        }
-        updateWorkerLockUI();
         
         initUserDropdown();
 
@@ -414,6 +407,53 @@
     const db = firebase.database(); const auth = firebase.auth();
     let globalUser = null;
 
+    // --- LISTENER STATUS WORKER GLOBAL (REALTIME) DENGAN ERROR HANDLER ---
+    db.ref('worker_status/is_locked').on('value', snap => {
+        const val = snap.val();
+        // Jika data belum ada, jadikan true (Lock) sebagai default
+        isWorkerLocked = (val === null) ? true : val; 
+        
+        updateWorkerLockUI();
+        
+        if(!isWorkerLocked) {
+            // Mode Unlock: Tampilkan keterangan terputus ke seluruh perangkat
+            const elPrices = document.getElementById('sms-prices');
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker Terputus (Unlock)</div>';
+            const elBal = document.getElementById('sms-balance');
+            if(elBal) elBal.innerText = `Rp 0`;
+        } else {
+            // Mode Lock: Hubungkan kembali
+            if(document.getElementById('sms-prices')) {
+               refreshSms(); 
+            }
+        }
+    }, error => {
+        console.warn("Worker Status Error (Kemungkinan Rules):", error);
+        // Fallback aman jika gagal baca DB
+        isWorkerLocked = true; 
+        refreshSms();
+    });
+
+    function setWorkerLock(status) {
+        db.ref('worker_status/is_locked').set(status).catch(err => {
+            showModal("Error Database", "Gagal mengubah status. Pastikan login & Cek Aturan Firebase: " + err.message, "alert");
+        });
+    }
+
+    function updateWorkerLockUI() {
+        const btnLock = document.getElementById('btn-worker-lock');
+        const btnUnlock = document.getElementById('btn-worker-unlock');
+        if(btnLock && btnUnlock) {
+            if(isWorkerLocked) {
+                btnLock.style.opacity = '1'; btnLock.style.border = '2px solid #2ecc71';
+                btnUnlock.style.opacity = '0.5'; btnUnlock.style.border = 'none';
+            } else {
+                btnLock.style.opacity = '0.5'; btnLock.style.border = 'none';
+                btnUnlock.style.opacity = '1'; btnUnlock.style.border = '2px solid #e74c3c';
+            }
+        }
+    }
+
     function toggleMainMenu() { 
         document.getElementById('main-menu').classList.toggle('active'); 
         document.getElementById('admin-menu').classList.remove('active');
@@ -440,33 +480,6 @@
         showModal("Sukses", "Server Worker berhasil diubah", "alert");
         closeServerModal();
         refreshAllData();
-    }
-    
-    // Fungsi Status Lock Worker
-    function setWorkerLock(status) {
-        isWorkerLocked = status;
-        localStorage.setItem('xurel_worker_locked', status);
-        updateWorkerLockUI();
-        if(status) {
-            refreshSms();
-        } else {
-            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker Terputus (Unlock)</div>';
-            document.getElementById('sms-balance').innerText = `Rp 0`;
-        }
-    }
-
-    function updateWorkerLockUI() {
-        const btnLock = document.getElementById('btn-worker-lock');
-        const btnUnlock = document.getElementById('btn-worker-unlock');
-        if(btnLock && btnUnlock) {
-            if(isWorkerLocked) {
-                btnLock.style.opacity = '1'; btnLock.style.border = '2px solid #2ecc71';
-                btnUnlock.style.opacity = '0.5'; btnUnlock.style.border = 'none';
-            } else {
-                btnLock.style.opacity = '0.5'; btnLock.style.border = 'none';
-                btnUnlock.style.opacity = '1'; btnUnlock.style.border = '2px solid #e74c3c';
-            }
-        }
     }
 
     auth.onAuthStateChanged(user => {
@@ -678,6 +691,10 @@
             }
         });
         updateShopeeButtonState();
+    }, error => {
+        console.warn("Gagal memuat Shopee Link, cek Aturan Firebase!", error);
+        // Supaya tombol tidak stuck "Memuat...", matikan state loading
+        updateShopeeButtonState(); 
     });
 
     function updateShopeeButtonState() {
@@ -730,6 +747,10 @@
                     isCuttingLink = false;
                     updateShopeeButtonState(); 
                 }, 1000);
+            }).catch(err => {
+                showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
+                isCuttingLink = false;
+                updateShopeeButtonState();
             });
         };
 
@@ -767,7 +788,7 @@
     let listFN = [], listLN = [];
     let csvData = [];
     
-    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; }).catch(e=>console.log(e));
     
     fetch('https://raw.githubusercontent.com/santridroid/santridroid.github.io/refs/heads/main/pos.csv').then(r => r.text()).then(t => {
         const lines = t.split('\n');
@@ -778,10 +799,14 @@
         }
         
         const btnData = document.getElementById('btn-data-lengkap');
-        if(btnData && listFN.length) {
+        if(btnData) {
             btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Lengkap`;
         }
-    }).catch(e => console.log("Gagal memuat pos.csv"));
+    }).catch(e => {
+        console.log("Gagal memuat pos.csv", e);
+        const btnData = document.getElementById('btn-data-lengkap');
+        if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
+    });
     
     function generateDataLengkap(btnElement) {
         if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
