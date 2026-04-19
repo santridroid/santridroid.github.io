@@ -177,9 +177,18 @@
                 </div>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Link:</div>
+                <select id="admin-link-mode" class="form-input" onchange="changeLinkMode()" style="margin-bottom: 10px;">
+                    <option value="cut">Mode Cut Link</option>
+                    <option value="rotator">Mode Rotator</option>
+                </select>
+
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
                 <textarea id="shopee-url" class="form-input" placeholder="URL Link Shopee (Bisa lebih dari 1, pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
-                <button class="btn btn-green" onclick="addShopeeMenu()" style="margin-bottom: 15px;">Terbitkan Link</button>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="addShopeeMenu()" style="flex: 1;">Terbitkan</button>
+                    <button class="btn btn-orange" onclick="openEditLinkModal()" style="flex: 1;">Edit Link</button>
+                </div>
                 
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <button class="btn btn-red" onclick="globalLogout()">Logout</button>
@@ -278,6 +287,18 @@
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeNoteInputModal()">Batal</button>
             <button class="btn btn-green" style="flex: 1;" onclick="saveNote()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="edit-link-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Link Shopee</h3>
+        <textarea id="edit-shopee-textarea" class="form-input" style="height: 200px; resize: vertical; font-size: 12px; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Daftar link..."></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditLinkModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllLinks()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedLinks()">Simpan</button>
         </div>
     </div>
 </div>
@@ -418,7 +439,7 @@
         if(!isWorkerLocked) {
             // Mode Unlock: Tampilkan keterangan terputus ke seluruh perangkat
             const elPrices = document.getElementById('sms-prices');
-            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker Terputus (Unlock)</div>';
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus => Hubungi Admin</div>';
             const elBal = document.getElementById('sms-balance');
             if(elBal) elBal.innerText = `Rp 0`;
         } else {
@@ -681,6 +702,21 @@
     // ================= LOGIKA SHOPEE REALTIME & SECURE =================
     let availableShopeeLinks = [];
     let isCuttingLink = false;
+    let currentLinkMode = 'cut';
+    let rotatorIndex = 0;
+
+    // Mendengarkan perubahan mode link dari Firebase
+    db.ref('app_settings/link_mode').on('value', snap => {
+        currentLinkMode = snap.val() || 'cut';
+        const selectMode = document.getElementById('admin-link-mode');
+        if (selectMode) selectMode.value = currentLinkMode;
+        updateShopeeButtonState();
+    });
+
+    function changeLinkMode() {
+        const mode = document.getElementById('admin-link-mode').value;
+        db.ref('app_settings/link_mode').set(mode);
+    }
 
     db.ref('linkshopee').orderByChild('createdAt').on('value', snap => {
         availableShopeeLinks = [];
@@ -693,7 +729,6 @@
         updateShopeeButtonState();
     }, error => {
         console.warn("Gagal memuat Shopee Link, cek Aturan Firebase!", error);
-        // Supaya tombol tidak stuck "Memuat...", matikan state loading
         updateShopeeButtonState(); 
     });
 
@@ -704,6 +739,7 @@
         if(availableShopeeLinks.length > 0) {
             btn.className = "btn btn-green btn-lg";
             btn.style.backgroundColor = ""; 
+            let modeText = currentLinkMode === 'rotator' ? 'Rotator' : 'Cut';
             btn.innerHTML = `<i class="fas fa-link"></i> Shopee Link (${availableShopeeLinks.length})`;
             btn.disabled = false;
         } else {
@@ -732,34 +768,101 @@
         showModal("Sukses", "Link berhasil ditambahkan", "alert");
     }
 
+    // Modal Edit Link Functions
+    function openEditLinkModal() {
+        const ta = document.getElementById('edit-shopee-textarea');
+        ta.value = availableShopeeLinks.map(l => l.url).join('\n');
+        document.getElementById('edit-link-modal').classList.add('active');
+    }
+
+    function closeEditLinkModal() {
+        document.getElementById('edit-link-modal').classList.remove('active');
+    }
+
+    async function saveEditedLinks() {
+        const uRaw = document.getElementById('edit-shopee-textarea').value;
+        const urlsArray = uRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+        // Hapus semua link yang ada saat ini
+        await db.ref('linkshopee').remove();
+
+        // Tambahkan link baru dari text area
+        const updates = {};
+        urlsArray.forEach(url => {
+            const newKey = db.ref('linkshopee').push().key;
+            updates[newKey] = {
+                title: "UMUM",
+                url: url,
+                createdAt: Date.now()
+            };
+        });
+
+        if (Object.keys(updates).length > 0) {
+            await db.ref('linkshopee').update(updates);
+        }
+
+        closeEditLinkModal();
+        showModal("Sukses", "Link berhasil diperbarui", "alert");
+    }
+
+    async function deleteAllLinks() {
+        if(await showModal("Hapus Semua", "Yakin ingin menghapus semua link?")) {
+            await db.ref('linkshopee').remove();
+            closeEditLinkModal();
+            showModal("Sukses", "Semua link telah dihapus", "alert");
+        }
+    }
+
     function cutShopeeLink(btnElement) {
         if(availableShopeeLinks.length === 0 || isCuttingLink) return;
         
-        isCuttingLink = true;
-        btnElement.disabled = true; 
-        
-        const linkData = availableShopeeLinks[0];
+        if (currentLinkMode === 'rotator') {
+            // Mode Rotator
+            if (rotatorIndex >= availableShopeeLinks.length) rotatorIndex = 0;
+            const linkData = availableShopeeLinks[rotatorIndex];
+            rotatorIndex++;
 
-        const processSuccess = () => {
-            db.ref('linkshopee/' + linkData.key).remove().then(() => {
-                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tercut!';
-                setTimeout(() => { 
-                    isCuttingLink = false;
-                    updateShopeeButtonState(); 
-                }, 1000);
-            }).catch(err => {
-                showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
-                isCuttingLink = false;
-                updateShopeeButtonState();
-            });
-        };
+            const processSuccess = () => {
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin!';
+                setTimeout(() => { updateShopeeButtonState(); }, 1000);
+            };
 
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(linkData.url)
-                .then(() => processSuccess())
-                .catch(() => fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement));
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(linkData.url)
+                    .then(() => processSuccess())
+                    .catch(() => fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement));
+            } else {
+                fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement);
+            }
+
         } else {
-            fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement);
+            // Mode Cut Link Asli
+            isCuttingLink = true;
+            btnElement.disabled = true; 
+            
+            const linkData = availableShopeeLinks[0];
+
+            const processSuccess = () => {
+                db.ref('linkshopee/' + linkData.key).remove().then(() => {
+                    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tercut!';
+                    setTimeout(() => { 
+                        isCuttingLink = false;
+                        updateShopeeButtonState(); 
+                    }, 1000);
+                }).catch(err => {
+                    showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
+                    isCuttingLink = false;
+                    updateShopeeButtonState();
+                });
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(linkData.url)
+                    .then(() => processSuccess())
+                    .catch(() => fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement));
+            } else {
+                fallbackCopyTextToClipboard(linkData.url, processSuccess, btnElement);
+            }
         }
     }
 
@@ -875,7 +978,7 @@
     function refreshSms() {
         document.getElementById('sms-active-orders').innerHTML = ''; 
         if(!isWorkerLocked) {
-            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker Terputus (Unlock)</div>';
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus => Hubungi Admin</div>';
             document.getElementById('sms-balance').innerText = `Rp 0`;
             return;
         }
