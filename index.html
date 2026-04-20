@@ -43,7 +43,7 @@
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
         
-        .btn-lg { padding: 15px 10px; font-size: 15px; }
+        .btn-lg { padding: 15px 10px; font-size: 15px; min-height: 60px; }
 
         .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
@@ -201,11 +201,10 @@
             <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
         </div>
-        <div class="btn-row" style="margin-bottom:15px;">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
             <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
-        </div>
-        <div class="btn-row">
             <button id="btn-data-lengkap" class="btn btn-blue btn-lg" onclick="generateDataLengkap(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
             <button id="btn-shopee-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="cutShopeeLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat Link...</button>
         </div>
@@ -436,7 +435,7 @@
         
         if(!isWorkerLocked) {
             const elPrices = document.getElementById('sms-prices');
-            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus => Hubungi Admin</div>';
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus =&gt; Hubungi Admin</div>';
             const elBal = document.getElementById('sms-balance');
             if(elBal) elBal.innerText = `Rp 0`;
         } else {
@@ -739,8 +738,7 @@
         if(availableShopeeLinks.length > 0) {
             btn.className = "btn btn-green btn-lg";
             btn.style.backgroundColor = ""; 
-            let modeText = currentLinkMode === 'rotator' ? 'Rotator' : 'Cut';
-            btn.innerHTML = `<i class="fas fa-link"></i> Shopee Link (${availableShopeeLinks.length}) - ${modeText}`;
+            btn.innerHTML = `<i class="fas fa-link"></i> Shopee Link (${availableShopeeLinks.length})`;
             btn.disabled = false;
         } else {
             btn.className = "btn btn-lg";
@@ -983,7 +981,7 @@
     function refreshSms() {
         document.getElementById('sms-active-orders').innerHTML = ''; 
         if(!isWorkerLocked) {
-            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus => Hubungi Admin</div>';
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus =&gt; Hubungi Admin</div>';
             document.getElementById('sms-balance').innerText = `Rp 0`;
             return;
         }
