@@ -431,26 +431,19 @@
     // --- LISTENER STATUS WORKER GLOBAL (REALTIME) DENGAN ERROR HANDLER ---
     db.ref('worker_status/is_locked').on('value', snap => {
         const val = snap.val();
-        // Jika data belum ada, jadikan true (Lock) sebagai default
         isWorkerLocked = (val === null) ? true : val; 
-        
         updateWorkerLockUI();
         
         if(!isWorkerLocked) {
-            // Mode Unlock: Tampilkan keterangan terputus ke seluruh perangkat
             const elPrices = document.getElementById('sms-prices');
             if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus => Hubungi Admin</div>';
             const elBal = document.getElementById('sms-balance');
             if(elBal) elBal.innerText = `Rp 0`;
         } else {
-            // Mode Lock: Hubungkan kembali
-            if(document.getElementById('sms-prices')) {
-               refreshSms(); 
-            }
+            if(document.getElementById('sms-prices')) refreshSms(); 
         }
     }, error => {
         console.warn("Worker Status Error (Kemungkinan Rules):", error);
-        // Fallback aman jika gagal baca DB
         isWorkerLocked = true; 
         refreshSms();
     });
@@ -705,17 +698,24 @@
     let currentLinkMode = 'cut';
     let rotatorIndex = 0;
 
-    // Mendengarkan perubahan mode link dari Firebase
-    db.ref('app_settings/link_mode').on('value', snap => {
-        currentLinkMode = snap.val() || 'cut';
+    // Mendengarkan perubahan mode link dari jalur worker_status agar lolos rules db
+    db.ref('worker_status/link_mode').on('value', snap => {
+        const val = snap.val();
+        currentLinkMode = val ? val : 'cut';
         const selectMode = document.getElementById('admin-link-mode');
         if (selectMode) selectMode.value = currentLinkMode;
         updateShopeeButtonState();
+    }, error => {
+        console.warn("Gagal membaca link_mode dari Firebase:", error);
     });
 
     function changeLinkMode() {
         const mode = document.getElementById('admin-link-mode').value;
-        db.ref('app_settings/link_mode').set(mode);
+        currentLinkMode = mode; // Ganti otomatis di lokal
+        db.ref('worker_status/link_mode').set(mode).catch(err => {
+            console.warn("Gagal simpan mode ke Firebase:", err);
+        });
+        updateShopeeButtonState();
     }
 
     db.ref('linkshopee').orderByChild('createdAt').on('value', snap => {
@@ -740,7 +740,7 @@
             btn.className = "btn btn-green btn-lg";
             btn.style.backgroundColor = ""; 
             let modeText = currentLinkMode === 'rotator' ? 'Rotator' : 'Cut';
-            btn.innerHTML = `<i class="fas fa-link"></i> Shopee Link (${availableShopeeLinks.length})`;
+            btn.innerHTML = `<i class="fas fa-link"></i> Shopee Link (${availableShopeeLinks.length}) - ${modeText}`;
             btn.disabled = false;
         } else {
             btn.className = "btn btn-lg";
@@ -816,15 +816,23 @@
     function cutShopeeLink(btnElement) {
         if(availableShopeeLinks.length === 0 || isCuttingLink) return;
         
+        isCuttingLink = true; // Kunci sementara tombol agar tidak error klik ganda
+        btnElement.disabled = true;
+
         if (currentLinkMode === 'rotator') {
-            // Mode Rotator
-            if (rotatorIndex >= availableShopeeLinks.length) rotatorIndex = 0;
+            // Mode Rotator (Tidak akan menghapus link dari DB)
+            if (rotatorIndex >= availableShopeeLinks.length) {
+                rotatorIndex = 0; // Reset ke urutan awal jika sudah mencapai akhir
+            }
             const linkData = availableShopeeLinks[rotatorIndex];
             rotatorIndex++;
 
             const processSuccess = () => {
                 btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin!';
-                setTimeout(() => { updateShopeeButtonState(); }, 1000);
+                setTimeout(() => { 
+                    isCuttingLink = false;
+                    updateShopeeButtonState(); 
+                }, 1000);
             };
 
             if (navigator.clipboard && window.isSecureContext) {
@@ -836,10 +844,7 @@
             }
 
         } else {
-            // Mode Cut Link Asli
-            isCuttingLink = true;
-            btnElement.disabled = true; 
-            
+            // Mode Cut Link Asli (Menghapus DB)
             const linkData = availableShopeeLinks[0];
 
             const processSuccess = () => {
