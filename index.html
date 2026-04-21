@@ -25,9 +25,10 @@
 
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
         .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
-        .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 14px; width: 100%; max-width: 150px; text-overflow: ellipsis; cursor: pointer; }
+        .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 115px; text-overflow: ellipsis; cursor: pointer; }
         .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
         .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
 
         .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
         .admin-popup.active { display: block; }
@@ -142,9 +143,11 @@
                     <option value="smspool">SMS Pool</option>
                     <option value="5sim">5SIM</option>
                 </select>
+                <select id="user-selector" onchange="changeGlobalUser()"></select>
             </div>
             <div class="header-right">
                 <span class="saldo-text" id="sms-balance">Rp 0</span>
+                <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
             </div>
         </header>
 
@@ -175,6 +178,15 @@
                     <button id="btn-worker-lock" class="btn btn-green" onclick="setWorkerLock(true)"><i class="fas fa-lock"></i> Lock</button>
                     <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
                 </div>
+                
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah User SMS:</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="new-username" class="form-input" placeholder="Nama User (Cth: UDIN)" style="margin-bottom: 0;">
+                    <button class="btn btn-green" onclick="addCustomUser()" style="width: auto; padding: 0 15px;">Tambah</button>
+                </div>
+
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Link:</div>
@@ -308,9 +320,13 @@
 
 <script>
     // ================= PENGATURAN AWAL =================
+    const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
+    let dynamicUsers = [...DEFAULT_USERS]; 
+    
     let WORKER_URL = localStorage.getItem('xurel_worker_url') || "https://sms.laivia-agassy.workers.dev"; 
     
-    let currentUser = "UMUM"; 
+    let currentUser = "UMAM"; 
+    let isUserLocked = false;
     let audioCtx;
     let isWorkerLocked = true; // State bawaan tersambung
 
@@ -352,13 +368,58 @@
     });
 
     function initUserDropdown() {
+        isUserLocked = localStorage.getItem('xurel_user_locked') === 'true';
+        const savedUser = localStorage.getItem('xurel_selected_user');
+        if(savedUser) currentUser = savedUser;
+
         const savedProvider = localStorage.getItem('xurel_provider');
         if(savedProvider) document.getElementById('provider-selector').value = savedProvider;
 
+        db.ref('custom_users').on('value', snap => {
+            const customUsers = snap.val() ? Object.values(snap.val()) : [];
+            dynamicUsers = [...new Set([...DEFAULT_USERS, ...customUsers])];
+            updateDropdownUI();
+        });
+
+        updateDropdownUI();
+        applyUserLockUI();
         refreshAllData();
         
         setInterval(pollSms, 5000); 
         setInterval(updateSmsTimers, 1000);
+    }
+
+    function updateDropdownUI() {
+        const select = document.getElementById('user-selector');
+        let optionsToRender = [...dynamicUsers];
+        if (currentUser && !optionsToRender.includes(currentUser)) {
+            optionsToRender.push(currentUser);
+        }
+        select.innerHTML = optionsToRender.map(u => `<option value="${u}">${u}</option>`).join('');
+        select.value = currentUser;
+    }
+
+    function toggleUserLock() { 
+        isUserLocked = !isUserLocked; 
+        localStorage.setItem('xurel_user_locked', isUserLocked); 
+        applyUserLockUI(); 
+    }
+
+    function applyUserLockUI() {
+        const select = document.getElementById('user-selector'); 
+        const icon = document.getElementById('user-lock-icon'); 
+        if(select && icon) {
+            select.disabled = isUserLocked;
+            if (isUserLocked) { icon.className = 'fas fa-lock lock-icon'; icon.style.color = '#e74c3c'; } 
+            else { icon.className = 'fas fa-unlock lock-icon'; icon.style.color = '#666'; }
+        }
+    }
+
+    function changeGlobalUser() {
+        if(isUserLocked) return;
+        currentUser = document.getElementById('user-selector').value;
+        localStorage.setItem('xurel_selected_user', currentUser);
+        refreshAllData();
     }
 
     function changeProvider() {
@@ -519,6 +580,16 @@
     }
     
     function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    function addCustomUser() {
+        const name = document.getElementById('new-username').value.trim().toUpperCase();
+        if(!name) return showModal("Peringatan", "Nama User wajib diisi!", "alert");
+
+        db.ref('custom_users').push(name).then(() => {
+            document.getElementById('new-username').value = "";
+            showModal("Sukses", "User berhasil ditambahkan", "alert");
+        });
+    }
 
     // ================= LOGIKA CATATAN GLOBAL =================
     let notesDataCache = {};
@@ -1050,6 +1121,7 @@
             const j = await res.json();
             if(j.success) {
                 const o = j.data.orders[0]; 
+                // Di sini penyimpanan key localStorage akan menggunakan NAMA USER yang sedang dipilih, contoh: YANTO_phone_123
                 localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
                 localStorage.setItem(`${currentUser}_price_${o.id}`, price);
                 localStorage.setItem(`${currentUser}_provider_${o.id}`, provider); 
@@ -1072,6 +1144,7 @@
             
             for(let i=0; i<localStorage.length; i++) {
                 let key = localStorage.key(i);
+                // Hanya mendeteksi/memanggil id order milik User yang saat ini aktif di selector (isolasi data)
                 if(key.startsWith(prefix)) {
                     let id = key.replace(prefix, '');
                     let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
