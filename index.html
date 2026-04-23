@@ -244,8 +244,15 @@
     <div class="modal-box">
         <h3 style="margin-bottom:15px; color:#333;">Pilih Server Worker</h3>
         <div style="display:flex; flex-direction:column; gap:10px;">
-            <button class="btn btn-blue" onclick="setServer('https://sms-virtual.santridroid.workers.dev')">Server 1 (santridroid)</button>
-            <button class="btn btn-green" onclick="setServer('https://sms.laivia-agassy.workers.dev')">Server 2 (laivia-agassy)</button>
+            <button class="btn btn-blue server-btn" style="position: relative;" data-url="https://sms-virtual.santridroid.workers.dev" onclick="setServer('https://sms-virtual.santridroid.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 1 (santridroid)
+            </button>
+            <button class="btn btn-green server-btn" style="position: relative;" data-url="https://sms.laivia-agassy.workers.dev" onclick="setServer('https://sms.laivia-agassy.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 2 (laivia-agassy)
+            </button>
+            <button class="btn btn-purple server-btn" style="position: relative;" data-url="https://sms.aureliajasmine717.workers.dev" onclick="setServer('https://sms.aureliajasmine717.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 3 (aureliajasmine717)
+            </button>
             <button class="btn" style="background:#bdc3c7; color:#333; margin-top:10px;" onclick="closeServerModal()">Batal</button>
         </div>
     </div>
@@ -542,6 +549,15 @@
     function openServerModal() {
         document.getElementById('main-menu').classList.remove('active');
         document.getElementById('server-modal').classList.add('active');
+        document.querySelectorAll('.server-btn').forEach(btn => {
+            const url = btn.getAttribute('data-url');
+            const icon = btn.querySelector('.server-check-icon');
+            if (url === WORKER_URL) {
+                icon.style.display = 'inline-block';
+            } else {
+                icon.style.display = 'none';
+            }
+        });
     }
 
     function closeServerModal() {
