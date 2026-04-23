@@ -3,848 +3,1236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xurel - Multi Dashboard</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
+    <title>SANTRIDROID-NOTE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ================= GLOBAL STYLES ================= */
-        :root {
-            --fb-bg: #f0f2f5; --fb-card: #ffffff; --fb-text: #050505;
-            --fb-muted: #65676B; --fb-blue: #1877f2; --fb-border: #ccd0d5;
-            --fb-hover: #e4e6eb; --fb-red: #e41e3f; --fb-green: #31a24c;
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f0f0; user-select: none; -webkit-user-select: none; }
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Palet Warna Pastel Elegan (Lembut dan Sedikit Putih) */
+        .color-red { background-color: #fad2e1; color: #333 !important; }
+        .color-orange { background-color: #ffe5b4; color: #333 !important; }
+        .color-yellow { background-color: #fff3cd; color: #333 !important; }
+        .color-green { background-color: #d4ebd0; color: #333 !important; }
+        .color-blue { background-color: #bde0fe; color: #333 !important; }
+        .color-purple { background-color: #d8b4e2; color: #333 !important; }
+        .color-black { background-color: #ced4da; color: #333 !important; } 
+        .color-gray { background-color: #f8f9fa; color: #333 !important; }
+        .color-white { background-color: #ffffff; color: #333 !important; }
+
+        .note-card { transition: transform 0.1s; }
+        .note-card:active { transform: scale(0.98); }
+        .selected-note { border: 3px solid #009688 !important; opacity: 0.8; }
+
+        .lined-paper {
+            background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.1) 31px, rgba(0,0,0,0.1) 32px);
+            line-height: 32px;
+            background-attachment: local;
+            padding-top: 6px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        body { background-color: var(--fb-bg); color: var(--fb-text); padding-top: 60px; min-height: 100vh; }
-        
-        input, textarea { user-select: auto !important; pointer-events: auto !important; }
-
-        /* ================= TOP NAVIGATION ================= */
-        .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: var(--fb-card); box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1000;
+        input[type="checkbox"].checklist-cb {
+            width: 1.25rem; height: 1.25rem; accent-color: #666; cursor: pointer;
         }
-
-        .nav-left { display: flex; align-items: center; position: relative; width: 50px; }
-        .menu-btn {
-            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; 
-            color: var(--fb-muted); font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
-        }
-        .menu-btn:hover { background: var(--fb-hover); }
-
-        /* Dropdown Hamburger Kiri (Pusat Login/Logout) */
-        .global-login {
-            display: none; position: absolute; top: 50px; left: 0; background: var(--fb-card); 
-            padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid var(--fb-border); z-index: 1001;
-        }
-        .global-login.active { display: block; animation: fadeIn 0.2s ease; }
-        .form-input { width: 100%; padding: 12px 10px; margin-bottom: 10px; border: 1px solid var(--fb-border); border-radius: 6px; outline: none; font-size: 14px;}
-        .btn-primary { width: 100%; padding: 12px 10px; background: var(--fb-blue); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { background: #1558b0; }
-        .btn-danger { width: 100%; padding: 12px 10px; background: var(--fb-red); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
-
-        .nav-tabs-center { display: flex; height: 100%; gap: 10px; }
-        .nav-btn {
-            width: 90px; height: 100%; border: none; background: transparent; color: var(--fb-muted); font-size: 22px; 
-            cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; display: flex; justify-content: center; align-items: center;
-        }
-        .nav-btn:hover { background: var(--fb-hover); border-radius: 8px; margin: 5px 0; height: calc(100% - 10px); }
-        .nav-btn.active { color: var(--fb-blue); border-bottom-color: var(--fb-blue); border-radius: 0; margin: 0; height: 100%; background: transparent; }
-        .nav-right { width: 50px; }
-
-        /* ================= APP CONTAINERS ================= */
-        .app-section { display: none; padding: 20px 10px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.3s ease; position: relative; z-index: 1; }
-        .app-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .content-card { background: var(--fb-card); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; position: relative; z-index: 2; }
-        .hidden { display: none !important; }
-
-        /* ================= TOOLS KUSTOM (ACAK NAMA/NOMOR/EMAIL) ================= */
-        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .tool-group { display: flex; flex-direction: column; gap: 8px; background: var(--fb-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--fb-border); }
-        .tool-row { display: flex; gap: 8px; }
-        .tool-row button { flex: 1; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; color: white; cursor: pointer; transition: 0.2s; }
-        .tool-row button:hover { opacity: 0.9; }
-        .tool-input { padding: 10px; border: 1px solid var(--fb-border); border-radius: 6px; font-weight: bold; text-align: center; width: 100%; outline: none; font-size: 13px; }
-
-        /* ================= CSS SHOPEE (A1) ================= */
-        .shopee-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .shopee-item-wrapper { display: flex; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .shopee-copy-btn { width: 40px; background: rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .shopee-copy-btn:hover { background: rgba(0,0,0,0.3); }
-        .shopee-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; color: white; text-decoration: none; font-weight: 600; text-align: center; gap: 5px; min-height: 55px; font-size: 12px; cursor: pointer;}
-        .shopee-details { display: flex; gap: 5px; font-size: 10px; }
-        .badge-status { background: rgba(0,0,0,0.2); padding: 3px 5px; border-radius: 4px; }
-        .admin-controls { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 5px; }
-        .btn-ctrl { background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; color: var(--fb-text); display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-
-        /* ================= MEDIA QUERIES (RESPONSIVE) ================= */
-        @media (max-width: 768px) {
-            /* Dikunci menjadi 2 kolom untuk SEMUA ukuran layar HP */
-            .shopee-grid { grid-template-columns: repeat(2, 1fr); }
-            .tools-grid { grid-template-columns: 1fr; }
-        }
-
-        /* ================= CSS NOTES (A2) ================= */
-        .notes-subnav { display: flex; gap: 10px; margin-bottom: 15px; background: #e4e6eb; padding: 5px; border-radius: 20px; width: fit-content; }
-        .note-tab { border: none; background: transparent; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--fb-muted); }
-        .note-tab.active { background: white; color: var(--fb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .checklist-done { text-decoration: line-through; color: #888; }
         
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-        .note-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--fb-border); cursor: pointer; height: 110px; position: relative; }
-        .note-card:hover { background: #f8f9fa; }
-        .note-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .note-preview { font-size: 11px; color: var(--fb-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .note-date { position: absolute; bottom: 10px; left: 10px; font-size: 8.5px; background: #f8f9fa; padding: 2px 6px; border-radius: 4px; color: #888; font-weight: 600; border: 1px solid #eee; text-transform: uppercase; }
-        
-        .text-link { color: var(--fb-blue); text-decoration: none; font-weight: 500; }
-        .text-link:hover { text-decoration: underline; color: #1558b0; }
-
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--fb-blue); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 4px 10px rgba(24,119,242,0.4); cursor: pointer; border: none; z-index: 500; }
-
-        /* ================= CSS SMS ================= */
-        .sms-wrapper { --sms-grn: var(--fb-green); --sms-blu: var(--fb-blue); --sms-org: var(--fb-red); }
-        .sms-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sms-select { padding: 8px; border-radius: 8px; border: 1px solid var(--fb-border); font-weight: bold; outline: none; }
-        .sms-select:disabled { opacity: 0.6; cursor: not-allowed; }
-        .bal-val { font-weight: bold; color: var(--sms-grn); font-size: 16px; background: #e6f4ea; padding: 5px 12px; border-radius: 15px; }
-        
-        .price-list { border: 1px solid var(--fb-border); border-radius: 12px; overflow-y: auto; max-height: 450px; background: white; }
-        
-        .price-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--fb-border); cursor: pointer; }
-        .price-item:hover { background: #f8f9fa; }
-        .price-item:last-child { border-bottom: none; }
-        
-        .order-card { border: 1px solid var(--fb-border); background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        .phone-box { 
-            font-size: 24px; font-weight: bold; font-family: monospace; cursor: pointer; 
-            padding: 10px 0; color: var(--fb-text); display: flex; align-items: center; justify-content: flex-start; gap: 10px; 
-            width: 100%;
-        }
-        .phone-box i { font-size: 20px; transition: color 0.2s ease; }
-        
-        .btn-grid-4 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .sms-btn { flex: 1 1 calc(50% - 8px); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 11px; cursor: pointer; border: 1px solid var(--fb-border); background: var(--fb-bg); color: var(--fb-muted); text-transform: uppercase; text-align: center; transition: 0.2s;}
-        .sms-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .sms-btn:not(:disabled):hover { background: var(--fb-hover); color: var(--fb-text); }
-
-        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
-        .loader-bars span { display: block; width: 4px; height: 100%; background-color: var(--fb-muted); border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
-        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
-        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
-        .loader-bars span:nth-child(3) { animation-delay: 0s; }
-        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: var(--fb-blue); } }
-
-        /* ================= MODAL UNIVERSAL & NOTES ================= */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
-        #universal-modal { z-index: 9999 !important; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
-        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        
-        /* Tombol Konfirmasi Diperbesar */
-        .m-btn { padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; margin-left: 8px; transition: 0.2s; text-transform: uppercase; }
-        .m-btn:hover { opacity: 0.8; }
+        .tab-active { border-bottom: 2px solid #009688; font-weight: bold; color: #333; }
+        .tab-inactive { color: #6b7280; }
     </style>
 </head>
-<body>
+<body class="h-screen flex flex-col overflow-hidden relative">
 
-    <nav class="top-nav">
-        <div class="nav-left">
-            <button class="menu-btn" onclick="toggleMainMenu()"><i class="fa-solid fa-bars"></i></button>
-            <div id="main-menu-popup" class="global-login">
-                <div id="login-form">
-                    <div style="font-weight: bold; margin-bottom: 15px; color: var(--fb-muted); font-size: 11px; letter-spacing: 1px;">SISTEM ADMIN</div>
-                    <input type="email" id="global-email" class="form-input" placeholder="Email">
-                    <input type="password" id="global-pass" class="form-input" placeholder="Password">
-                    <button class="btn-primary" onclick="globalLogin()">Masuk</button>
-                </div>
-                <div id="logout-form" class="hidden">
-                    <p style="text-align: center; font-weight: bold; color: var(--fb-green); margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-                    <button class="btn-danger" onclick="globalLogout()">Keluar (Logout)</button>
-                </div>
-            </div>
+    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 flex justify-between items-center z-10 transition-all">
+        <h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
+            <span class="font-light text-gray-500">Santridroid</span>Note </span>
+        </h1>
+        <div class="flex space-x-4 text-gray-600 text-lg">
+            <button onclick="toggleModal('importCodeModal')" title="Terima/Import Catatan"><i class="fas fa-file-import"></i></button>
+            <button onclick="toggleModal('settingsModal')" title="Alat"><i class="fas fa-wrench"></i></button>
+            <button id="topLoginBtn" onclick="toggleModal('loginModal', true)" title="Login / Akun"><i class="fas fa-user-circle"></i></button>
         </div>
-        <div class="nav-tabs-center">
-            <button class="nav-btn active" onclick="switchApp('shopee', this)"><i class="fa-solid fa-store"></i></button>
-            <button class="nav-btn" onclick="switchApp('notes', this)"><i class="fa-solid fa-note-sticky"></i></button>
-            <button class="nav-btn" onclick="switchApp('sms', this)"><i class="fa-solid fa-message"></i></button>
+    </header>
+
+    <div id="searchBar" class="hidden bg-white shadow-sm p-2 flex items-center z-10 w-full relative">
+        <i class="fas fa-search text-gray-400 ml-2"></i>
+        <input type="text" id="searchInput" oninput="applySearch()" placeholder="Cari catatan..." class="flex-1 bg-transparent ml-3 outline-none text-gray-700">
+        <button onclick="toggleSearch()" class="p-2 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div id="adminTabsContainer" class="hidden flex bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
+        <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
+        <button id="tabSentToAdmin" onclick="switchAdminTab('kiriman')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">KIRIMAN MASUK</button>
+        <button id="tabAllNotes" onclick="switchAdminTab('semua')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">SEMUA DATA</button>
+    </div>
+
+    <header id="multiSelectHeader" class="hidden bg-teal-600 shadow-md p-4 flex justify-between items-center z-10 text-white w-full">
+        <div class="flex items-center space-x-4">
+            <button onclick="cancelMultiSelect()" class="text-xl"><i class="fas fa-times"></i></button>
+            <span id="selectCount" class="text-lg font-semibold">1 dipilih</span>
         </div>
-        <div class="nav-right"></div>
+        <div class="flex space-x-5 text-lg">
+            <button onclick="toggleModal('multiColorModal')" title="Ubah Warna"><i class="fas fa-palette"></i></button>
+            <button onclick="toggleLockMulti()" title="Kunci"><i class="fas fa-lock"></i></button>
+            <button onclick="copySelectedNotes()" title="Salin"><i class="far fa-copy"></i></button>
+            <button onclick="deleteSelectedNotes()" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+            <button onclick="openShareModal('multi')" title="Bagikan"><i class="fas fa-share-alt"></i></button>
+            <button><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto pb-20 p-2" id="mainContent">
+        <div id="notesContainer" class="flex flex-col gap-2">
+            <p class="text-center text-gray-500 mt-10">Memuat catatan...</p>
+        </div>
+    </main>
+
+    <button onclick="toggleModal('fabMenuModal')" class="absolute bottom-20 right-6 bg-teal-600 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 z-10">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 absolute bottom-0 w-full z-10">
+        <button onclick="toggleSearch(false); toggleModal('calendarModal', true)" class="text-teal-600 text-xl"><i class="fas fa-clipboard-list"></i></button>
+        <button onclick="openCalendar()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-calendar-alt"></i></button>
+        <button onclick="toggleSearch()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-search"></i></button>
+        <button onclick="toggleModal('appMenuModal', true)" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-bars"></i></button>
     </nav>
 
-    <div id="app-shopee" class="app-section active">
-        <div id="shopee-admin" class="content-card hidden" style="border: 2px solid var(--fb-blue);">
-            <h3 style="margin-bottom: 10px; font-size: 16px;">Tambah Link Shopee</h3>
-            <input type="text" id="shopee-title" class="form-input" placeholder="Nama Produk">
-            <input type="text" id="shopee-url" class="form-input" placeholder="URL Link">
-            <input type="text" id="shopee-price" class="form-input" placeholder="Harga (Misal: 150000)" oninput="formatRupiah(this)">
-            <select id="shopee-status" class="form-input">
-                <option value="">-- Tanpa Label --</option>
-                <option value="STAR">Star</option>
-                <option value="MALL">Mall</option>
-            </select>
-            <button class="btn-primary" onclick="addShopeeMenu()">Terbitkan</button>
+    <div id="fabMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center" onclick="toggleModal('fabMenuModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Tambahkan</div>
+            <ul class="py-2">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('text')"><i class="fas fa-align-justify w-8 text-xl text-gray-600"></i> Teks</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('checklist')"><i class="far fa-check-square w-8 text-xl text-gray-600"></i> Daftar Centang</li>
+            </ul>
         </div>
-
-        <div class="content-card">
-            <div class="tools-grid">
-                <div class="tool-group">
-                    <input type="text" id="genEmailInput" class="tool-input" placeholder="Email (contoh: user1@gmail.com)" oninput="localStorage.setItem('xurel_saved_email', this.value)">
-                    <div class="tool-row">
-                        <button onclick="copyAndIncrementEmail()" style="background: #f39c12;"><i class="fa-solid fa-copy"></i> Copy Email</button>
-                    </div>
-                </div>
-
-                <div class="tool-group">
-                    <input type="text" id="genNameOutput" class="tool-input" placeholder="--- Hasil Acak ---" readonly>
-                    <div class="tool-row">
-                        <button onclick="generateName()" style="background: var(--fb-blue);"><i class="fa-solid fa-user"></i> Acak Nama</button>
-                        <button onclick="generatePhone()" style="background: var(--fb-green);"><i class="fa-solid fa-phone"></i> Acak Nomor</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h3 style="color: var(--fb-muted); font-size: 14px;">LINK SHOPEE</h3>
-        <div id="shopee-container" class="shopee-grid"></div>
     </div>
 
-    <div id="app-notes" class="app-section">
-        <div class="notes-subnav">
-            <button id="tab-pub" class="note-tab active" onclick="switchNoteTab('public')">Publik</button>
-            <button id="tab-priv" class="note-tab" onclick="switchNoteTab('private')"><i class="fa-solid fa-lock"></i> Privat</button>
+    <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow transition-colors duration-300">
+        <div class="flex items-center p-2 bg-black bg-opacity-10">
+            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-check text-xl"></i></button>
+            <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-transparent ml-2 font-semibold text-lg outline-none text-inherit placeholder-gray-500 placeholder-opacity-70">
+            <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-6 h-6 rounded bg-[#fff3cd] border border-gray-400 ml-2 shadow-sm"></button>
+            <button onclick="openEditorMenu()" class="ml-4 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
         </div>
-        
-        <div id="note-lock-section" class="content-card hidden" style="text-align: center; padding: 40px 20px;">
-            <i class="fa-solid fa-lock" style="font-size: 40px; color: var(--fb-muted); margin-bottom: 15px;"></i>
-            <h3 style="margin-bottom: 10px; font-size: 16px; color: var(--fb-text);">Catatan Terkunci</h3>
-            <p style="font-size: 12px; color: var(--fb-muted); margin-bottom: 20px;">Silakan login melalui <b>Menu Utama (Garis tiga di pojok kiri atas)</b> untuk melihat catatan privat Anda.</p>
-            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="toggleMainMenu()">Buka Menu Login</button>
+        <div class="text-[11px] px-4 py-1 flex justify-between bg-black bg-opacity-10 border-b border-black border-opacity-20 text-inherit">
+            <span class="opacity-80">Suntingan</span>
+            <span id="editorTimestamp" class="opacity-80">Sekarang</span>
         </div>
-
-        <div id="notes-grid" class="notes-grid"></div>
-    </div>
-    <button id="fab-note" class="fab" onclick="openNoteModal()"><i class="fas fa-plus"></i></button>
-
-    <div id="app-sms" class="app-section sms-wrapper">
-        <div class="content-card sms-top" style="padding: 15px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <select id="sms-server" class="sms-select" onchange="changeSmsServer()"></select>
-                <button onclick="toggleSmsLock()" style="background:none; border:none; cursor:pointer; font-size:18px;">
-                    <i id="sms-lock-icon" class="fa-solid fa-unlock" style="color: var(--fb-muted);"></i>
+        <div class="flex-1 overflow-y-auto relative w-full h-full text-inherit">
+            <textarea id="textEditorBody" oninput="recordHistory()" class="w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden text-lg" placeholder="Masukkan catatan..."></textarea>
+            <div id="checklistEditorBody" class="w-full min-h-full p-2 hidden">
+                <div id="checklistItemsContainer" class="flex flex-col"></div>
+                <button onclick="addChecklistItemDOM('', false, true)" class="flex items-center p-3 w-full hover:bg-black hover:bg-opacity-10 rounded font-semibold mt-2 opacity-90">
+                    <i class="fas fa-plus-circle text-xl mr-3"></i> Tambah Barang
                 </button>
             </div>
-            <div class="bal-val" id="sms-balance">Rp 0</div>
         </div>
-        
-        <div id="sms-active-orders"></div>
-        
-        <h3 style="color: var(--fb-muted); font-size: 14px; margin-bottom: 10px;">PESAN NOMOR BARU</h3>
-        <div class="price-list" id="sms-prices">
-            <div style="padding:30px; text-align:center; color:#888;">Memuat data...</div>
+        <div class="h-12 bg-black bg-opacity-10 border-t border-black border-opacity-20 flex justify-center items-center space-x-10 text-xl text-inherit opacity-80">
+            <button onclick="performUndo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-undo"></i></button>
+            <button onclick="performRedo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-redo"></i></button>
         </div>
     </div>
 
-    <div id="universal-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 id="u-modal-title" style="margin-bottom:10px;">Konfirmasi</h3>
-            <p id="u-modal-msg" style="color:var(--fb-muted); font-size:14px; margin-bottom:20px; line-height:1.5;"></p>
-            <div id="u-modal-actions" style="display:flex; justify-content:flex-end; gap:0;"></div>
-        </div>
-    </div>
-
-    <div id="modal-note-form" class="modal-overlay" onclick="closeModal('modal-note-form')">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <h3 style="margin-bottom:15px;">Catatan</h3>
-            <input type="text" id="note-title" class="form-input" placeholder="Judul (Kosongkan utk auto-number)">
-            <textarea id="note-content" class="form-input" style="min-height: 150px; resize: vertical;" placeholder="Tulis sesuatu..."></textarea>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button class="m-btn" style="flex: 1; background: var(--fb-bg); color:var(--fb-muted); margin-left:0;" onclick="closeModal('modal-note-form')">BATAL</button>
-                <button class="m-btn btn-primary" style="flex: 2; margin-left: 0;" onclick="saveNote()">SIMPAN</button>
+    <div id="importCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('importCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Terima Catatan</h3>
+            <input type="text" id="importCodeInput" placeholder="Masukkan Kode Catatan" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('importCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitImportCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Import</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-note-view" class="modal-overlay" onclick="closeModal('modal-note-view')">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span id="view-tag" style="font-size:10px; font-weight:bold; background:#eee; padding:4px 10px; border-radius:20px; color:#555"></span>
-                <i class="fa-solid fa-times" style="cursor:pointer; color:#888; font-size:18px;" onclick="closeModal('modal-note-view')"></i>
-            </div>
-            <h2 id="view-title" style="margin-bottom:15px; font-weight:800; font-size:20px;"></h2>
-            <div id="view-content" style="background:#f8f9fa; padding:15px; border-radius:8px; min-height:150px; max-height:50vh; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; font-size:14px;"></div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="m-btn btn-primary" style="flex:1; margin-left:0; padding:12px;" onclick="editNote()"><i class="fas fa-edit"></i> Edit</button>
-                <button class="m-btn btn-primary" style="flex:1; background:#f39c12; margin-left:0; padding:12px;" onclick="copyNoteContent(this)"><i class="fas fa-copy"></i> Salin</button>
-                <button class="m-btn btn-danger" style="width:50px; margin-left:0; padding:12px;" onclick="deleteNote()"><i class="fas fa-trash"></i></button>
+    <div id="sendWithCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('sendWithCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Kirim dengan Kode</h3>
+            <input type="text" id="shareCodeInput" placeholder="Masukkan Kode (Teks/Angka)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <select id="shareDurationSelect" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+                <option value="1h">1 Jam</option>
+                <option value="12h">12 Jam</option>
+                <option value="1d">1 Hari</option>
+                <option value="1w">1 Minggu</option>
+                <option value="1m">1 Bulan</option>
+            </select>
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('sendWithCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitShareCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Kirim</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // ================= TAMBAHAN: AUTO-LOAD EMAIL DARI LOCAL STORAGE =================
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem('xurel_saved_email');
-            if(savedEmail) {
-                document.getElementById('genEmailInput').value = savedEmail;
-            }
-        });
+    <div id="shareMethodModal" class="hidden fixed inset-0 z-[70] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('shareMethodModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Bagikan Catatan</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="sendToAdmin()"><i class="fas fa-user-shield w-8 text-xl text-gray-600"></i> Kirim ke Admin</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="openSendWithCode()"><i class="fas fa-qrcode w-8 text-xl text-gray-600"></i> Kirim dengan Kode</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="executeCopyFromShare()"><i class="far fa-copy w-8 text-xl text-gray-600"></i> Salin Catatan</li>
+            </ul>
+        </div>
+    </div>
 
-        // ================= 0. UNIVERSAL MODAL SYSTEM =================
-        function showModal(title, msg, type='confirm') {
-            return new Promise(resolve => {
-                const ov = document.getElementById('universal-modal');
-                document.getElementById('u-modal-title').innerText = title;
-                document.getElementById('u-modal-msg').innerText = msg;
-                const actions = document.getElementById('u-modal-actions');
-                actions.innerHTML = '';
-                
-                if (type === 'confirm' || type === 'danger') {
-                    const btnCancel = document.createElement('button');
-                    btnCancel.className = 'm-btn'; 
-                    btnCancel.style.background = 'var(--fb-hover)'; btnCancel.style.color = 'var(--fb-text)';
-                    btnCancel.innerText = 'BATAL';
-                    btnCancel.onclick = () => { ov.classList.remove('active'); resolve(false); };
-                    
-                    const btnOk = document.createElement('button');
-                    btnOk.className = 'm-btn ' + (type === 'danger' ? 'btn-danger' : 'btn-primary'); 
-                    btnOk.innerText = 'OKE';
-                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
-                    
-                    actions.appendChild(btnCancel);
-                    actions.appendChild(btnOk);
-                } else {
-                    const btnOk = document.createElement('button');
-                    btnOk.className = 'm-btn btn-primary'; 
-                    btnOk.innerText = 'OKE';
-                    btnOk.onclick = () => { ov.classList.remove('active'); resolve(true); };
-                    actions.appendChild(btnOk);
-                }
-                
-                ov.classList.add('active');
-            });
-        }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    <div id="editorColorModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorColorModal')">
+        <div class="absolute top-14 right-10 bg-white rounded-lg shadow-xl p-3 grid grid-cols-3 gap-2 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#fad2e1] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ffe5b4] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#d4ebd0] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#bde0fe] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#d8b4e2] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#ced4da] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
+    
+    <div id="multiColorModal" class="hidden fixed inset-0 z-[60] bg-black bg-opacity-30 flex items-center justify-center" onclick="toggleModal('multiColorModal')">
+        <div class="bg-white rounded-lg shadow-xl p-4 grid grid-cols-3 gap-3 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#fad2e1] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ffe5b4] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#d4ebd0] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#bde0fe] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#d8b4e2] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#ced4da] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
 
-        // ================= 1. TAB & UI NAVIGATION =================
-        function switchApp(appId, btnElement) {
-            document.querySelectorAll('.app-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById('app-' + appId).classList.add('active');
-            btnElement.classList.add('active');
-            
-            document.getElementById('fab-note').style.display = (appId === 'notes' && document.getElementById('note-lock-section').classList.contains('hidden')) ? 'flex' : 'none';
-            if(appId === 'sms' && !smsInitialized) initSms();
-        }
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center" onclick="closeSettingsModal()">
+        <div class="bg-white rounded p-4 w-72 shadow-lg" onclick="event.stopPropagation()">
+            <div class="flex border-b mb-3 text-sm cursor-pointer select-none">
+                <div id="tab-warna" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('warna')">WARNA</div>
+                <div id="tab-urutkan" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('urutkan')">URUTKAN</div>
+                <div id="tab-lihat" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('lihat')">LIHAT</div>
+            </div>
 
-        function toggleMainMenu() { document.getElementById('main-menu-popup').classList.toggle('active'); }
-        document.addEventListener('click', function(e) {
-            const popup = document.getElementById('main-menu-popup');
-            const btn = document.querySelector('.menu-btn');
-            if(popup.classList.contains('active') && !popup.contains(e.target) && !btn.contains(e.target)) {
-                popup.classList.remove('active');
-            }
-        });
+            <div id="content-warna" class="hidden">
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <div onclick="applyFilter('red')" class="h-10 bg-[#fad2e1] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('orange')" class="h-10 bg-[#ffe5b4] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('yellow')" class="h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                    <div onclick="applyFilter('green')" class="h-10 bg-[#d4ebd0] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('blue')" class="h-10 bg-[#bde0fe] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('purple')" class="h-10 bg-[#d8b4e2] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('black')" class="h-10 bg-[#ced4da] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('gray')" class="h-10 bg-[#f8f9fa] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('white')" class="h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-3">*Klik warna yang sama untuk membatalkan filter</p>
+            </div>
 
-        // ================= 2. FIREBASE INITIALIZATION =================
-        const configMaster = { 
-            apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE",
-            authDomain: "santridroid-link.firebaseapp.com",
-            databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "santridroid-link",
-            storageBucket: "santridroid-link.firebasestorage.app",
-            messagingSenderId: "37630509146",
-            appId: "1:37630509146:web:e1472cff08b34269721863",
-            measurementId: "G-6YM0LDQTHN"
+            <div id="content-urutkan" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('updatedAt')"><i class="far fa-clock w-6 text-center"></i> berdasarkan waktu diubah</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('createdAt')"><i class="fas fa-calendar-plus w-6 text-center"></i> berdasarkan waktu dibuat</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('alphabet')"><i class="fas fa-sort-alpha-down w-6 text-center"></i> alfabet</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('color')"><i class="fas fa-palette w-6 text-center"></i> berdasarkan warna</li>
+                </ul>
+            </div>
+
+            <div id="content-lihat" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('list')"><i class="fas fa-list w-6 text-center"></i> Daftar</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('detail')"><i class="fas fa-bars w-6 text-center"></i> Detail</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-small')"><i class="fas fa-th w-6 text-center"></i> Petak (Grid Kecil)</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-large')"><i class="fas fa-th-large w-6 text-center"></i> Petak Besar (Grid Besar)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="editorMenuModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorMenuModal')">
+        <div class="absolute top-12 right-2 bg-white rounded shadow-xl py-2 w-44 text-gray-800 text-sm border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeCopySingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="far fa-copy w-6 text-gray-600"></i> Salin Catatan</div>
+            <div onclick="openShareModal('single')" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-paper-plane w-6 text-gray-600"></i> Kirim / Bagikan</div>
+            <div onclick="toggleLockSingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-lock w-6 text-gray-600"></i> <span id="lockMenuText">Kunci</span></div>
+            <div onclick="deleteCurrentNote()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-trash-alt w-6 text-gray-600"></i> Buang</div>
+        </div>
+    </div>
+
+    <!-- NEW MODALS -->
+    <div id="loginModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('loginModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-full max-w-sm" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex justify-between" id="loginTitle">Login Akun <button onclick="toggleModal('loginModal')"><i class="fas fa-times text-gray-500"></i></button></h3>
+            <div id="loginFormContainer">
+                <input type="email" id="adminEmail" placeholder="Email" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="adminPassword" placeholder="Kata Sandi" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+                <button onclick="loginAdmin()" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 mb-3 font-semibold">Login</button>
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+                <button onclick="loginGoogle()" class="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex justify-center items-center shadow-sm">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Login via Google
+                </button>
+            </div>
+            <div id="loggedInContainer" class="hidden text-center">
+                <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fas fa-user"></i></div>
+                <p id="loggedInUserText" class="text-gray-800 font-medium mb-1"></p>
+                <p id="loggedInRoleText" class="text-xs text-teal-600 font-semibold mb-4 bg-teal-50 inline-block px-2 py-1 rounded"></p>
+                <button onclick="logout()" class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600 font-semibold shadow-sm">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-[60] flex items-end justify-center" onclick="toggleModal('appMenuModal')">
+        <div class="bg-white rounded-t-xl w-full max-w-md shadow-xl" onclick="event.stopPropagation()">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Menu & Pengaturan</h3>
+                <button onclick="toggleModal('appMenuModal')"><i class="fas fa-times text-gray-500 text-xl"></i></button>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto pb-4">
+                <ul class="py-1 text-gray-700 text-[15px]">
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="syncNotes()"><i class="fas fa-sync-alt w-8 text-center text-teal-600"></i> Sinkronisasi Catatan <span id="syncStatus" class="ml-auto text-xs text-gray-400 bg-gray-100 px-2 rounded">Offline</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="backupNotes()"><i class="fas fa-cloud-upload-alt w-8 text-center text-teal-600"></i> Cadangkan Catatan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center justify-between border-b">
+                        <div class="flex items-center"><i class="fas fa-history w-8 text-center text-gray-600"></i> Cadangkan Otomatis</div>
+                        <input type="checkbox" id="autoBackupCheckbox" onchange="saveGlobalSettings()" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                    </li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="selectDefaultColor()"><i class="fas fa-palette w-8 text-center text-gray-600"></i> Warna Default Catatan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('fontSizeModal', true)"><i class="fas fa-font w-8 text-center text-gray-600"></i> Ukuran Font Catatan <span id="fontLabel" class="ml-auto text-xs text-gray-400">Sedang</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('settingsModal', true)"><i class="fas fa-sort-amount-down w-8 text-center text-gray-600"></i> Urutkan / Alat Tampilan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="openAbout()"><i class="fas fa-info-circle w-8 text-center text-gray-600"></i> Tentang Aplikasi</li>
+                    <li id="menuLoginBtn" class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center text-teal-700 mt-2" onclick="toggleModal('loginModal', true)"><i class="fas fa-sign-in-alt w-8 text-center"></i> Login / Akun</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendarModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('calendarModal')">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
+            <div class="bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-xl">
+                <button onclick="changeMonth(-1)" class="p-2"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="calendarMonthYear" class="text-lg font-semibold uppercase tracking-wider"></h3>
+                <button onclick="changeMonth(1)" class="p-2"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="p-3">
+                <div class="grid grid-cols-7 text-center text-xs font-semibold text-gray-400 mb-2">
+                    <div>Mng</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                <div id="calendarDays" class="grid grid-cols-7 gap-1 text-center text-sm font-medium"></div>
+            </div>
+            <div class="p-4 border-t bg-gray-50 flex flex-col justify-end max-h-[40vh]">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-gray-700">Pengingat: <span id="selectedDateText" class="text-teal-600"></span></h4>
+                    <button onclick="openAddReminder()" class="text-teal-600 hover:text-teal-800 text-sm"><i class="fas fa-plus-circle text-lg"></i></button>
+                </div>
+                <div id="remindersList" class="overflow-y-auto mb-2 text-sm text-gray-600 space-y-2 flex-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addReminderModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-50 flex items-center justify-center p-4" onclick="toggleModal('addReminderModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-xs" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Tambah Pengingat</h3>
+            <input type="text" id="reminderText" placeholder="Judul Pengingat..." class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <input type="time" id="reminderTime" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('addReminderModal')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="saveReminder()" class="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-700">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('aboutModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-md max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2 flex justify-between items-center">
+                <span><i class="fas fa-info-circle text-teal-600 mr-2"></i> Tentang Aplikasi</span>
+                <button id="editAboutBtn" class="hidden text-teal-600 text-sm bg-teal-50 px-2 py-1 rounded" onclick="toggleEditAbout()"><i class="fas fa-edit"></i> Edit</button>
+            </h3>
+            <div id="aboutContentDisplay" class="flex-1 overflow-y-auto text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed px-1">Memuat informasi...</div>
+            <textarea id="aboutContentEdit" class="hidden flex-1 overflow-y-auto text-[15px] border border-gray-300 rounded p-3 w-full mb-2 resize-none h-48 outline-none focus:border-teal-500" placeholder="Tulis deskripsi aplikasi..."></textarea>
+            <div id="aboutEditActions" class="hidden flex justify-end space-x-2 mt-3 pt-3 border-t">
+                <button onclick="toggleEditAbout()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded">Batal</button>
+                <button onclick="saveAbout()" class="px-4 py-2 bg-teal-600 text-white border border-teal-700 rounded hover:bg-teal-700 shadow-sm">Simpan</button>
+            </div>
+            <button onclick="toggleModal('aboutModal')" id="closeAboutBtn" class="mt-4 w-full py-2.5 font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 border border-gray-200">Tutup</button>
+        </div>
+    </div>
+
+    <div id="fontSizeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('fontSizeModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b font-semibold text-gray-800">Pilih Ukuran Font</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-sm" onclick="saveFontSize('small')">Kecil</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-base bg-gray-50" onclick="saveFontSize('medium')">Sedang (Default)</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-lg" onclick="saveFontSize('large')">Besar</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, setDoc, collectionGroup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcmmx5TPQNfctU5VCEA_u5_hzM4h83Tio",
+            authDomain: "santridroid-note.firebaseapp.com",
+            projectId: "santridroid-note",
+            storageBucket: "santridroid-note.firebasestorage.app",
+            messagingSenderId: "184706229718",
+            appId: "1:184706229718:web:ea26601b183f4d4867b077"
         };
 
-        firebase.initializeApp(configMaster);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-        const db = firebase.database(); 
-        const auth = firebase.auth();
+        let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: false };
+        try { if(localStorage.getItem('ntSettings')) globalSettings = JSON.parse(localStorage.getItem('ntSettings')); } catch(e){}
+        
+        window.saveGlobalSettings = function() {
+            globalSettings.autoBackup = document.getElementById('autoBackupCheckbox').checked;
+            localStorage.setItem('ntSettings', JSON.stringify(globalSettings));
+        }
 
-        let globalUser = null;
+        window.saveFontSize = function(size) {
+            globalSettings.fontSize = size;
+            saveGlobalSettings(); 
+            applyGlobalSettingsText(); 
+            toggleModal('fontSizeModal'); 
+            renderNotes();
+        }
 
-        auth.onAuthStateChanged(user => {
-            globalUser = user; const isAdmin = !!user;
+        function applyGlobalSettingsText() {
+            document.getElementById('autoBackupCheckbox').checked = globalSettings.autoBackup;
+            document.getElementById('fontLabel').innerText = globalSettings.fontSize === 'small' ? 'Kecil' : (globalSettings.fontSize === 'large' ? 'Besar' : 'Sedang');
+            document.getElementById('textEditorBody').className = `w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden ${globalSettings.fontSize === 'small' ? 'text-sm' : (globalSettings.fontSize === 'large' ? 'text-2xl' : 'text-lg')}`;
+        }
+        setTimeout(() => applyGlobalSettingsText(), 500);
+
+        window.isSettingDefaultColor = false;
+        window.selectDefaultColor = function() { toggleModal('multiColorModal'); window.isSettingDefaultColor = true; }
+
+        let searchTerm = '';
+        window.toggleSearch = function(open=null) {
+            const sb = document.getElementById('searchBar');
+            if(open === null) sb.classList.toggle('hidden');
+            else if(open) sb.classList.remove('hidden');
+            else sb.classList.add('hidden');
             
-            document.getElementById('login-form').classList.toggle('hidden', isAdmin);
-            document.getElementById('logout-form').classList.toggle('hidden', !isAdmin);
-            
-            document.getElementById('shopee-admin').classList.toggle('hidden', !isAdmin);
-            renderShopee();
-            
-            if(currentNoteTab === 'private' && !isAdmin) {
-                switchNoteTab('public');
+            if(!sb.classList.contains('hidden')) document.getElementById('searchInput').focus();
+            else { document.getElementById('searchInput').value = ''; searchTerm = ''; renderNotes(); }
+        }
+        window.applySearch = function() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            renderNotes();
+        }
+
+        let currentUser = null; let isAdmin = false;
+        
+        // Tab system variables
+        window.currentAdminTab = 'pribadi'; // 'pribadi', 'kiriman', 'semua'
+        window.extraAdminData = []; 
+
+        window.switchAdminTab = async function(tabId) {
+            window.currentAdminTab = tabId;
+            document.getElementById('tabAdminNotes').className = "flex-1 py-3 transition-colors " + (tabId==='pribadi' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            document.getElementById('tabSentToAdmin').className = "flex-1 py-3 transition-colors " + (tabId==='kiriman' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='semua' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+
+            if(tabId === 'pribadi') {
+                 renderNotes();
+            } else if (tabId === 'kiriman') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Bentar, memuat kiriman...</p>';
+                 try {
+                     const qSnap = await getDocs(query(collection(db, "admin_notes"), orderBy("sentAt", "desc")));
+                     window.extraAdminData = [];
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                 } catch(e) { showToast("Gagal memuat kiriman."); window.extraAdminData = []; }
+                 renderNotes();
+            } else if (tabId === 'semua') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Mencari ke seluruh sistem...</p>';
+                 try {
+                     const qSnap = await getDocs(query(collectionGroup(db, "notes")));
+                     window.extraAdminData = [];
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                 } catch(e) { showToast("Gagal memuat semua data. Butuh index collectionGroup di API Firebase."); window.extraAdminData = []; }
+                 renderNotes();
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if(user) {
+                isAdmin = (user.email === 'santridroid@gmail.com');
+                document.getElementById('loggedInContainer').classList.remove('hidden');
+                document.getElementById('loginFormContainer').classList.add('hidden');
+                document.getElementById('loggedInUserText').innerText = user.email || user.displayName || 'Pengguna';
+                document.getElementById('loggedInRoleText').innerText = isAdmin ? 'Admin Utama' : 'Akun Pengguna';
+                document.getElementById('syncStatus').innerText = 'Online (' + (user.displayName?user.displayName.split(' ')[0]:'User') + ')';
+                document.getElementById('topLoginBtn').classList.add('text-teal-600');
+                if(isAdmin) { 
+                    document.getElementById('editAboutBtn').classList.remove('hidden'); 
+                    document.getElementById('adminTabsContainer').classList.remove('hidden');
+                } else document.getElementById('editAboutBtn').classList.add('hidden');
             } else {
-                syncNotes();
+                isAdmin = false;
+                document.getElementById('loggedInContainer').classList.add('hidden');
+                document.getElementById('loginFormContainer').classList.remove('hidden');
+                document.getElementById('syncStatus').innerText = 'Offline';
+                document.getElementById('topLoginBtn').classList.remove('text-teal-600');
+                document.getElementById('editAboutBtn').classList.add('hidden');
+                document.getElementById('adminTabsContainer').classList.add('hidden');
+                window.currentAdminTab = 'pribadi'; renderNotes();
             }
         });
 
-        function globalLogin() {
-            const e = document.getElementById('global-email').value; const p = document.getElementById('global-pass').value;
-            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .then(() => auth.signInWithEmailAndPassword(e, p))
-            .then(() => {
-                document.getElementById('main-menu-popup').classList.remove('active');
-            }).catch(() => showModal("Gagal Login", "Periksa kembali Email atau Password Anda.", "alert"));
+        window.loginGoogle = function() {
+            signInWithPopup(auth, provider).then(() => { showToast("Berhasil login dengan Google!"); toggleModal('loginModal'); }).catch(e => showToast("Gagal login Google"));
         }
+        window.loginAdmin = function() {
+            const e = document.getElementById('adminEmail').value;
+            const p = document.getElementById('adminPassword').value;
+            if(!e || !p) return showToast("Masukkan email dan password");
+            signInWithEmailAndPassword(auth, e, p).then(() => { showToast("Login Admin berhasil!"); toggleModal('loginModal'); }).catch(err => showToast("Login gagal! Cek kembali info."));
+        }
+        window.logout = function() { signOut(auth).then(()=>showToast("Telah Logout")); toggleModal('loginModal'); }
+
+        window.syncNotes = async function() {
+            if(!currentUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk menyinkronkan"); }
+            showToast("Menyinkronkan...");
+            const userNotesRef = collection(db, "users", currentUser.uid, "notes");
+            try {
+                const qSnap = await getDocs(userNotesRef);
+                for(let dSnap of qSnap.docs) {
+                     if(!allNotesData[dSnap.id]) {
+                         await setDoc(doc(db, "devices", deviceId, "notes", dSnap.id), dSnap.data());
+                     }
+                }
+                for(let id in allNotesData) { await setDoc(doc(userNotesRef, id), allNotesData[id]); }
+                showToast("Sinkronisasi Selesai!");
+            } catch(e){ showToast("Gagal menyinkronkan"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.backupNotes = async function() {
+            if(!currentUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk mencadangkan"); }
+            showToast("Mencadangkan ke awan...");
+            const userNotesRef = collection(db, "users", currentUser.uid, "notes");
+            try {
+                for(let id in allNotesData) { await setDoc(doc(userNotesRef, id), allNotesData[id]); }
+                showToast("Backup Selesai!");
+            } catch(e){ showToast("Gagal membackup"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.openAbout = async function() {
+            toggleModal('appMenuModal', true); toggleModal('aboutModal', true);
+            document.getElementById('aboutContentDisplay').innerText = "Memuat...";
+            try {
+                const aboutDoc = await getDocs(query(collection(db, "app_settings")));
+                let abt = "Aplikasi Catatan Web-Note Santridroid.\n\nSelamat menyusun ide dan tugas Anda!";
+                aboutDoc.forEach(d => { if(d.id === 'about') abt = d.data().content; });
+                document.getElementById('aboutContentDisplay').innerText = abt;
+                document.getElementById('aboutContentEdit').value = abt;
+            } catch(e) { document.getElementById('aboutContentDisplay').innerText = "Gagal memuat tentang aplikasi."; }
+        }
+
+        window.toggleEditAbout = function() {
+            document.getElementById('aboutContentDisplay').classList.toggle('hidden');
+            document.getElementById('aboutContentEdit').classList.toggle('hidden');
+            document.getElementById('aboutEditActions').classList.toggle('hidden');
+            document.getElementById('editAboutBtn').classList.toggle('hidden');
+            document.getElementById('closeAboutBtn').classList.toggle('hidden');
+        }
+
+        window.saveAbout = async function() {
+            const text = document.getElementById('aboutContentEdit').value;
+            await setDoc(doc(db, "app_settings", "about"), { content: text });
+            document.getElementById('aboutContentDisplay').innerText = text;
+            toggleEditAbout(); showToast("Disimpan!");
+        }
+
+        if ("Notification" in window) { Notification.requestPermission(); }
+        let currentCalDate = new Date(); let selectedCalDate = new Date();
+        window.openCalendar = function() { toggleSearch(false); toggleModal('calendarModal', true); renderCalendar(); }
+        window.changeMonth = function(dir) { currentCalDate.setMonth(currentCalDate.getMonth() + dir); renderCalendar(); }
         
-        function globalLogout() { 
-            auth.signOut(); 
-            document.getElementById('main-menu-popup').classList.remove('active'); 
+        function renderCalendar() {
+            const y = currentCalDate.getFullYear(); const m = currentCalDate.getMonth();
+            document.getElementById('calendarMonthYear').innerText = new Date(y, m).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m+1, 0).getDate();
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += '<div></div>';
+            const today = new Date();
+            for(let i=1; i<=daysInMonth; i++) {
+                let isToday = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear());
+                let isSel = (i === selectedCalDate.getDate() && m === selectedCalDate.getMonth() && y === selectedCalDate.getFullYear());
+                let cls = `cursor-pointer py-1.5 rounded-full transition-colors ${isToday ? 'bg-teal-100 text-teal-800' : (isSel ? 'border border-teal-600 bg-gray-50' : 'hover:bg-gray-100')}`;
+                html += `<div class="${cls}" onclick="selectDate(${y}, ${m}, ${i})">${i}</div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+            loadReminders();
         }
 
-        // ================= 3. LOGIKA SHOPEE & TOOLS KUSTOM =================
-        let shopeeDataCache = {}; let editingShopeeKey = null;
-        db.ref('linkshopee').on('value', snap => { shopeeDataCache = snap.val() || {}; renderShopee(); });
+        window.selectDate = function(y, m, d) { selectedCalDate = new Date(y, m, d); renderCalendar(); }
+        
+        let reminders = [];
+        try { if(localStorage.getItem('ntReminders')) reminders = JSON.parse(localStorage.getItem('ntReminders')); } catch(e){}
 
-        function formatRupiah(el) {
-            let angka = el.value.replace(/[^,\d]/g, '').toString(); let split = angka.split(','); let sisa = split[0].length % 3;
-            let rupiah = split[0].substr(0, sisa); let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-            if (ribuan) { rupiah += (sisa ? '.' : '') + ribuan.join('.'); }
-            el.value = rupiah ? 'Rp ' + rupiah : '';
+        function saveRemindersLocal() { localStorage.setItem('ntReminders', JSON.stringify(reminders)); }
+
+        function loadReminders() {
+            document.getElementById('selectedDateText').innerText = selectedCalDate.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+            const selY = selectedCalDate.getFullYear(); const selM = selectedCalDate.getMonth(); const selD = selectedCalDate.getDate();
+            const list = document.getElementById('remindersList'); list.innerHTML = '';
+            let found = false;
+            reminders.forEach((r, idx) => {
+                let rDate = new Date(r.timestamp);
+                if(rDate.getFullYear() === selY && rDate.getMonth() === selM && rDate.getDate() === selD) {
+                    found = true;
+                    list.innerHTML += `<div class="flex justify-between items-center bg-white p-2 border rounded-md mb-1"><div class="flex flex-col"><span class="font-semibold text-gray-800">${r.text}</span><span class="text-xs text-gray-500"><i class="far fa-clock"></i> ${rDate.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.',':')}</span></div><button onclick="delReminder(${idx})" class="text-red-400 hover:text-red-600 px-2"><i class="fas fa-trash"></i></button></div>`;
+                }
+            });
+            if(!found) list.innerHTML = '<p class="text-xs text-gray-400 italic">Tidak ada pengingat.</p>';
         }
 
-        async function addShopeeMenu() {
-            const t = document.getElementById('shopee-title').value; const u = document.getElementById('shopee-url').value;
-            const p = document.getElementById('shopee-price').value; const s = document.getElementById('shopee-status').value;
-            if(t && u) {
-                db.ref('linkshopee').push({ title: t, url: u, price: p, status: s, createdAt: Date.now() }).then(() => {
-                    document.getElementById('shopee-title').value = ""; document.getElementById('shopee-url').value = "";
-                    document.getElementById('shopee-price').value = ""; document.getElementById('shopee-status').value = "";
-                });
-            } else showModal("Peringatan", "Nama Produk & URL wajib diisi!", "alert");
+        window.openAddReminder = function() { toggleModal('addReminderModal'); document.getElementById('reminderText').value = ''; document.getElementById('reminderTime').value = ''; }
+
+        window.saveReminder = function() {
+            let txt = document.getElementById('reminderText').value;
+            let timeStr = document.getElementById('reminderTime').value;
+            if(!txt || !timeStr) return showToast("Isi judul dan waktu!");
+            let [h, m] = timeStr.split(':');
+            let d = new Date(selectedCalDate.getFullYear(), selectedCalDate.getMonth(), selectedCalDate.getDate(), parseInt(h), parseInt(m), 0);
+            if(d.getTime() < Date.now()) return showToast("Waktu tidak boleh di masa lalu!");
+            reminders.push({ text: txt, timestamp: d.getTime(), notified: false });
+            saveRemindersLocal(); loadReminders(); toggleModal('addReminderModal'); showToast("Pengingat diset!");
         }
 
-        function renderShopee() {
-            const container = document.getElementById('shopee-container'); container.innerHTML = "";
-            const colors = ['#e41e3f', '#1877f2', '#8e44ad', '#f39c12', '#2ecc71', '#1abc9c', '#d35400'];
+        window.delReminder = function(idx) { reminders.splice(idx, 1); saveRemindersLocal(); loadReminders(); }
+
+        setInterval(() => {
+            const now = Date.now();
+            let changed = false;
+            reminders.forEach(r => {
+                if(!r.notified && r.timestamp <= now) {
+                    r.notified = true; changed = true;
+                    if(Notification.permission === "granted") new Notification("Pengingat Web-Note", { body: r.text }); 
+                    else showToast("ALARM: " + r.text);
+                }
+            });
+            if(changed) saveRemindersLocal();
+        }, 10000);
+
+        let deviceId = localStorage.getItem('santridroid_device_id');
+        if (!deviceId) { deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(); localStorage.setItem('santridroid_device_id', deviceId); }
+        const notesCollectionRef = collection(db, "devices", deviceId, "notes");
+
+        let rawNotesData = []; 
+        let allNotesData = {}; 
+        
+        let currentFilter = 'all';
+        let currentSort = 'updatedAt';
+        let currentView = 'detail'; 
+
+        let currentEditingId = null;
+        let currentEditingType = 'text';
+        let currentEditingColor = 'yellow';
+        let undoStack = []; let redoStack = []; let historyTimeout;
+        window.shareTarget = 'single';
+
+        window.isMultiSelectMode = false;
+        window.selectedNotes = new Set();
+        let pressTimer; let isLongPress = false;
+
+        window.showToast = function(message) {
+            let container = document.getElementById('toastContainer');
+            if(!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none items-center w-full px-4';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg text-sm bg-opacity-90 transition-all duration-300 transform translate-y-4 opacity-0 max-w-[90%] text-center font-medium';
+            toast.innerText = message;
+            container.appendChild(toast);
             
-            Object.keys(shopeeDataCache).reverse().forEach((key, idx) => {
-                const data = shopeeDataCache[key]; const isAdmin = !!globalUser;
-                const wrapper = document.createElement('div');
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // REALTIME LISTENER
+        onSnapshot(query(notesCollectionRef), (snapshot) => {
+            rawNotesData = [];
+            allNotesData = {};
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                data.id = docSnap.id;
+                rawNotesData.push(data);
+                allNotesData[docSnap.id] = data;
+            });
+            renderNotes();
+        });
+
+        // FUNGSI RENDER
+        function renderNotes() {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = ''; 
+
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            let filteredDocs = [...baseData];
+
+            if (currentFilter !== 'all') {
+                filteredDocs = filteredDocs.filter(n => (n.color || 'yellow') === currentFilter);
+            }
+            if (searchTerm) {
+                filteredDocs = filteredDocs.filter(n => 
+                    (n.title && n.title.toLowerCase().includes(searchTerm)) || 
+                    (n.content && n.content.toLowerCase().includes(searchTerm)) || 
+                    (n.items && n.items.some(i => i.text.toLowerCase().includes(searchTerm)))
+                );
+            }
+
+            filteredDocs.sort((a, b) => {
+                if(currentSort === 'updatedAt') return (b.updatedAt?.toMillis() || Date.now()) - (a.updatedAt?.toMillis() || Date.now());
+                else if(currentSort === 'createdAt') return (b.createdAt?.toMillis() || Date.now()) - (a.createdAt?.toMillis() || Date.now());
+                else if(currentSort === 'alphabet') return (a.title || '').localeCompare(b.title || '');
+                else if(currentSort === 'color') return (a.color || 'yellow').localeCompare(b.color || 'yellow');
+            });
+
+            // Layout Kontainer
+            if (currentView === 'grid-small') container.className = "grid grid-cols-3 gap-2";
+            else if (currentView === 'grid-large') container.className = "grid grid-cols-2 gap-2";
+            else container.className = "flex flex-col gap-2";
+
+            if (filteredDocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10 col-span-3">Belum ada catatan.</p>';
+                return;
+            }
+
+            filteredDocs.forEach((note) => {
+                const dateObj = note.updatedAt ? note.updatedAt.toDate() : new Date();
+                const timeString = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+                const colorClass = `color-${note.color || 'yellow'}`;
+                const noteTitle = note.title || (note.type==='checklist' ? 'Daftar Baru' : 'Catatan Kosong');
+                const lockIcon = note.locked ? `<i class="fas fa-lock text-[10px] opacity-70 ml-1"></i>` : '';
                 
-                if (isAdmin && editingShopeeKey === key) {
-                    wrapper.className = 'content-card'; wrapper.style.padding = '10px'; wrapper.style.marginBottom = '0';
-                    wrapper.innerHTML = `
-                        <input id="ed-t-${key}" class="form-input" value="${data.title}">
-                        <input id="ed-u-${key}" class="form-input" value="${data.url}">
-                        <button class="btn-primary" onclick="saveEditShopee('${key}')">Simpan</button>`;
+                let previewContent = '';
+                if(note.type === 'checklist') {
+                    const total = note.items ? note.items.length : 0;
+                    const checked = note.items ? note.items.filter(i => i.checked).length : 0;
+                    previewContent = `<i class="far fa-check-square mr-1 opacity-70"></i> ${checked}/${total} barang`;
                 } else {
-                    wrapper.className = 'shopee-item-wrapper'; wrapper.style.background = colors[idx % colors.length];
-                    let st = data.status ? `<span class="badge-status">${data.status}</span>` : ''; let pr = data.price ? `<span class="badge-status">${data.price}</span>` : '';
-                    
-                    wrapper.innerHTML = `
-                        <div class="shopee-copy-btn" onclick="copyShopeeLink(event, '${data.url}', this)" title="Salin Link"><i class="fa-solid fa-copy"></i></div>
-                        <div class="shopee-item" onclick="copyShopeeLink(event, '${data.url}', this.previousElementSibling)">
-                            <span>${data.title}</span><div class="shopee-details">${st}${pr}</div>
+                    previewContent = note.content || '';
+                }
+
+                const isSelected = window.selectedNotes.has(note.id) ? 'selected-note' : '';
+                const noteEl = document.createElement('div');
+                
+                let heightClass = '';
+                let cardHTML = '';
+
+                if (currentView === 'list') {
+                    heightClass = 'min-h-[45px]';
+                    cardHTML = `
+                        <div class="flex justify-between items-center w-full">
+                            <h3 class="text-lg truncate font-medium flex-1 pr-2 text-inherit">${noteTitle}</h3>
+                            <span class="text-[10px] font-mono opacity-70 whitespace-nowrap flex items-center gap-1">${timeString} ${lockIcon}</span>
                         </div>
-                        ${isAdmin ? `<div class="admin-controls"><button class="btn-ctrl" onclick="editingShopeeKey='${key}'; renderShopee();"><i class="fa-solid fa-pen" style="font-size:12px;"></i></button><button class="btn-ctrl" style="color:var(--fb-red)" onclick="deleteShopee('${key}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></button></div>` : ''}`;
+                    `;
+                } else if (currentView === 'detail') {
+                    heightClass = 'min-h-[70px]';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-lg truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-small') {
+                    heightClass = 'h-24';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-sm truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-[10px] opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[9px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-large') {
+                    heightClass = 'h-36';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-base truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-4">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
                 }
-                container.appendChild(wrapper);
+
+                noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start ${colorClass} ${isSelected} ${heightClass}`;
+                noteEl.innerHTML = cardHTML;
+                
+                noteEl.addEventListener('touchstart', (e) => startPress(e, note.id), {passive: true});
+                noteEl.addEventListener('touchend', () => cancelPress());
+                noteEl.addEventListener('mousedown', (e) => startPress(e, note.id));
+                noteEl.addEventListener('mouseup', () => cancelPress());
+                noteEl.addEventListener('mouseleave', () => cancelPress());
+                noteEl.addEventListener('click', (e) => handleNoteClick(e, note.id));
+
+                container.appendChild(noteEl);
             });
+            updateFilterBorders();
         }
 
-        function saveEditShopee(key) { db.ref('linkshopee/'+key).update({ title: document.getElementById(`ed-t-${key}`).value, url: document.getElementById(`ed-u-${key}`).value }).then(() => { editingShopeeKey = null; renderShopee(); }); }
-        async function deleteShopee(key) { if(await showModal("Hapus Link", "Yakin ingin menghapus link Shopee ini?", "danger")) db.ref('linkshopee/'+key).remove(); }
-        function copyShopeeLink(event, url, btnElement) {
-            event.preventDefault(); event.stopPropagation();
-            navigator.clipboard.writeText(url).then(() => {
-                const originalIcon = btnElement.innerHTML; btnElement.innerHTML = '<i class="fa-solid fa-check" style="color:var(--fb-green);"></i>';
-                setTimeout(() => { btnElement.innerHTML = originalIcon; }, 1500);
-            }).catch(() => showModal("Gagal", "Perangkat tidak mendukung fitur salin otomatis.", "alert"));
+        // PENGATURAN TAMPILAN
+        window.openSettingsTab = function(tabName) {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            ['warna', 'urutkan', 'lihat'].forEach(name => {
+                document.getElementById('content-' + name).classList.add('hidden');
+                document.getElementById('tab-' + name).classList.replace('tab-active', 'tab-inactive');
+            });
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.replace('tab-inactive', 'tab-active');
         }
 
-        let listFN = [], listLN = [];
-        fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; });
+        window.closeSettingsModal = function() { document.getElementById('settingsModal').classList.add('hidden'); }
         
-        function generateName() {
-            if(!listFN.length) return;
-            const full = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
-            document.getElementById('genNameOutput').value = full; 
-            navigator.clipboard.writeText(full);
+        window.applyFilter = function(color) { 
+            if (currentFilter === color) currentFilter = 'all'; else currentFilter = color;
+            closeSettingsModal(); renderNotes(); 
         }
 
-        function generatePhone() {
-            const prefixes = ["081", "082", "083", "085", "087", "088", "089"];
-            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            let number = prefix;
-            for(let i=0; i<9; i++) {
-                number += Math.floor(Math.random() * 10);
-            }
-            document.getElementById('genNameOutput').value = number;
-            navigator.clipboard.writeText(number);
-        }
-
-        function copyAndIncrementEmail() {
-            const emailInput = document.getElementById('genEmailInput');
-            let currentEmail = emailInput.value.trim();
-            if (!currentEmail) return;
-
-            navigator.clipboard.writeText(currentEmail);
-
-            const regex = /(.*?)(\d+)(@[^@]+)$/;
-            const match = currentEmail.match(regex);
-
-            if (match) {
-                const prefix = match[1];
-                const number = parseInt(match[2], 10);
-                const domain = match[3];
-                emailInput.value = `${prefix}${number + 1}${domain}`;
-            } else {
-                const atIndex = currentEmail.lastIndexOf('@');
-                if (atIndex !== -1) {
-                    const prefix = currentEmail.substring(0, atIndex);
-                    const domain = currentEmail.substring(atIndex);
-                    emailInput.value = `${prefix}1${domain}`;
-                }
-            }
-            
-            // TAMBAHAN: Simpan ke local storage setelah email diganti oleh sistem
-            localStorage.setItem('xurel_saved_email', emailInput.value);
-        }
-
-        // ================= 4. LOGIKA NOTES =================
-        let currentNoteTab = 'public'; let selectedNoteKey = null; let currentNoteRaw = ""; let isEditingNote = false;
-
-        function switchNoteTab(tab) {
-            currentNoteTab = tab;
-            document.getElementById('tab-pub').classList.toggle('active', tab === 'public');
-            document.getElementById('tab-priv').classList.toggle('active', tab === 'private');
-            
-            if (tab === 'private' && !globalUser) {
-                document.getElementById('note-lock-section').classList.remove('hidden');
-                document.getElementById('notes-grid').classList.add('hidden');
-                document.getElementById('fab-note').style.display = 'none';
-            } else {
-                document.getElementById('note-lock-section').classList.add('hidden');
-                document.getElementById('notes-grid').classList.remove('hidden');
-                if (document.getElementById('app-notes').classList.contains('active')) {
-                    document.getElementById('fab-note').style.display = 'flex';
-                }
-                syncNotes();
-            }
-        }
-
-        function getNotesPath() { return (currentNoteTab === 'private' && globalUser) ? `notes/users/${globalUser.uid}` : 'notes/public'; }
-
-        function formatDate(ts) {
-            if(!ts) return "---";
-            const days = ['Ming', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-            const d = new Date(ts);
-            const dayName = days[d.getDay()];
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = String(d.getFullYear()).slice(-2);
-            const hours = String(d.getHours()).padStart(2, '0');
-            const minutes = String(d.getMinutes()).padStart(2, '0');
-            return `${dayName}, ${day}/${month}/${year} ${hours}:${minutes}`;
-        }
-
-        function autoLinkText(text) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.replace(urlRegex, function(url) {
-                return `<a href="${url}" target="_blank" class="text-link" onclick="event.stopPropagation()">${url}</a>`;
+        function updateFilterBorders() {
+            const colorDivs = document.querySelectorAll('#content-warna .grid > div');
+            colorDivs.forEach(div => {
+                const onclickStr = div.getAttribute('onclick');
+                if(onclickStr.includes(`applyFilter('${currentFilter}')`)) div.classList.add('border-4', 'border-gray-500');
+                else div.classList.remove('border-4', 'border-gray-500');
             });
         }
 
-        function escapeHTML(str) {
-            if(!str) return "";
-            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        window.applySort = function(type) { currentSort = type; closeSettingsModal(); renderNotes(); }
+        window.applyView = function(viewType) { currentView = viewType; closeSettingsModal(); renderNotes(); }
+
+        // MULTI-SELECT INTERAKSI
+        function startPress(e, noteId) {
+            isLongPress = false;
+            pressTimer = setTimeout(() => { isLongPress = true; if (!window.isMultiSelectMode) activateMultiSelect(noteId); }, 500);
         }
+        function cancelPress() { clearTimeout(pressTimer); }
 
-        function syncNotes() {
-            const path = getNotesPath(); db.ref(path).off();
-            db.ref(path).orderByChild('timestamp').on('value', snap => {
-                const grid = document.getElementById('notes-grid'); grid.innerHTML = ''; let items = [];
-                snap.forEach(child => { items.push({ key: child.key, ...child.val() }); });
-                
-                items.reverse().forEach(d => {
-                    const card = document.createElement('div'); card.className = 'note-card'; card.onclick = () => viewNote(d.key, d);
-                    card.innerHTML = `<div class="note-title">${escapeHTML(d.title) || 'Untitled'}</div>
-                                      <div class="note-preview">${escapeHTML(d.content)}</div>
-                                      <div class="note-date">${formatDate(d.timestamp)}</div>`;
-                    grid.appendChild(card);
-                });
-            });
-        }
-
-        function openNoteModal() {
-            isEditingNote = false; document.getElementById('note-title').value = ""; document.getElementById('note-content').value = "";
-            document.getElementById('modal-note-form').classList.add('active');
-        }
-
-        function saveNote() {
-            let t = document.getElementById('note-title').value.trim();
-            const c = document.getElementById('note-content').value;
-            if(!c) return showModal("Peringatan", "Konten catatan tidak boleh kosong!", "alert");
-            const path = getNotesPath();
-            
-            if(!t) {
-                db.ref(path).once('value').then(snapshot => {
-                    let usedNumbers = new Set();
-                    snapshot.forEach(child => {
-                        if (isEditingNote && child.key === selectedNoteKey) return; 
-                        let titleStr = child.val().title;
-                        if (titleStr && /^\d+$/.test(titleStr.toString().trim())) usedNumbers.add(parseInt(titleStr.toString().trim()));
-                    });
-                    let nextNum = 1; while (usedNumbers.has(nextNum)) { nextNum++; }
-                    executeNoteSave(nextNum.toString(), c, path);
-                }).catch(e => showModal("Gagal", "Gagal menghubungi database.", "alert"));
-            } else { executeNoteSave(t, c, path); }
-        }
-
-        function executeNoteSave(title, content, path) {
-            const data = { title: title, content: content, timestamp: Date.now() };
-            const req = (isEditingNote && selectedNoteKey) ? db.ref(`${path}/${selectedNoteKey}`).update(data) : db.ref(path).push(data);
-            req.then(() => closeModal('modal-note-form')).catch(() => showModal("Gagal", "Akses Ditolak.", "alert"));
-        }
-
-        function viewNote(key, data) {
-            selectedNoteKey = key; currentNoteRaw = data.content;
-            document.getElementById('view-tag').innerText = (currentNoteTab === 'private' ? "🔒 PRIV | " : "🌐 PUB | ") + formatDate(data.timestamp);
-            document.getElementById('view-title').innerText = data.title;
-            document.getElementById('view-content').innerHTML = autoLinkText(escapeHTML(data.content));
-            document.getElementById('modal-note-view').classList.add('active');
-        }
-
-        function editNote() {
-            closeModal('modal-note-view'); isEditingNote = true;
-            document.getElementById('note-title').value = document.getElementById('view-title').innerText;
-            document.getElementById('note-content').value = currentNoteRaw;
-            document.getElementById('modal-note-form').classList.add('active');
-        }
-
-        async function deleteNote() {
-            if(await showModal("Hapus Catatan", "Yakin ingin menghapus catatan ini secara permanen?", "danger")) {
-                db.ref(`${getNotesPath()}/${selectedNoteKey}`).remove();
-                closeModal('modal-note-view');
-            }
-        }
-        
-        function copyNoteContent(btn) {
-            navigator.clipboard.writeText(currentNoteRaw);
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> Tersalin';
-            setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
-        }
-
-        // ================= 5. LOGIKA SMS =================
-        const SMS_SERVERS = { "UMAM": "https://umam.santridroid.workers.dev", "YANTO": "https://yanto.santridroid.workers.dev", "MIA": "https://mia.santridroid.workers.dev", "NAZILA": "https://nazila.santridroid.workers.dev", "MAHFUDZ": "https://mahfudz.santridroid.workers.dev", "MIFTAH": "https://miftah.santridroid.workers.dev" };
-        let currentSmsWorker = ""; let smsInitialized = false; let isSmsLocked = false;
-
-        function initSms() {
-            smsInitialized = true; const select = document.getElementById('sms-server');
-            select.innerHTML = Object.keys(SMS_SERVERS).map(k => `<option value="${SMS_SERVERS[k]}">${k}</option>`).join('');
-            isSmsLocked = localStorage.getItem('xurel_locked') === 'true';
-            const savedServer = localStorage.getItem('xurel_selected_hp');
-            if(savedServer && SMS_SERVERS[savedServer]) { currentSmsWorker = SMS_SERVERS[savedServer]; select.value = currentSmsWorker; } 
-            else { currentSmsWorker = SMS_SERVERS["HP1"]; }
-            applySmsLockUI(); refreshSms(); setInterval(pollSms, 5000); setInterval(updateSmsTimers, 1000);
-        }
-
-        function toggleSmsLock() { isSmsLocked = !isSmsLocked; localStorage.setItem('xurel_locked', isSmsLocked); applySmsLockUI(); }
-
-        function applySmsLockUI() {
-            const select = document.getElementById('sms-server'); const icon = document.getElementById('sms-lock-icon'); select.disabled = isSmsLocked;
-            if (isSmsLocked) { icon.className = 'fa-solid fa-lock'; icon.style.color = 'var(--fb-red)'; } 
-            else { icon.className = 'fa-solid fa-unlock'; icon.style.color = 'var(--fb-muted)'; }
-        }
-
-        function changeSmsServer() {
-            if(isSmsLocked) return; currentSmsWorker = document.getElementById('sms-server').value;
-            localStorage.setItem('xurel_selected_hp', document.getElementById('sms-server').options[document.getElementById('sms-server').selectedIndex].text);
-            refreshSms();
-        }
-
-        function refreshSms() {
-            document.getElementById('sms-prices').innerHTML = '<div style="padding:30px; text-align:center; color:#888;">Mengambil Data...</div>';
-            updateSmsBal(); loadSmsPrices(); pollSms();
-        }
-
-        async function updateSmsBal() {
-            try {
-                const res = await fetch(`${currentSmsWorker}/get-balance`); const json = await res.json();
-                if(json.success) document.getElementById('sms-balance').innerText = `Rp ${json.data.balance.toLocaleString('id-ID')}`;
-            } catch(e) {}
-        }
-
-        async function loadSmsPrices() {
-            try {
-                const res = await fetch(`${currentSmsWorker}/get-prices`); const json = await res.json();
-                const box = document.getElementById('sms-prices');
-                if (json.success && json.data.length > 0) {
-                    box.innerHTML = json.data.map(i => `
-                        <div class="price-item" onclick="buySms(${i.id}, ${i.price}, '${i.name}')">
-                            <div><div style="font-weight:bold;">${i.name}</div></div>
-                            <div style="font-size:12px; color:var(--fb-muted);"><span style="color:var(--fb-red); font-family:monospace; font-size:14px; font-weight: 900; margin-right: 10px;">Rp ${i.price}</span> ${i.available} stok</div>
-                        </div>`).join('');
-                } else box.innerHTML = '<div style="padding:30px; text-align:center;">Kosong</div>';
-            } catch (e) {}
-        }
-
-        async function buySms(pid, price, name) {
-            if(!await showModal("Pesan Baru", `Beli nomor untuk ${name} seharga Rp ${price}?`, "confirm")) return;
-            try {
-                const res = await fetch(`${currentSmsWorker}/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
-                const j = await res.json();
-                if(j.success) {
-                    const o = j.data.orders[0]; 
-                    localStorage.setItem('phone_'+o.id, o.phone_number); localStorage.setItem('price_'+o.id, price);
-                    pollSms(); updateSmsBal();
-                } else showModal("Gagal", j.error.message || "Gagal memesan stok.", "alert");
-            } catch(e){}
-        }
-
-        async function pollSms() {
-            try { const res = await fetch(`${currentSmsWorker}/get-active`); const j = await res.json(); if(j.success) renderSmsOrders(j.data); } catch(e) {}
-        }
-
-        function copyPhoneNumber(txt, iconId) {
-            if(txt.includes('Mencari')) return;
-            navigator.clipboard.writeText(txt);
-            
-            const icon = document.getElementById(iconId);
-            if(icon) {
-                icon.className = "fa-solid fa-circle-check";
-                icon.style.color = "var(--fb-green)";
-                setTimeout(() => { 
-                    icon.className = "fa-regular fa-copy";
-                    icon.style.color = "var(--fb-muted)";
-                }, 1500);
-            }
-        }
-
-        function renderSmsOrders(orders) {
-            const container = document.getElementById('sms-active-orders'); const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
-            Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
-            if(!orders || !orders.length) return;
-            
-            orders.forEach(o => {
-                const phone = o.phone || localStorage.getItem('phone_'+o.id) || 'Mencari Nomor...';
-                if(o.phone && !localStorage.getItem('phone_'+o.id)) localStorage.setItem('phone_'+o.id, o.phone);
-                
-                const serverPrice = o.price || o.cost || localStorage.getItem('price_' + o.id);
-                if(serverPrice) localStorage.setItem('price_' + o.id, serverPrice);
-                
-                let expireTime = 0;
-                if (o.expires_at) expireTime = new Date(o.expires_at).getTime();
-                else if (o.created_at) expireTime = new Date(o.created_at).getTime() + (20 * 60000);
-                else if (o.time) expireTime = new Date(o.time).getTime() + (20 * 60000);
-                else if (o.start_time) expireTime = new Date(o.start_time).getTime() + (20 * 60000);
-                else if (o.timestamp) expireTime = new Date(o.timestamp).getTime() + (20 * 60000);
-                else if (o.date) expireTime = new Date(o.date).getTime() + (20 * 60000);
-                
-                if (!expireTime || isNaN(expireTime) || expireTime === 0) {
-                    expireTime = localStorage.getItem('timer_' + o.id);
-                    if (!expireTime) expireTime = Date.now() + (20 * 60000);
-                }
-                
-                localStorage.setItem('timer_' + o.id, expireTime); 
-                
-                const endTimeStr = expireTime; 
-                let passed2Mins = false;
-                if (endTimeStr) { const remaining = Math.floor((parseInt(endTimeStr) - Date.now()) / 1000); if (remaining <= 1080) passed2Mins = true; }
-
-                const resendState = o.otp_code ? '' : 'disabled'; const cancelReplaceState = passed2Mins ? '' : 'disabled';
-                let otpDisplay = o.otp_code ? `<span style="color:var(--fb-green); letter-spacing:4px; font-size:26px; font-weight:bold; font-family:monospace;">${o.otp_code}</span>` : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
-                const priceDisplay = serverPrice ? parseInt(serverPrice).toLocaleString('id-ID') : '...';
-
-                const existingCard = document.getElementById('order-' + o.id);
-                if (existingCard) {
-                    const phoneBoxSpan = existingCard.querySelector('.phone-text-span'); 
-                    if (phoneBoxSpan && phoneBoxSpan.innerText !== phone && phone !== 'Mencari Nomor...') phoneBoxSpan.innerText = phone; 
-                    
-                    const otpContainer = existingCard.querySelector('.otp-container'); if (otpContainer.innerHTML.trim() !== otpDisplay.trim()) otpContainer.innerHTML = otpDisplay;
-                    const priceBox = existingCard.querySelector('.price-box'); if (priceBox && priceBox.innerText.includes('...') && serverPrice) priceBox.innerText = `Rp ${priceDisplay}`;
-                    if (o.otp_code) {
-                        const btnDone = existingCard.querySelector('.btn-done'); if(btnDone && btnDone.disabled) { btnDone.disabled = false; btnDone.style.color = "var(--fb-green)"; btnDone.style.borderColor = "var(--fb-green)"; btnDone.style.background = "#e6f4ea"; }
-                        const btnResend = existingCard.querySelector('.btn-resend'); if(btnResend && btnResend.disabled) btnResend.disabled = false;
-                    }
-                    if (passed2Mins) {
-                        const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
-                        if(btnCancel) btnCancel.disabled = false; if(btnReplace) btnReplace.disabled = false;
-                    }
+        function handleNoteClick(e, noteId) {
+            if (isLongPress) return;
+            if (window.isMultiSelectMode) {
+                if (window.selectedNotes.has(noteId)) {
+                    window.selectedNotes.delete(noteId);
+                    e.currentTarget.classList.remove('selected-note');
+                    if (window.selectedNotes.size === 0) cancelMultiSelect();
                 } else {
-                    const cardHTML = `
-                    <div class="order-card" id="order-${o.id}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed var(--fb-border); padding-bottom:15px; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="color:var(--fb-blue); font-weight:bold; font-family:monospace; font-size:15px;">#${o.id}</span>
-                                <span class="badge-status" style="font-size:10px; color:var(--fb-text); font-family:sans-serif; background:rgba(0,0,0,0.1);">ACTIVE</span>
-                                <span class="price-box" style="font-size:16px; font-weight:900; color:var(--fb-red); font-family:monospace;">Rp ${priceDisplay}</span>
-                            </div>
-                            <span class="sms-timer" data-id="${o.id}" style="font-family:monospace; font-weight:bold; color:var(--fb-blue);">--:--</span>
-                        </div>
-                        <div style="font-size:11px; color:var(--fb-muted); margin-bottom:5px; text-transform:uppercase;">Tap untuk salin:</div>
-                        
-                        <div class="phone-box" onclick="copyPhoneNumber('${phone}', 'copy-icon-${o.id}')">
-                            <span class="phone-text-span">${phone}</span>
-                            <i id="copy-icon-${o.id}" class="fa-regular fa-copy" style="color: var(--fb-muted);"></i>
-                        </div>
-                        
-                        <div style="text-align: center; margin: 10px 0 15px 0; padding: 15px 0; background: #fafafa; border-radius: 8px;">
-                            <div style="font-size:11px; color:var(--fb-muted); font-weight:bold; letter-spacing:1px; margin-bottom:5px;">KODE OTP</div>
-                            <div class="otp-container" style="min-height:35px; display:flex; align-items:center; justify-content:center;">${otpDisplay}</div>
-                        </div>
-
-                        <div class="btn-grid-4">
-                            <button class="sms-btn btn-done" onclick="actSms('finish', ${o.id})" ${o.otp_code?'style="background:#e6f4ea; color:var(--fb-green); border-color:var(--fb-green);"':'disabled'}>✓ DONE</button>
-                            <button class="sms-btn btn-resend" onclick="actSms('resend', ${o.id})" ${resendState}>↻ RESEND</button>
-                            <button class="sms-btn btn-cancel" onclick="actSms('cancel', ${o.id})" ${cancelReplaceState}>✕ CANCEL</button>
-                            <button class="sms-btn btn-replace" onclick="actSms('replace', ${o.id})" ${cancelReplaceState}>⇄ REPLACE</button>
-                        </div>
-                    </div>`;
-                    container.insertAdjacentHTML('afterbegin', cardHTML);
+                    window.selectedNotes.add(noteId);
+                    e.currentTarget.classList.add('selected-note');
                 }
-            });
-            updateSmsTimers();
+                updateMultiSelectHeader();
+            } else { openEditor(noteId); }
         }
 
-        function updateSmsTimers() {
-            document.querySelectorAll('.sms-timer').forEach(el => {
-                const id = el.dataset.id; const end = localStorage.getItem('timer_'+id);
-                if(end) {
-                    const diff = Math.max(0, Math.floor((parseInt(end) - Date.now())/1000));
-                    el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
-                    el.style.color = diff < 600 ? "var(--fb-red)" : "var(--fb-blue)";
-                    if (diff <= 1080) {
-                        const existingCard = document.getElementById('order-' + id);
-                        if(existingCard) {
-                            const btnCancel = existingCard.querySelector('.btn-cancel'); const btnReplace = existingCard.querySelector('.btn-replace');
-                            if(btnCancel && btnCancel.disabled) btnCancel.disabled = false; if(btnReplace && btnReplace.disabled) btnReplace.disabled = false;
-                        }
-                    }
-                }
-            });
+        window.activateMultiSelect = function(firstNoteId) {
+            window.isMultiSelectMode = true; window.selectedNotes.clear(); window.selectedNotes.add(firstNoteId);
+            document.getElementById('mainHeader').classList.add('hidden'); document.getElementById('multiSelectHeader').classList.remove('hidden');
+            updateMultiSelectHeader();
         }
 
-        async function actSms(action, id) {
-            let title = "Konfirmasi", msg = "Lanjutkan?", type = "confirm";
-            if(action === 'cancel') { title = "Batalkan"; msg = "Yakin batalkan pesanan ini? Saldo dikembalikan."; type = "danger"; }
-            if(action === 'replace') { title = "Ganti Nomor"; msg = "Batalkan pesanan ini dan ganti nomor baru?"; }
-            if(action === 'resend') { title = "Kirim Ulang"; msg = "Meminta kode OTP baru?"; }
-            if(action === 'finish') { title = "Selesaikan"; msg = "Konfirmasi pesanan selesai."; }
+        window.cancelMultiSelect = function() {
+            window.isMultiSelectMode = false; window.selectedNotes.clear();
+            document.getElementById('mainHeader').classList.remove('hidden'); document.getElementById('multiSelectHeader').classList.add('hidden');
+            document.querySelectorAll('.selected-note').forEach(el => el.classList.remove('selected-note'));
+        }
 
-            if(!await showModal(title, msg, type)) return;
+        function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
+
+        // AKSI MULTI-SELECT (Delete dengan kunci, Salin ke Clipboard)
+        window.deleteSelectedNotes = async function() {
+            let hasLocked = false;
+            const idsToDelete = [];
+            window.selectedNotes.forEach(id => {
+                if(allNotesData[id] && allNotesData[id].locked) hasLocked = true;
+                else idsToDelete.push(id);
+            });
+
+            if(hasLocked) showToast("Beberapa catatan terkunci dan tidak akan dihapus. Buka kunci terlebih dahulu jika ingin menghapus.");
+            if(idsToDelete.length === 0) { cancelMultiSelect(); return; }
+            if(!confirm(`Hapus ${idsToDelete.length} catatan?`)) return;
+            
+            cancelMultiSelect();
+            for(const id of idsToDelete) { await deleteDoc(doc(db, "devices", deviceId, "notes", id)); }
+        }
+
+        window.copySelectedNotes = async function() {
+            let texts = [];
+            window.selectedNotes.forEach(id => {
+                let note = allNotesData[id];
+                if(note) texts.push(getNoteText(note));
+            });
             try {
-                const res = await fetch(`${currentSmsWorker}/order-action`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, action}) });
-                const j = await res.json();
-                if(j.success) {
-                    if(action === 'cancel' || action === 'finish' || action === 'replace') { localStorage.removeItem('phone_'+id); localStorage.removeItem('timer_'+id); localStorage.removeItem('price_'+id); }
-                    pollSms(); updateSmsBal();
-                } else showModal("Gagal", "Ditolak oleh server.", "alert");
-            } catch(e){}
+                await navigator.clipboard.writeText(texts.join("\n\n---\n\n"));
+                showToast(window.selectedNotes.size + " catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin catatan."); }
+            cancelMultiSelect();
+        }
+
+        window.changeSelectedNotesColor = async function(color) {
+            toggleModal('multiColorModal');
+            if(window.isSettingDefaultColor) {
+                 window.isSettingDefaultColor = false;
+                 globalSettings.defaultColor = color; saveGlobalSettings();
+                 showToast("Warna default catatan diubah."); return;
+            }
+            const idsToChange = Array.from(window.selectedNotes); cancelMultiSelect();
+            for(const id of idsToChange) {
+                await updateDoc(doc(db, "devices", deviceId, "notes", id), { color: color, updatedAt: serverTimestamp() });
+            }
+        }
+
+        // FUNGSI BAGIKAN & TERIMA
+        window.openShareModal = function(target) {
+            window.shareTarget = target;
+            toggleModal('shareMethodModal');
+            if(target === 'single' && !document.getElementById('editorMenuModal').classList.contains('hidden')) {
+                toggleModal('editorMenuModal');
+            }
+        }
+
+        window.executeCopyFromShare = function() {
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'single') executeCopySingle();
+            else copySelectedNotes(); 
+        }
+
+        window.openSendWithCode = function() {
+            toggleModal('shareMethodModal');
+            toggleModal('sendWithCodeModal');
+            document.getElementById('shareCodeInput').value = '';
+        }
+
+        window.sendToAdmin = async function() {
+            let notesToSend = [];
+            if(window.shareTarget === 'single') {
+                notesToSend.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToSend.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+            const adminRef = collection(db, "admin_notes");
+            try {
+                for(let note of notesToSend) {
+                    await addDoc(adminRef, { ...note, senderDeviceId: deviceId, sentAt: serverTimestamp() });
+                }
+                showToast("Catatan berhasil dikirim ke Admin!");
+            } catch(e) { showToast("Gagal mengirim ke Admin."); }
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'multi') cancelMultiSelect();
+        }
+
+        window.submitShareCode = async function() {
+            const code = document.getElementById('shareCodeInput').value.trim();
+            const duration = document.getElementById('shareDurationSelect').value;
+            if(!code) return showToast("Kode tidak boleh kosong!");
+
+            const sharedRef = collection(db, "shared_notes");
+            const q = query(sharedRef, where("code", "==", code));
+            const querySnapshot = await getDocs(q);
+            
+            let existsAndActive = false;
+            querySnapshot.forEach(doc => { if(doc.data().expiresAt > Date.now()) existsAndActive = true; });
+
+            if(existsAndActive) return showToast("Kode sudah digunakan, silahkan masukkan kode lain!");
+
+            let ms = 0;
+            if(duration === '1h') ms = 3600000;
+            else if(duration === '12h') ms = 43200000;
+            else if(duration === '1d') ms = 86400000;
+            else if(duration === '1w') ms = 604800000;
+            else if(duration === '1m') ms = 2592000000;
+
+            let notesToShare = [];
+            if(window.shareTarget === 'single') {
+                notesToShare.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToShare.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+
+            try {
+                await addDoc(sharedRef, { code: code, notes: notesToShare, expiresAt: Date.now() + ms, createdAt: serverTimestamp() });
+                showToast("Catatan berhasil dibagikan dengan kode: " + code);
+                toggleModal('sendWithCodeModal');
+                if(window.shareTarget === 'multi') cancelMultiSelect();
+            } catch(e) { showToast("Gagal membagikan catatan."); }
+        }
+
+        window.submitImportCode = async function() {
+            const code = document.getElementById('importCodeInput').value.trim();
+            if(!code) return showToast("Silahkan masukkan kode!");
+
+            const sharedRef = collection(db, "shared_notes");
+            const q = query(sharedRef, where("code", "==", code));
+            const querySnapshot = await getDocs(q);
+
+            let imported = false;
+            for (const docSnap of querySnapshot.docs) {
+                let data = docSnap.data();
+                if(data.expiresAt > Date.now()) {
+                    for(let noteData of data.notes) {
+                        await addDoc(notesCollectionRef, {
+                            title: noteData.title || '', type: noteData.type || 'text', color: noteData.color || 'yellow',
+                            content: noteData.content || '', items: noteData.items || [], locked: false,
+                            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+                        });
+                    }
+                    imported = true;
+                }
+            }
+
+            if(imported) {
+                showToast("Catatan berhasil diimport!");
+                toggleModal('importCodeModal');
+                document.getElementById('importCodeInput').value = '';
+            } else {
+                showToast("Kode tidak valid atau sudah kadaluarsa!");
+            }
+        }
+
+        // FUNGSI COPY SINGLE NOTE
+        function getNoteText(noteData) {
+            let txt = (noteData.title || "Tanpa Judul") + "\n\n";
+            if(noteData.type === 'text') txt += noteData.content || "";
+            else if(noteData.items) noteData.items.forEach(i => { txt += (i.checked ? "[v] " : "[ ] ") + i.text + "\n"; });
+            return txt;
+        }
+
+        function getCurrentEditorData() {
+            return {
+                title: document.getElementById('editorTitle').value.trim(),
+                type: currentEditingType,
+                color: currentEditingColor,
+                content: currentEditingType === 'text' ? document.getElementById('textEditorBody').value.trim() : '',
+                items: currentEditingType === 'checklist' ? extractChecklistData() : []
+            };
+        }
+
+        window.executeCopySingle = async function() {
+            let noteData = getCurrentEditorData();
+            try {
+                await navigator.clipboard.writeText(getNoteText(noteData));
+                showToast("Catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin."); }
+            toggleModal('editorMenuModal');
+        }
+
+        // FUNGSI KUNCI
+        window.openEditorMenu = function() {
+            const isLocked = currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked;
+            document.getElementById('lockMenuText').innerText = isLocked ? "Buka Kunci" : "Kunci";
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockSingle = async function() {
+            if(!currentEditingId) return showToast("Simpan catatan terlebih dahulu untuk dapat menguncinya.");
+            let note = allNotesData[currentEditingId];
+            if(note) {
+                let newLockStatus = !note.locked;
+                await updateDoc(doc(db, "devices", deviceId, "notes", currentEditingId), { locked: newLockStatus });
+                showToast(newLockStatus ? "Catatan dikunci" : "Kunci dibuka");
+            }
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockMulti = async function() {
+            const idsToLock = Array.from(window.selectedNotes);
+            cancelMultiSelect();
+            for(const id of idsToLock) {
+                let note = allNotesData[id];
+                if(note) await updateDoc(doc(db, "devices", deviceId, "notes", id), { locked: !note.locked });
+            }
+            showToast("Status kunci catatan yang dipilih berhasil diubah.");
+        }
+
+        // LOGIKA EDITOR & THEME
+        window.executeColorChange = function(color) {
+            currentEditingColor = color; applyEditorTheme(); toggleModal('editorColorModal');
+        }
+
+        const pastelColorMap = {
+            'red': '#fad2e1', 'orange': '#ffe5b4', 'yellow': '#fff3cd', 
+            'green': '#d4ebd0', 'blue': '#bde0fe', 'purple': '#d8b4e2', 
+            'black': '#ced4da', 'gray': '#f8f9fa', 'white': '#ffffff'
+        };
+
+        function applyEditorTheme() {
+            const page = document.getElementById('editorPage');
+            page.className = page.className.replace(/\bcolor-\S+/g, '');
+            page.classList.add(`color-${currentEditingColor}`);
+            document.getElementById('editorColorIndicator').style.backgroundColor = pastelColorMap[currentEditingColor];
+        }
+
+        window.recordHistory = function() {
+            clearTimeout(historyTimeout);
+            historyTimeout = setTimeout(() => {
+                const state = { title: document.getElementById('editorTitle').value, content: document.getElementById('textEditorBody').value, checklist: extractChecklistData() };
+                if (undoStack.length === 0 || JSON.stringify(undoStack[undoStack.length-1]) !== JSON.stringify(state)) { undoStack.push(state); redoStack = []; }
+            }, 400);
+        }
+        window.performUndo = function() {
+            if (undoStack.length > 1) {
+                const currentState = undoStack.pop(); redoStack.push(currentState);
+                restoreState(undoStack[undoStack.length - 1]);
+            }
+        }
+        window.performRedo = function() {
+            if (redoStack.length > 0) { const state = redoStack.pop(); undoStack.push(state); restoreState(state); }
+        }
+        function restoreState(state) {
+            document.getElementById('editorTitle').value = state.title;
+            if (currentEditingType === 'text') document.getElementById('textEditorBody').value = state.content;
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                state.checklist.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+        }
+
+        window.createNewNote = function(type) {
+            document.getElementById('fabMenuModal').classList.add('hidden');
+            currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
+            document.getElementById('editorTitle').value = ''; document.getElementById('textEditorBody').value = '';
+            document.getElementById('checklistItemsContainer').innerHTML = ''; document.getElementById('editorTimestamp').innerText = 'Baru saja';
+            if(type === 'checklist') addChecklistItemDOM('', false, false);
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(type);
+        }
+
+        window.openEditor = function(noteId) {
+            const note = allNotesData[noteId]; if(!note) return;
+            currentEditingId = noteId; currentEditingType = note.type || 'text'; currentEditingColor = note.color || 'yellow';
+            document.getElementById('editorTitle').value = note.title || '';
+            document.getElementById('editorTimestamp').innerText = note.updatedAt ? (note.updatedAt.toDate ? note.updatedAt.toDate().toLocaleDateString('id-ID') : new Date().toLocaleDateString('id-ID')) : 'Sekarang';
+            if(currentEditingType === 'text') document.getElementById('textEditorBody').value = note.content || '';
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                if(note.items) note.items.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+            
+            // Set readonly if not in local personal notes
+            if(window.currentAdminTab !== 'pribadi') {
+                 document.getElementById('editorTitle').readOnly = true;
+                 document.getElementById('textEditorBody').readOnly = true;
+                 // lock all checklists
+                 setTimeout(() => { document.querySelectorAll('.checklist-cb').forEach(cb => cb.disabled = true); }, 100);
+                 showToast("Mode Lihat (Read-Only). Anda tidak dapat mengubah catatan orang lain.");
+            } else {
+                 document.getElementById('editorTitle').readOnly = false;
+                 document.getElementById('textEditorBody').readOnly = false;
+            }
+
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
+        }
+
+        function showEditorUI(type) {
+            document.getElementById('editorPage').classList.remove('hidden');
+            if(type === 'text') { document.getElementById('textEditorBody').classList.remove('hidden'); document.getElementById('checklistEditorBody').classList.add('hidden'); }
+            else { document.getElementById('textEditorBody').classList.add('hidden'); document.getElementById('checklistEditorBody').classList.remove('hidden'); }
+        }
+
+        window.deleteCurrentNote = async function() {
+            if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
+                showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
+                toggleModal('editorMenuModal');
+                return;
+            }
+            if(confirm('Hapus/Buang catatan ini?')) {
+                if(currentEditingId) await deleteDoc(doc(db, "devices", deviceId, "notes", currentEditingId));
+                toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
+            }
+        }
+
+        window.saveAndCloseEditor = async function() {
+            if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
+            
+            // Just close if reading public notes
+            if(window.currentAdminTab !== 'pribadi') {
+                document.getElementById('editorPage').classList.add('hidden');
+                return;
+            }
+
+            const title = document.getElementById('editorTitle').value.trim();
+            let content = ''; let items = [];
+            if(currentEditingType === 'text') {
+                content = document.getElementById('textEditorBody').value.trim();
+                if(title === '' && content === '') { document.getElementById('editorPage').classList.add('hidden'); return; }
+            } else {
+                items = extractChecklistData();
+                if(title === '' && items.length === 0) { document.getElementById('editorPage').classList.add('hidden'); return; }
+            }
+            const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: serverTimestamp() };
+            if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
+            
+            // Jaga state locked
+            if(currentEditingId && allNotesData[currentEditingId]) noteData.locked = allNotesData[currentEditingId].locked || false;
+            else noteData.locked = false;
+
+            try {
+                if (currentEditingId) await updateDoc(doc(db, "devices", deviceId, "notes", currentEditingId), noteData);
+                else { noteData.createdAt = serverTimestamp(); const added = await addDoc(notesCollectionRef, noteData); currentEditingId = added.id; }
+            } catch (error) { console.error("Gagal menyimpan:", error); }
+            
+            if(globalSettings.autoBackup && currentUser && currentEditingId) {
+                const userNotesRef = collection(db, "users", currentUser.uid, "notes");
+                setDoc(doc(userNotesRef, currentEditingId), noteData).catch(()=>{});
+            }
+            
+            document.getElementById('editorPage').classList.add('hidden');
+        }
+
+        window.addChecklistItemDOM = function(text, isChecked, recordHist = true) {
+            const container = document.getElementById('checklistItemsContainer');
+            const itemDiv = document.createElement('div'); itemDiv.className = "flex items-center mb-1 bg-black bg-opacity-0 hover:bg-opacity-10 p-1 rounded transition-colors";
+            const checkbox = document.createElement('input'); checkbox.type = "checkbox"; checkbox.className = "checklist-cb mr-3"; checkbox.checked = isChecked;
+            const input = document.createElement('input'); input.type = "text"; input.value = text;
+            input.className = `flex-1 bg-transparent border-b border-black border-opacity-30 outline-none p-2 text-lg text-inherit ${isChecked ? 'checklist-done' : ''}`;
+            const delBtn = document.createElement('button'); delBtn.className = "ml-2 p-2 text-inherit opacity-60 hover:opacity-100 hover:text-red-600"; delBtn.innerHTML = '<i class="fas fa-times"></i>';
+            checkbox.addEventListener('change', (e) => { if(e.target.checked) input.classList.add('checklist-done'); else input.classList.remove('checklist-done'); recordHistory(); });
+            input.addEventListener('input', recordHistory);
+            delBtn.addEventListener('click', () => { container.removeChild(itemDiv); recordHistory(); });
+            itemDiv.appendChild(checkbox); itemDiv.appendChild(input); itemDiv.appendChild(delBtn); container.appendChild(itemDiv);
+            if(text === '') input.focus(); if(recordHist) recordHistory();
+        }
+
+        function extractChecklistData() {
+            const container = document.getElementById('checklistItemsContainer'); const items = [];
+            container.querySelectorAll('.flex.items-center.mb-1').forEach(row => {
+                const isChecked = row.querySelector('input[type="checkbox"]').checked;
+                const text = row.querySelector('input[type="text"]').value.trim();
+                if(text !== '') items.push({ text: text, checked: isChecked });
+            });
+            return items;
+        }
+
+        window.toggleModal = function(modalId, forceCloseOther = false) { 
+            if(forceCloseOther) document.querySelectorAll('.fixed.inset-0.z-\\[60\\], .fixed.inset-0.z-\\[80\\], .fixed.inset-0.z-\\[90\\]').forEach(el => { if(!el.classList.contains('hidden') && el.id !== modalId) el.classList.add('hidden'); });
+            document.getElementById(modalId)?.classList.toggle('hidden'); 
         }
     </script>
 </body>
