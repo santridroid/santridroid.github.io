@@ -41,7 +41,7 @@
         .tab-inactive { color: #6b7280; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden relative">
+<body class="h-[100dvh] flex flex-col overflow-hidden relative">
 
     <header id="mainHeader" class="bg-gray-100 shadow-md p-4 flex justify-between items-center z-10 transition-all">
         <h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
@@ -49,7 +49,7 @@
         </h1>
         <div class="flex space-x-4 text-gray-600 text-lg">
             <button onclick="toggleModal('importCodeModal')" title="Terima/Import Catatan"><i class="fas fa-file-import"></i></button>
-            <button onclick="toggleModal('settingsModal')" title="Alat"><i class="fas fa-wrench"></i></button>
+            <button onclick="toggleModal('settingsModal'); setTimeout(() => openSettingsTab('warna'), 50);" title="Alat"><i class="fas fa-wrench"></i></button>
             <button id="topLoginBtn" onclick="toggleModal('loginModal', true)" title="Login / Akun"><i class="fas fa-user-circle"></i></button>
         </div>
     </header>
@@ -81,7 +81,7 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto pb-20 p-2" id="mainContent">
+    <main class="flex-1 overflow-y-auto p-2 relative" id="mainContent">
         <div id="notesContainer" class="flex flex-col gap-2">
             <p class="text-center text-gray-500 mt-10">Memuat catatan...</p>
         </div>
@@ -91,7 +91,7 @@
         <i class="fas fa-plus"></i>
     </button>
 
-    <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 absolute bottom-0 w-full z-10">
+    <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 w-full shrink-0 z-10 relative">
         <button onclick="toggleSearch(false); toggleModal('calendarModal', true)" class="text-teal-600 text-xl"><i class="fas fa-clipboard-list"></i></button>
         <button onclick="openCalendar()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-calendar-alt"></i></button>
         <button onclick="toggleSearch()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-search"></i></button>
@@ -259,17 +259,21 @@
         <div class="bg-white rounded shadow-xl p-5 w-full max-w-sm" onclick="event.stopPropagation()">
             <h3 class="text-lg font-semibold mb-4 text-gray-800 flex justify-between" id="loginTitle">Login Akun <button onclick="toggleModal('loginModal')"><i class="fas fa-times text-gray-500"></i></button></h3>
             <div id="loginFormContainer">
-                <input type="email" id="adminEmail" placeholder="Email" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
-                <input type="password" id="adminPassword" placeholder="Kata Sandi" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
-                <button onclick="loginAdmin()" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 mb-3 font-semibold">Login</button>
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-gray-300"></div>
-                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
-                    <div class="flex-grow border-t border-gray-300"></div>
+                <input type="email" id="authEmail" placeholder="Email" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPassword" placeholder="Kata Sandi" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPasswordConfirm" placeholder="Konfirmasi Sandi (Untuk Daftar)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500 hidden">
+                
+                <div class="flex items-center mb-4 text-sm text-gray-600">
+                    <input type="checkbox" id="rememberMeCheckbox" class="w-4 h-4 mr-2 accent-teal-600 cursor-pointer">
+                    <label for="rememberMeCheckbox" class="cursor-pointer select-none">Simpan sandi (data login)</label>
                 </div>
-                <button onclick="loginGoogle()" class="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex justify-center items-center shadow-sm">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Login via Google
-                </button>
+
+                <div class="flex space-x-2">
+                    <button id="authLoginBtn" onclick="submitAuth('login')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors">Login</button>
+                    <button id="authRegisterBtn" onclick="submitAuth('register')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors hidden">Daftar Akun</button>
+                </div>
+                
+                <p class="text-center text-sm text-gray-500 mt-4 cursor-pointer hover:text-teal-600 font-medium" onclick="toggleAuthMode()" id="authModeToggleText">Belum punya akun? Daftar disini</p>
             </div>
             <div id="loggedInContainer" class="hidden text-center">
                 <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fas fa-user"></i></div>
@@ -369,7 +373,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, setDoc, collectionGroup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBcmmx5TPQNfctU5VCEA_u5_hzM4h83Tio",
@@ -383,7 +387,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
         let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: false };
         try { if(localStorage.getItem('ntSettings')) globalSettings = JSON.parse(localStorage.getItem('ntSettings')); } catch(e){}
@@ -485,16 +488,76 @@
             }
         });
 
-        window.loginGoogle = function() {
-            signInWithPopup(auth, provider).then(() => { showToast("Berhasil login dengan Google!"); toggleModal('loginModal'); }).catch(e => showToast("Gagal login Google"));
+        // FUNGSI AUTH & LOGIN
+        window.isRegisterMode = false;
+        
+        window.toggleAuthMode = function() {
+            window.isRegisterMode = !window.isRegisterMode;
+            if(window.isRegisterMode) {
+                document.getElementById('authPasswordConfirm').classList.remove('hidden');
+                document.getElementById('authLoginBtn').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Sudah punya akun? Login disini";
+                document.getElementById('loginTitle').innerHTML = 'Daftar Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            } else {
+                document.getElementById('authPasswordConfirm').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.add('hidden');
+                document.getElementById('authLoginBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Belum punya akun? Daftar disini";
+                document.getElementById('loginTitle').innerHTML = 'Login Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            }
         }
-        window.loginAdmin = function() {
-            const e = document.getElementById('adminEmail').value;
-            const p = document.getElementById('adminPassword').value;
-            if(!e || !p) return showToast("Masukkan email dan password");
-            signInWithEmailAndPassword(auth, e, p).then(() => { showToast("Login Admin berhasil!"); toggleModal('loginModal'); }).catch(err => showToast("Login gagal! Cek kembali info."));
+
+        window.submitAuth = async function(mode) {
+            const eml = document.getElementById('authEmail').value.trim();
+            const pwd = document.getElementById('authPassword').value;
+            const rmbInfo = document.getElementById('rememberMeCheckbox').checked;
+
+            if(!eml || !pwd) return showToast("Mohon lengkapi data!");
+            
+            try {
+                const persistenceType = rmbInfo ? browserLocalPersistence : browserSessionPersistence;
+                await setPersistence(auth, persistenceType);
+
+                if (rmbInfo) {
+                    localStorage.setItem('ntSaveLogin', 'true');
+                    localStorage.setItem('ntEmail', eml);
+                    localStorage.setItem('ntPassword', pwd);
+                } else {
+                    localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+                }
+
+                if(mode === 'register') {
+                    const pwdConfirm = document.getElementById('authPasswordConfirm').value;
+                    if(pwd !== pwdConfirm) return showToast("Konfirmasi sandi tidak sama!");
+                    await createUserWithEmailAndPassword(auth, eml, pwd);
+                    showToast("Pendaftaran berhasil!");
+                } else {
+                    await signInWithEmailAndPassword(auth, eml, pwd);
+                    showToast("Login berhasil!");
+                }
+                toggleModal('loginModal');
+            } catch(e) {
+                if(e.code === 'auth/invalid-credential') showToast("Email atau sandi salah!");
+                else if(e.code === 'auth/email-already-in-use') showToast("Email ini sudah terdaftar!");
+                else showToast("Gagal memproses otentikasi: " + e.message);
+            }
         }
-        window.logout = function() { signOut(auth).then(()=>showToast("Telah Logout")); toggleModal('loginModal'); }
+
+        setTimeout(() => {
+            if(localStorage.getItem('ntSaveLogin')) {
+                document.getElementById('rememberMeCheckbox').checked = true;
+                document.getElementById('authEmail').value = localStorage.getItem('ntEmail') || '';
+                document.getElementById('authPassword').value = localStorage.getItem('ntPassword') || '';
+            }
+        }, 800);
+
+        window.logout = function() { 
+            signOut(auth).then(()=>showToast("Telah Logout")); 
+            localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+            document.getElementById('authEmail').value = ''; document.getElementById('authPassword').value = '';
+            toggleModal('loginModal'); 
+        }
 
         window.syncNotes = async function() {
             if(!currentUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk menyinkronkan"); }
@@ -861,8 +924,9 @@
 
         function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
 
-        // AKSI MULTI-SELECT (Delete dengan kunci, Salin ke Clipboard)
         window.deleteSelectedNotes = async function() {
+            if(window.currentAdminTab === 'semua') return showToast("Mode Read-Only. Tidak dapat menghapus dari SEMUA DATA.");
+
             let hasLocked = false;
             const idsToDelete = [];
             window.selectedNotes.forEach(id => {
@@ -875,7 +939,10 @@
             if(!confirm(`Hapus ${idsToDelete.length} catatan?`)) return;
             
             cancelMultiSelect();
-            for(const id of idsToDelete) { await deleteDoc(doc(db, "devices", deviceId, "notes", id)); }
+            for(const id of idsToDelete) { 
+                if(window.currentAdminTab === 'kiriman') await deleteDoc(doc(db, "admin_notes", id));
+                else await deleteDoc(doc(db, "devices", deviceId, "notes", id)); 
+            }
         }
 
         window.copySelectedNotes = async function() {
@@ -1135,16 +1202,17 @@
                 if(note.items) note.items.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
             }
             
-            // Set readonly if not in local personal notes
-            if(window.currentAdminTab !== 'pribadi') {
+            // Check editing permissions based on current admin tab
+            if(window.currentAdminTab === 'semua') {
                  document.getElementById('editorTitle').readOnly = true;
                  document.getElementById('textEditorBody').readOnly = true;
                  // lock all checklists
                  setTimeout(() => { document.querySelectorAll('.checklist-cb').forEach(cb => cb.disabled = true); }, 100);
-                 showToast("Mode Lihat (Read-Only). Anda tidak dapat mengubah catatan orang lain.");
+                 showToast("Mode Lihat (Read-Only). Anda tidak dapat mengubah catatan pangkalan semua data.");
             } else {
                  document.getElementById('editorTitle').readOnly = false;
                  document.getElementById('textEditorBody').readOnly = false;
+                 if(window.currentAdminTab === 'kiriman') showToast("Mode Edit Admin: Merubah file kiriman ini akan menyimpan perubahan.");
             }
 
             undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
@@ -1157,13 +1225,17 @@
         }
 
         window.deleteCurrentNote = async function() {
+            if(window.currentAdminTab === 'semua') return showToast("Tidak dapat menghapus data dari Semua Data.");
             if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
                 showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
                 toggleModal('editorMenuModal');
                 return;
             }
             if(confirm('Hapus/Buang catatan ini?')) {
-                if(currentEditingId) await deleteDoc(doc(db, "devices", deviceId, "notes", currentEditingId));
+                if(currentEditingId) {
+                    if (window.currentAdminTab === 'kiriman') await deleteDoc(doc(db, "admin_notes", currentEditingId));
+                    else await deleteDoc(doc(db, "devices", deviceId, "notes", currentEditingId));
+                }
                 toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
             }
         }
@@ -1171,8 +1243,8 @@
         window.saveAndCloseEditor = async function() {
             if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
             
-            // Just close if reading public notes
-            if(window.currentAdminTab !== 'pribadi') {
+            // Prevent saving if trying to save from 'semua' database public
+            if(window.currentAdminTab === 'semua') {
                 document.getElementById('editorPage').classList.add('hidden');
                 return;
             }
@@ -1194,8 +1266,17 @@
             else noteData.locked = false;
 
             try {
-                if (currentEditingId) await updateDoc(doc(db, "devices", deviceId, "notes", currentEditingId), noteData);
-                else { noteData.createdAt = serverTimestamp(); const added = await addDoc(notesCollectionRef, noteData); currentEditingId = added.id; }
+                if (currentEditingId) {
+                    if (window.currentAdminTab === 'kiriman') await updateDoc(doc(db, "admin_notes", currentEditingId), noteData);
+                    else await updateDoc(doc(db, "devices", deviceId, "notes", currentEditingId), noteData);
+                }
+                else { 
+                    noteData.createdAt = serverTimestamp(); 
+                    let added;
+                    if (window.currentAdminTab === 'kiriman') added = await addDoc(collection(db, "admin_notes"), noteData);
+                    else added = await addDoc(notesCollectionRef, noteData); 
+                    currentEditingId = added.id; 
+                }
             } catch (error) { console.error("Gagal menyimpan:", error); }
             
             if(globalSettings.autoBackup && currentUser && currentEditingId) {
