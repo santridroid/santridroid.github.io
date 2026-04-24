@@ -3,58 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANTRIDROID</title>
-    
+    <title>SANTRIDROID TOOLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
+        /* === SMS VIEW STYLES === */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 20px; color: #333; }
+        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
         input, select, button, textarea { outline: none; }
         .hidden { display: none !important; }
-
-        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; }
-
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 20px; padding-top: 10px; }
         .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
-        
         .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
-
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
         .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
         .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 115px; text-overflow: ellipsis; cursor: pointer; }
         .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
         .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
         .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
-
         .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; }
         .admin-popup.active { display: block; }
         .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
-        
         #main-menu { padding: 10px; width: 230px; }
         .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
         .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
         .menu-item:last-child { border-bottom: none; }
-
         .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
         .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        
         .btn-lg { padding: 15px 10px; font-size: 15px; min-height: 60px; }
-
         .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
         .btn-purple { background-color: #8e44ad; }
         .btn-red { background-color: #e74c3c; }
         .btn-row { display: flex; gap: 10px; }
-
         .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
-
         .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
         .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
@@ -63,73 +52,56 @@
         .item-name { font-weight: bold; }
         .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
         .item-stock { color: #7f8c8d; font-size: 12px; }
-
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
-        .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; } 
+        .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; }
         .card-smspool { background-color: #fdf2e9; border-left: 4px solid #e67e22; }
         .card-5sim { background-color: #f0f3f4; border-left: 4px solid #34495e; }
-
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
         .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
         .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
         .btn-sm { flex: 1; padding: 8px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
         .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-        
         .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
         .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
         .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
         .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
         @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-overlay.active { display: flex; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
-        
-        .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
-        .notes-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 65vh; padding: 5px; padding-bottom: 70px; }
-        
-        .note-card { border-radius: 12px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; text-align: left; cursor: pointer; }
-        
-        .notes-grid .note-card { min-height: 110px; padding: 12px; }
-        .notes-list .note-card { min-height: auto; padding: 10px 10px 28px 10px; }
-        
-        .note-card-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #333; text-transform: uppercase; padding-right: 30px; }
-        
-        .note-card-content { font-size: 12px; color: #3498db; white-space: pre-wrap; word-break: break-all; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 55px; }
-        
-        .notes-grid .note-card-content { margin-bottom: 25px; }
-        .notes-list .note-card-content { margin-bottom: 10px; }
-        
-        .note-card-badge { background: rgba(255,255,255,0.6); color: #777; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
-        .note-card-bottom-actions { position: absolute; bottom: 8px; right: 8px; display: flex; align-items: center; gap: 8px; }
-        .note-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; opacity: 0.4; transition: 0.2s; }
-        .note-card:hover .note-card-actions { opacity: 1; }
-        
-        .view-select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; background: white; font-weight: bold; color: #555; cursor: pointer; }
-
-        .color-picker { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
-        .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .color-dot.active { transform: scale(1.2); border-color: #333; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
-
-        .fab { width: 55px; height: 55px; border-radius: 50%; background-color: #4A90E2; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; right: 20px; z-index: 10; }
-        .fab:hover { background-color: #357ABD; transform: scale(1.05); }
-
-        .fab-close { width: 55px; height: 55px; border-radius: 50%; background-color: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
-        .fab-close:hover { background-color: #c0392b; transform: translateX(-50%) scale(1.05); }
-
         .fab-quick-note { width: 55px; height: 55px; border-radius: 50%; background-color: #f1c40f; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: fixed; bottom: 20px; left: 20px; z-index: 1000; }
         .fab-quick-note:hover { background-color: #f39c12; transform: scale(1.05); }
-
         #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* === NOTES VIEW STYLES === */
+        #notes-view { display: none; }
+        #notes-view ::-webkit-scrollbar { display: none; }
+        .color-red { background-color: #fad2e1; color: #333 !important; }
+        .color-orange { background-color: #ffe5b4; color: #333 !important; }
+        .color-yellow { background-color: #fff3cd; color: #333 !important; }
+        .color-green { background-color: #d4ebd0; color: #333 !important; }
+        .color-blue { background-color: #bde0fe; color: #333 !important; }
+        .color-purple { background-color: #d8b4e2; color: #333 !important; }
+        .color-black { background-color: #ced4da; color: #333 !important; }
+        .color-gray { background-color: #f8f9fa; color: #333 !important; }
+        .color-white { background-color: #ffffff; color: #333 !important; }
+        .note-card { transition: transform 0.1s; }
+        .note-card:active { transform: scale(0.98); }
+        .selected-note { border: 3px solid #009688 !important; opacity: 0.8; }
+        .lined-paper { background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.1) 31px, rgba(0,0,0,0.1) 32px); line-height: 32px; background-attachment: local; padding-top: 6px; }
+        input[type="checkbox"].checklist-cb { width: 1.25rem; height: 1.25rem; accent-color: #666; cursor: pointer; }
+        .checklist-done { text-decoration: line-through; color: #888; }
+        .tab-active { border-bottom: 2px solid #009688; font-weight: bold; color: #333; }
+        .tab-inactive { color: #6b7280; }
     </style>
 </head>
 <body>
-
+<!-- ==================== SMS VIEW ==================== -->
+<div id="sms-view">
 <div class="app-container">
     <div class="sticky-header-wrapper">
         <header class="header">
@@ -150,70 +122,57 @@
                 <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
             </div>
         </header>
-
         <div id="main-menu" class="admin-popup">
             <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
-            <div class="menu-item" onclick="openNotesModal()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+            <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
             <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
-
         <div id="admin-menu" class="admin-popup">
             <div id="login-form">
                 <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
                 <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
                 <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
-                
                 <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
                     <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
                     <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
                 </div>
-
                 <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
             </div>
             <div id="logout-form" class="hidden">
                 <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-                
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Koneksi Worker (Sistem SMS):</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <button id="btn-worker-lock" class="btn btn-green" onclick="setWorkerLock(true)"><i class="fas fa-lock"></i> Lock</button>
                     <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
                 </div>
-                
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-                
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah User SMS:</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="new-username" class="form-input" placeholder="Nama User (Cth: UDIN)" style="margin-bottom: 0;">
                     <button class="btn btn-green" onclick="addCustomUser()" style="width: auto; padding: 0 15px;">Tambah</button>
                 </div>
-
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-                
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Link:</div>
                 <select id="admin-link-mode" class="form-input" onchange="changeLinkMode()" style="margin-bottom: 10px;">
                     <option value="cut">Mode Cut Link</option>
                     <option value="rotator">Mode Rotator</option>
                 </select>
-
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah Link Shopee:</div>
                 <textarea id="shopee-url" class="form-input" placeholder="URL Link Shopee (Bisa lebih dari 1, pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <button class="btn btn-green" onclick="addShopeeMenu()" style="flex: 1;">Terbitkan</button>
                     <button class="btn btn-orange" onclick="openEditLinkModal()" style="flex: 1;">Edit Link</button>
                 </div>
-                
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <button class="btn btn-red" onclick="globalLogout()">Logout</button>
             </div>
         </div>
-    </div> 
-    
+    </div>
     <div class="card">
         <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
             <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
         </div>
-        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
             <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
@@ -221,17 +180,13 @@
             <button id="btn-shopee-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="cutShopeeLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat Link...</button>
         </div>
     </div>
-
     <div id="sms-active-orders"></div>
-
     <div class="list-header">PESAN NOMOR BARU</div>
     <div class="list-group" id="sms-prices">
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
 </div>
-
 <div id="toast-container"></div>
-
 <div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
     <div class="modal-box">
         <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
@@ -239,7 +194,6 @@
         <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
     </div>
 </div>
-
 <div id="server-modal" class="modal-overlay">
     <div class="modal-box">
         <h3 style="margin-bottom:15px; color:#333;">Pilih Server Worker</h3>
@@ -257,58 +211,6 @@
         </div>
     </div>
 </div>
-
-<div id="notes-modal" class="modal-overlay">
-    <div class="modal-box" style="width: 95%; max-width: 500px; height: 85vh; display: flex; flex-direction: column; background: #f4f6f8; position: relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="color:#333; margin:0;"><i class="fas fa-sticky-note" style="color: #f39c12;"></i> Catatan</h3>
-            
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <select id="notes-view-selector" class="view-select" onchange="changeNotesView()">
-                    <option value="grid">Grid (Kotak)</option>
-                    <option value="list">List (Daftar)</option>
-                </select>
-            </div>
-        </div>
-        
-        <div id="notes-container" class="notes-grid"></div>
-        
-        <button class="fab" onclick="openNoteInputModal()">
-            <i class="fas fa-plus"></i>
-        </button>
-        
-        <button class="fab-close" onclick="closeNotesModal()">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-</div>
-
-<div id="note-input-modal" class="modal-overlay" style="z-index: 2001;">
-    <div class="modal-box" style="width: 90%; max-width: 350px;">
-        <h3 style="margin-bottom:15px; color:#333;" id="note-modal-title">Tambah Catatan</h3>
-        
-        <div class="color-picker">
-            <div class="color-dot active" style="background-color: #f1c40f;" data-color="#f1c40f" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #e74c3c;" data-color="#e74c3c" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #3498db;" data-color="#3498db" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #2ecc71;" data-color="#2ecc71" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #9b59b6;" data-color="#9b59b6" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #e67e22;" data-color="#e67e22" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #fd79a8;" data-color="#fd79a8" onclick="selectColor(this)"></div>
-            <div class="color-dot" style="background-color: #1abc9c;" data-color="#1abc9c" onclick="selectColor(this)"></div>
-        </div>
-        <input type="hidden" id="note-color" value="#f1c40f">
-
-        <input type="hidden" id="note-id">
-        <input type="text" id="note-title" class="form-input" placeholder="Judul Catatan (Opsional)" oninput="debounceAutoSave()">
-        <textarea id="note-content" class="form-input" placeholder="Tulis catatan di sini..." style="height: 120px; resize: vertical;" oninput="debounceAutoSave()"></textarea>
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeNoteInputModal()">Batal</button>
-            <button class="btn btn-green" style="flex: 1;" onclick="saveNote()">Simpan</button>
-        </div>
-    </div>
-</div>
-
 <div id="edit-link-modal" class="modal-overlay" style="z-index: 2005;">
     <div class="modal-box" style="width: 90%; max-width: 400px;">
         <h3 style="margin-bottom:15px; color:#333;">Edit Link Shopee</h3>
@@ -320,12 +222,369 @@
         </div>
     </div>
 </div>
-
-<button class="fab-quick-note" onclick="openNotesModal()">
+<button class="fab-quick-note" onclick="switchToNotesView()">
     <i class="fas fa-pencil-alt"></i>
 </button>
+</div>
+<!-- ==================== NOTES VIEW ==================== -->
+<div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
 
+
+    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 flex justify-between items-center z-10 transition-all">
+        <button onclick="switchToSmsView()" class="text-gray-600 text-xl mr-3 hover:text-teal-600" title="Kembali ke SMS"><i class="fas fa-arrow-left"></i></button><h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
+            <span class="font-light text-gray-500">Santridroid</span>Note </span>
+        </h1>
+        <div class="flex space-x-4 text-gray-600 text-lg">
+            <button onclick="toggleModal('importCodeModal')" title="Terima/Import Catatan"><i class="fas fa-file-import"></i></button>
+            <button onclick="toggleModal('settingsModal'); setTimeout(() => openSettingsTab('warna'), 50);" title="Alat"><i class="fas fa-wrench"></i></button>
+            <button id="topLoginBtn" onclick="toggleModal('loginModal', true)" title="Login / Akun"><i class="fas fa-user-circle"></i></button>
+        </div>
+    </header>
+
+    <div id="searchBar" class="hidden bg-white shadow-sm p-2 flex items-center z-10 w-full relative">
+        <i class="fas fa-search text-gray-400 ml-2"></i>
+        <input type="text" id="searchInput" oninput="applySearch()" placeholder="Cari catatan..." class="flex-1 bg-transparent ml-3 outline-none text-gray-700">
+        <button onclick="toggleSearch()" class="p-2 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div id="adminTabsContainer" class="hidden flex bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
+        <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
+        <button id="tabSentToAdmin" onclick="switchAdminTab('kiriman')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">KIRIMAN MASUK</button>
+        <button id="tabAllNotes" onclick="switchAdminTab('semua')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">SEMUA DATA</button>
+    </div>
+
+    <header id="multiSelectHeader" class="hidden bg-teal-600 shadow-md p-4 flex justify-between items-center z-10 text-white w-full">
+        <div class="flex items-center space-x-4">
+            <button onclick="cancelMultiSelect()" class="text-xl"><i class="fas fa-times"></i></button>
+            <span id="selectCount" class="text-lg font-semibold">1 dipilih</span>
+        </div>
+        <div class="flex space-x-5 text-lg">
+            <button onclick="toggleModal('multiColorModal')" title="Ubah Warna"><i class="fas fa-palette"></i></button>
+            <button onclick="toggleLockMulti()" title="Kunci"><i class="fas fa-lock"></i></button>
+            <button onclick="copySelectedNotes()" title="Salin"><i class="far fa-copy"></i></button>
+            <button onclick="deleteSelectedNotes()" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+            <button onclick="openShareModal('multi')" title="Bagikan"><i class="fas fa-share-alt"></i></button>
+            <button><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-2 relative" id="mainContent">
+        <div id="notesContainer" class="flex flex-col gap-2">
+            <p class="text-center text-gray-500 mt-10">Memuat catatan...</p>
+        </div>
+    </main>
+
+    <button onclick="toggleModal('fabMenuModal')" class="absolute bottom-20 right-6 bg-teal-600 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 z-10">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 w-full shrink-0 z-10 relative">
+        <button onclick="toggleSearch(false); toggleModal('calendarModal', true)" class="text-teal-600 text-xl"><i class="fas fa-clipboard-list"></i></button>
+        <button onclick="openCalendar()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-calendar-alt"></i></button>
+        <button onclick="toggleSearch()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-search"></i></button>
+        <button onclick="toggleModal('appMenuModal', true)" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-bars"></i></button>
+    </nav>
+
+    <div id="fabMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center" onclick="toggleModal('fabMenuModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Tambahkan</div>
+            <ul class="py-2">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('text')"><i class="fas fa-align-justify w-8 text-xl text-gray-600"></i> Teks</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('checklist')"><i class="far fa-check-square w-8 text-xl text-gray-600"></i> Daftar Centang</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow transition-colors duration-300">
+        <div class="flex items-center p-2 bg-black bg-opacity-10">
+            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-check text-xl"></i></button>
+            <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-transparent ml-2 font-semibold text-lg outline-none text-inherit placeholder-gray-500 placeholder-opacity-70">
+            <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-6 h-6 rounded bg-[#fff3cd] border border-gray-400 ml-2 shadow-sm"></button>
+            <button onclick="openEditorMenu()" class="ml-4 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
+        </div>
+        <div class="text-[11px] px-4 py-1 flex justify-between bg-black bg-opacity-10 border-b border-black border-opacity-20 text-inherit">
+            <span class="opacity-80">Suntingan</span>
+            <span id="editorTimestamp" class="opacity-80">Sekarang</span>
+        </div>
+        <div class="flex-1 overflow-y-auto relative w-full h-full text-inherit">
+            <textarea id="textEditorBody" oninput="recordHistory()" class="w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden text-lg" placeholder="Masukkan catatan..."></textarea>
+            <div id="checklistEditorBody" class="w-full min-h-full p-2 hidden">
+                <div id="checklistItemsContainer" class="flex flex-col"></div>
+                <button onclick="addChecklistItemDOM('', false, true)" class="flex items-center p-3 w-full hover:bg-black hover:bg-opacity-10 rounded font-semibold mt-2 opacity-90">
+                    <i class="fas fa-plus-circle text-xl mr-3"></i> Tambah Barang
+                </button>
+            </div>
+        </div>
+        <div class="h-12 bg-black bg-opacity-10 border-t border-black border-opacity-20 flex justify-center items-center space-x-10 text-xl text-inherit opacity-80">
+            <button onclick="performUndo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-undo"></i></button>
+            <button onclick="performRedo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-redo"></i></button>
+        </div>
+    </div>
+
+    <div id="importCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('importCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Terima Catatan</h3>
+            <input type="text" id="importCodeInput" placeholder="Masukkan Kode Catatan" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('importCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitImportCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sendWithCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('sendWithCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Kirim dengan Kode</h3>
+            <input type="text" id="shareCodeInput" placeholder="Masukkan Kode (Teks/Angka)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <select id="shareDurationSelect" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+                <option value="1h">1 Jam</option>
+                <option value="12h">12 Jam</option>
+                <option value="1d">1 Hari</option>
+                <option value="1w">1 Minggu</option>
+                <option value="1m">1 Bulan</option>
+            </select>
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('sendWithCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitShareCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="shareMethodModal" class="hidden fixed inset-0 z-[70] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('shareMethodModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Bagikan Catatan</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="sendToAdmin()"><i class="fas fa-user-shield w-8 text-xl text-gray-600"></i> Kirim ke Admin</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="openSendWithCode()"><i class="fas fa-qrcode w-8 text-xl text-gray-600"></i> Kirim dengan Kode</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="executeCopyFromShare()"><i class="far fa-copy w-8 text-xl text-gray-600"></i> Salin Catatan</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="editorColorModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorColorModal')">
+        <div class="absolute top-14 right-10 bg-white rounded-lg shadow-xl p-3 grid grid-cols-3 gap-2 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#fad2e1] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ffe5b4] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#d4ebd0] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#bde0fe] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#d8b4e2] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#ced4da] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
+    
+    <div id="multiColorModal" class="hidden fixed inset-0 z-[60] bg-black bg-opacity-30 flex items-center justify-center" onclick="toggleModal('multiColorModal')">
+        <div class="bg-white rounded-lg shadow-xl p-4 grid grid-cols-3 gap-3 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#fad2e1] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ffe5b4] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#d4ebd0] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#bde0fe] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#d8b4e2] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#ced4da] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center" onclick="closeSettingsModal()">
+        <div class="bg-white rounded p-4 w-72 shadow-lg" onclick="event.stopPropagation()">
+            <div class="flex border-b mb-3 text-sm cursor-pointer select-none">
+                <div id="tab-warna" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('warna')">WARNA</div>
+                <div id="tab-urutkan" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('urutkan')">URUTKAN</div>
+                <div id="tab-lihat" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('lihat')">LIHAT</div>
+            </div>
+
+            <div id="content-warna" class="hidden">
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <div onclick="applyFilter('red')" class="h-10 bg-[#fad2e1] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('orange')" class="h-10 bg-[#ffe5b4] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('yellow')" class="h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                    <div onclick="applyFilter('green')" class="h-10 bg-[#d4ebd0] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('blue')" class="h-10 bg-[#bde0fe] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('purple')" class="h-10 bg-[#d8b4e2] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('black')" class="h-10 bg-[#ced4da] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('gray')" class="h-10 bg-[#f8f9fa] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('white')" class="h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-3">*Klik warna yang sama untuk membatalkan filter</p>
+            </div>
+
+            <div id="content-urutkan" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('updatedAt')"><i class="far fa-clock w-6 text-center"></i> berdasarkan waktu diubah</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('createdAt')"><i class="fas fa-calendar-plus w-6 text-center"></i> berdasarkan waktu dibuat</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('alphabet')"><i class="fas fa-sort-alpha-down w-6 text-center"></i> alfabet</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('color')"><i class="fas fa-palette w-6 text-center"></i> berdasarkan warna</li>
+                </ul>
+            </div>
+
+            <div id="content-lihat" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('list')"><i class="fas fa-list w-6 text-center"></i> Daftar</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('detail')"><i class="fas fa-bars w-6 text-center"></i> Detail</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-small')"><i class="fas fa-th w-6 text-center"></i> Petak (Grid Kecil)</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-large')"><i class="fas fa-th-large w-6 text-center"></i> Petak Besar (Grid Besar)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="editorMenuModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorMenuModal')">
+        <div class="absolute top-12 right-2 bg-white rounded shadow-xl py-2 w-44 text-gray-800 text-sm border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeCopySingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="far fa-copy w-6 text-gray-600"></i> Salin Catatan</div>
+            <div onclick="openShareModal('single')" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-paper-plane w-6 text-gray-600"></i> Kirim / Bagikan</div>
+            <div onclick="toggleLockSingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-lock w-6 text-gray-600"></i> <span id="lockMenuText">Kunci</span></div>
+            <div onclick="deleteCurrentNote()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-trash-alt w-6 text-gray-600"></i> Buang</div>
+        </div>
+    </div>
+
+    <!-- NEW MODALS -->
+    <div id="loginModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('loginModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-full max-w-sm" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex justify-between" id="loginTitle">Login Akun <button onclick="toggleModal('loginModal')"><i class="fas fa-times text-gray-500"></i></button></h3>
+            <div id="loginFormContainer">
+                <input type="email" id="authEmail" placeholder="Email" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPassword" placeholder="Kata Sandi" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPasswordConfirm" placeholder="Konfirmasi Sandi (Untuk Daftar)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500 hidden">
+                
+                <div class="flex items-center mb-4 text-sm text-gray-600">
+                    <input type="checkbox" id="rememberMeCheckbox" class="w-4 h-4 mr-2 accent-teal-600 cursor-pointer">
+                    <label for="rememberMeCheckbox" class="cursor-pointer select-none">Simpan sandi (data login)</label>
+                </div>
+
+                <div class="flex space-x-2">
+                    <button id="authLoginBtn" onclick="submitAuth('login')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors">Login</button>
+                    <button id="authRegisterBtn" onclick="submitAuth('register')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors hidden">Daftar Akun</button>
+                </div>
+                
+                <p class="text-center text-sm text-gray-500 mt-4 cursor-pointer hover:text-teal-600 font-medium" onclick="toggleAuthMode()" id="authModeToggleText">Belum punya akun? Daftar disini</p>
+            </div>
+            <div id="loggedInContainer" class="hidden text-center">
+                <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fas fa-user"></i></div>
+                <p id="loggedInUserText" class="text-gray-800 font-medium mb-1"></p>
+                <p id="loggedInRoleText" class="text-xs text-teal-600 font-semibold mb-4 bg-teal-50 inline-block px-2 py-1 rounded"></p>
+                <button onclick="logout()" class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600 font-semibold shadow-sm">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-[60] flex items-end justify-center" onclick="toggleModal('appMenuModal')">
+        <div class="bg-white rounded-t-xl w-full max-w-md shadow-xl" onclick="event.stopPropagation()">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Menu & Pengaturan</h3>
+                <button onclick="toggleModal('appMenuModal')"><i class="fas fa-times text-gray-500 text-xl"></i></button>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto pb-4">
+                <ul class="py-1 text-gray-700 text-[15px]">
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="syncNotes()"><i class="fas fa-sync-alt w-8 text-center text-teal-600"></i> Sinkronisasi Catatan <span id="syncStatus" class="ml-auto text-xs text-gray-400 bg-gray-100 px-2 rounded">Offline</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="backupNotes()"><i class="fas fa-cloud-upload-alt w-8 text-center text-teal-600"></i> Cadangkan Catatan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center justify-between border-b">
+                        <div class="flex items-center"><i class="fas fa-history w-8 text-center text-gray-600"></i> Cadangkan Otomatis</div>
+                        <input type="checkbox" id="autoBackupCheckbox" onchange="saveGlobalSettings()" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                    </li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="selectDefaultColor()"><i class="fas fa-palette w-8 text-center text-gray-600"></i> Warna Default Catatan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('fontSizeModal', true)"><i class="fas fa-font w-8 text-center text-gray-600"></i> Ukuran Font Catatan <span id="fontLabel" class="ml-auto text-xs text-gray-400">Sedang</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('settingsModal', true)"><i class="fas fa-sort-amount-down w-8 text-center text-gray-600"></i> Urutkan / Alat Tampilan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="openAbout()"><i class="fas fa-info-circle w-8 text-center text-gray-600"></i> Tentang Aplikasi</li>
+                    <li id="menuLoginBtn" class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center text-teal-700 mt-2" onclick="toggleModal('loginModal', true)"><i class="fas fa-sign-in-alt w-8 text-center"></i> Login / Akun</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendarModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('calendarModal')">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
+            <div class="bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-xl">
+                <button onclick="changeMonth(-1)" class="p-2"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="calendarMonthYear" class="text-lg font-semibold uppercase tracking-wider"></h3>
+                <button onclick="changeMonth(1)" class="p-2"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="p-3">
+                <div class="grid grid-cols-7 text-center text-xs font-semibold text-gray-400 mb-2">
+                    <div>Mng</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                <div id="calendarDays" class="grid grid-cols-7 gap-1 text-center text-sm font-medium"></div>
+            </div>
+            <div class="p-4 border-t bg-gray-50 flex flex-col justify-end max-h-[40vh]">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-gray-700">Pengingat: <span id="selectedDateText" class="text-teal-600"></span></h4>
+                    <button onclick="openAddReminder()" class="text-teal-600 hover:text-teal-800 text-sm"><i class="fas fa-plus-circle text-lg"></i></button>
+                </div>
+                <div id="remindersList" class="overflow-y-auto mb-2 text-sm text-gray-600 space-y-2 flex-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addReminderModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-50 flex items-center justify-center p-4" onclick="toggleModal('addReminderModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-xs" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Tambah Pengingat</h3>
+            <input type="text" id="reminderText" placeholder="Judul Pengingat..." class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <input type="time" id="reminderTime" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('addReminderModal')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="saveReminder()" class="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-700">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('aboutModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-md max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2 flex justify-between items-center">
+                <span><i class="fas fa-info-circle text-teal-600 mr-2"></i> Tentang Aplikasi</span>
+                <button id="editAboutBtn" class="hidden text-teal-600 text-sm bg-teal-50 px-2 py-1 rounded" onclick="toggleEditAbout()"><i class="fas fa-edit"></i> Edit</button>
+            </h3>
+            <div id="aboutContentDisplay" class="flex-1 overflow-y-auto text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed px-1">Memuat informasi...</div>
+            <textarea id="aboutContentEdit" class="hidden flex-1 overflow-y-auto text-[15px] border border-gray-300 rounded p-3 w-full mb-2 resize-none h-48 outline-none focus:border-teal-500" placeholder="Tulis deskripsi aplikasi..."></textarea>
+            <div id="aboutEditActions" class="hidden flex justify-end space-x-2 mt-3 pt-3 border-t">
+                <button onclick="toggleEditAbout()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded">Batal</button>
+                <button onclick="saveAbout()" class="px-4 py-2 bg-teal-600 text-white border border-teal-700 rounded hover:bg-teal-700 shadow-sm">Simpan</button>
+            </div>
+            <button onclick="toggleModal('aboutModal')" id="closeAboutBtn" class="mt-4 w-full py-2.5 font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 border border-gray-200">Tutup</button>
+        </div>
+    </div>
+
+    <div id="fontSizeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('fontSizeModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b font-semibold text-gray-800">Pilih Ukuran Font</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-sm" onclick="saveFontSize('small')">Kecil</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-base bg-gray-50" onclick="saveFontSize('medium')">Sedang (Default)</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-lg" onclick="saveFontSize('large')">Besar</li>
+            </ul>
+        </div>
+    </div>
+</div>
 <script>
+    // ================= FIREBASE INIT =================
+    const configMaster = { 
+        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
+        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "santridroid-link"
+    };
+    firebase.initializeApp(configMaster);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // ================= VIEW NAVIGATION =================
+    function switchToNotesView() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('sms-view').style.display = 'none';
+        document.getElementById('notes-view').style.display = 'flex';
+        document.body.style.padding = '0';
+        document.body.style.display = 'block';
+        document.body.style.backgroundColor = '#f0f0f0';
+    }
+    function switchToSmsView() {
+        document.getElementById('notes-view').style.display = 'none';
+        document.getElementById('sms-view').style.display = 'block';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.backgroundColor = '#eef2f6';
+    }
+
     // ================= PENGATURAN AWAL =================
     const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
     let dynamicUsers = [...DEFAULT_USERS]; 
@@ -351,9 +610,9 @@
         
         initUserDropdown();
 
-        const savedNotesView = localStorage.getItem('xurel_notes_view') || 'grid';
-        document.getElementById('notes-view-selector').value = savedNotesView;
-        document.getElementById('notes-container').className = savedNotesView === 'grid' ? 'notes-grid' : 'notes-list';
+        
+        
+        
 
         document.body.addEventListener('click', () => {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -486,13 +745,6 @@
     }
 
     // ================= FIREBASE, MENU & ADMIN =================
-    const configMaster = { 
-        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
-        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "santridroid-link"
-    };
-    firebase.initializeApp(configMaster);
-    const db = firebase.database(); const auth = firebase.auth();
     let globalUser = null;
 
     // --- LISTENER STATUS WORKER GLOBAL (REALTIME) DENGAN ERROR HANDLER ---
@@ -605,177 +857,6 @@
             document.getElementById('new-username').value = "";
             showModal("Sukses", "User berhasil ditambahkan", "alert");
         });
-    }
-
-    // ================= LOGIKA CATATAN GLOBAL =================
-    let notesDataCache = {};
-    let autoSaveTimeout; 
-    
-    function openNotesModal() {
-        document.getElementById('main-menu').classList.remove('active');
-        document.getElementById('notes-modal').classList.add('active');
-    }
-    
-    function closeNotesModal() {
-        document.getElementById('notes-modal').classList.remove('active');
-    }
-
-    function changeNotesView() {
-        const mode = document.getElementById('notes-view-selector').value;
-        localStorage.setItem('xurel_notes_view', mode);
-        document.getElementById('notes-container').className = mode === 'grid' ? 'notes-grid' : 'notes-list';
-    }
-
-    function selectColor(el) {
-        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('note-color').value = el.getAttribute('data-color');
-        debounceAutoSave(); 
-    }
-
-    function openNoteInputModal() {
-        document.getElementById('note-id').value = '';
-        document.getElementById('note-title').value = '';
-        document.getElementById('note-content').value = '';
-        document.getElementById('note-modal-title').innerText = 'Tambah Catatan';
-        
-        document.getElementById('note-color').value = '#f1c40f';
-        document.querySelectorAll('.color-dot').forEach(d => {
-            d.classList.toggle('active', d.getAttribute('data-color') === '#f1c40f');
-        });
-
-        document.getElementById('note-input-modal').classList.add('active');
-    }
-
-    function closeNoteInputModal() {
-        document.getElementById('note-input-modal').classList.remove('active');
-    }
-
-    function debounceAutoSave() {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            performAutoSave();
-        }, 1000); 
-    }
-
-    function performAutoSave() {
-        const idInput = document.getElementById('note-id');
-        let id = idInput.value;
-        let title = document.getElementById('note-title').value.trim();
-        const content = document.getElementById('note-content').value.trim();
-        const color = document.getElementById('note-color').value;
-
-        if (!content && !title) return; 
-
-        if (id) {
-            if (!title) title = "CATATAN";
-            db.ref('notes/' + id).update({ title, content, color, updatedAt: Date.now() });
-        } else {
-            const seq = getNextNoteNumber();
-            if (!title) title = seq.toString(); 
-
-            const newRef = db.ref('notes').push();
-            idInput.value = newRef.key; 
-            newRef.set({ title, content, color, seq: seq, createdAt: Date.now() });
-        }
-    }
-
-    function saveNote() {
-        performAutoSave(); 
-        closeNoteInputModal();
-    }
-
-    db.ref('notes').on('value', snap => {
-        notesDataCache = snap.val() || {};
-        renderNotes();
-    });
-
-    function getNextNoteNumber() {
-        let max = 0;
-        Object.values(notesDataCache).forEach(note => {
-            if (note.seq && !isNaN(note.seq)) {
-                max = Math.max(max, parseInt(note.seq));
-            } else if (!isNaN(note.title) && String(note.title).trim() !== "") {
-                max = Math.max(max, parseInt(note.title));
-            }
-        });
-        return max + 1;
-    }
-
-    function hexToRgba(hex, alpha) {
-        if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return `rgba(241, 196, 15, ${alpha})`;
-        let r = parseInt(hex.slice(1, 3), 16),
-            g = parseInt(hex.slice(3, 5), 16),
-            b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    function renderNotes() {
-        const container = document.getElementById('notes-container');
-        container.innerHTML = '';
-        
-        const keys = Object.keys(notesDataCache).sort((a, b) => {
-            const timeA = notesDataCache[a].updatedAt || notesDataCache[a].createdAt || 0;
-            const timeB = notesDataCache[b].updatedAt || notesDataCache[b].createdAt || 0;
-            return timeB - timeA;
-        });
-
-        if (keys.length === 0) {
-            container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; font-size:13px; padding: 30px;">Belum ada catatan.</div>';
-            return;
-        }
-
-        keys.forEach(key => {
-            const data = notesDataCache[key];
-            
-            const lineCount = data.content ? data.content.split(/\r\n|\r|\n/).length : 0;
-            const badgeText = lineCount; 
-            const titleText = data.title || "CATATAN";
-            
-            const noteColor = data.color || "#f1c40f"; 
-            const bgColor = hexToRgba(noteColor, 0.15);
-
-            container.innerHTML += `
-                <div class="note-card" style="border-left: 5px solid ${noteColor}; background-color: ${bgColor};" onclick="editNote('${key}')">
-                    <div class="note-card-actions">
-                        <i class="fas fa-trash" style="color: #e74c3c; cursor: pointer;" onclick="event.stopPropagation(); deleteNote('${key}')"></i>
-                    </div>
-                    <div class="note-card-title">${titleText}</div>
-                    <div class="note-card-content">${escapeHTML(data.content)}</div>
-                    
-                    <div class="note-card-bottom-actions">
-                        <i class="fas fa-edit" style="color: #f39c12; cursor: pointer; opacity: 0.8;" onclick="event.stopPropagation(); editNote('${key}')"></i>
-                        <div class="note-card-badge">${badgeText}</div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    function escapeHTML(text) {
-        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    function editNote(key) {
-        const data = notesDataCache[key];
-        if(data) {
-            document.getElementById('note-id').value = key;
-            document.getElementById('note-title').value = data.title;
-            document.getElementById('note-content').value = data.content;
-            document.getElementById('note-modal-title').innerText = 'Edit Catatan';
-            
-            const savedColor = data.color || '#f1c40f';
-            document.getElementById('note-color').value = savedColor;
-            document.querySelectorAll('.color-dot').forEach(d => {
-                d.classList.toggle('active', d.getAttribute('data-color') === savedColor);
-            });
-
-            document.getElementById('note-input-modal').classList.add('active');
-        }
-    }
-
-    async function deleteNote(key) {
-        if(await showModal("Hapus", "Hapus catatan ini?")) db.ref('notes/' + key).remove();
     }
 
     // ================= LOGIKA SHOPEE REALTIME & SECURE =================
@@ -1129,7 +1210,7 @@
         if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
         const provider = document.getElementById('provider-selector').value;
         let priceTxt = `Rp ${price}`;
-        if (provider === "herosms" || provider === "smspool" || provider === "5sim") priceTxt = `$${price}`;
+        if (provider === "herosms" || provider === "smspool" || provider === "5sim") priceTxt = `${price}`;
 
         if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
         try {
@@ -1311,5 +1392,949 @@
         } catch(e){}
     }
 </script>
+
+<script>
+// ================= NOTES APP (from catatan.html, converted to compat SDK) =================
+(function() {
+            
+        
+        
+
+        
+
+        
+        const fsDb = firebase.firestore();
+        // auth already initialized globally
+
+        let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: false };
+        try { if(localStorage.getItem('ntSettings')) globalSettings = JSON.parse(localStorage.getItem('ntSettings')); } catch(e){}
+        
+        window.saveGlobalSettings = function() {
+            globalSettings.autoBackup = document.getElementById('autoBackupCheckbox').checked;
+            localStorage.setItem('ntSettings', JSON.stringify(globalSettings));
+        }
+
+        window.saveFontSize = function(size) {
+            globalSettings.fontSize = size;
+            saveGlobalSettings(); 
+            applyGlobalSettingsText(); 
+            toggleModal('fontSizeModal'); 
+            renderNotes();
+        }
+
+        function applyGlobalSettingsText() {
+            document.getElementById('autoBackupCheckbox').checked = globalSettings.autoBackup;
+            document.getElementById('fontLabel').innerText = globalSettings.fontSize === 'small' ? 'Kecil' : (globalSettings.fontSize === 'large' ? 'Besar' : 'Sedang');
+            document.getElementById('textEditorBody').className = `w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden ${globalSettings.fontSize === 'small' ? 'text-sm' : (globalSettings.fontSize === 'large' ? 'text-2xl' : 'text-lg')}`;
+        }
+        setTimeout(() => applyGlobalSettingsText(), 500);
+
+        window.isSettingDefaultColor = false;
+        window.selectDefaultColor = function() { toggleModal('multiColorModal'); window.isSettingDefaultColor = true; }
+
+        let searchTerm = '';
+        window.toggleSearch = function(open=null) {
+            const sb = document.getElementById('searchBar');
+            if(open === null) sb.classList.toggle('hidden');
+            else if(open) sb.classList.remove('hidden');
+            else sb.classList.add('hidden');
+            
+            if(!sb.classList.contains('hidden')) document.getElementById('searchInput').focus();
+            else { document.getElementById('searchInput').value = ''; searchTerm = ''; renderNotes(); }
+        }
+        window.applySearch = function() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            renderNotes();
+        }
+
+        let noteAuthUser = null; let isAdmin = false;
+        
+        // Tab system variables
+        window.currentAdminTab = 'pribadi'; // 'pribadi', 'kiriman', 'semua'
+        window.extraAdminData = []; 
+
+        window.switchAdminTab = async function(tabId) {
+            window.currentAdminTab = tabId;
+            document.getElementById('tabAdminNotes').className = "flex-1 py-3 transition-colors " + (tabId==='pribadi' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            document.getElementById('tabSentToAdmin').className = "flex-1 py-3 transition-colors " + (tabId==='kiriman' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='semua' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+
+            if(tabId === 'pribadi') {
+                 renderNotes();
+            } else if (tabId === 'kiriman') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Bentar, memuat kiriman...</p>';
+                 try {
+                     const qSnap = await fsDb.collection("admin_notes").orderBy("sentAt", "desc").get();
+                     window.extraAdminData = [];
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                 } catch(e) { showToast("Gagal memuat kiriman."); window.extraAdminData = []; }
+                 renderNotes();
+            } else if (tabId === 'semua') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Mencari ke seluruh sistem...</p>';
+                 try {
+                     const qSnap = await fsDb.collectionGroup("notes").get();
+                     window.extraAdminData = [];
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                 } catch(e) { showToast("Gagal memuat semua data. Butuh index collectionGroup di API Firebase."); window.extraAdminData = []; }
+                 renderNotes();
+            }
+        }
+
+        auth.onAuthStateChanged((user) => {
+            noteAuthUser = user;
+            if(user) {
+                isAdmin = (user.email === 'santridroid@gmail.com');
+                document.getElementById('loggedInContainer').classList.remove('hidden');
+                document.getElementById('loginFormContainer').classList.add('hidden');
+                document.getElementById('loggedInUserText').innerText = user.email || user.displayName || 'Pengguna';
+                document.getElementById('loggedInRoleText').innerText = isAdmin ? 'Admin Utama' : 'Akun Pengguna';
+                document.getElementById('syncStatus').innerText = 'Online (' + (user.displayName?user.displayName.split(' ')[0]:'User') + ')';
+                document.getElementById('topLoginBtn').classList.add('text-teal-600');
+                if(isAdmin) { 
+                    document.getElementById('editAboutBtn').classList.remove('hidden'); 
+                    document.getElementById('adminTabsContainer').classList.remove('hidden');
+                } else document.getElementById('editAboutBtn').classList.add('hidden');
+            } else {
+                isAdmin = false;
+                document.getElementById('loggedInContainer').classList.add('hidden');
+                document.getElementById('loginFormContainer').classList.remove('hidden');
+                document.getElementById('syncStatus').innerText = 'Offline';
+                document.getElementById('topLoginBtn').classList.remove('text-teal-600');
+                document.getElementById('editAboutBtn').classList.add('hidden');
+                document.getElementById('adminTabsContainer').classList.add('hidden');
+                window.currentAdminTab = 'pribadi'; renderNotes();
+            }
+        });
+
+        // FUNGSI AUTH & LOGIN
+        window.isRegisterMode = false;
+        
+        window.toggleAuthMode = function() {
+            window.isRegisterMode = !window.isRegisterMode;
+            if(window.isRegisterMode) {
+                document.getElementById('authPasswordConfirm').classList.remove('hidden');
+                document.getElementById('authLoginBtn').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Sudah punya akun? Login disini";
+                document.getElementById('loginTitle').innerHTML = 'Daftar Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            } else {
+                document.getElementById('authPasswordConfirm').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.add('hidden');
+                document.getElementById('authLoginBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Belum punya akun? Daftar disini";
+                document.getElementById('loginTitle').innerHTML = 'Login Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            }
+        }
+
+        window.submitAuth = async function(mode) {
+            const eml = document.getElementById('authEmail').value.trim();
+            const pwd = document.getElementById('authPassword').value;
+            const rmbInfo = document.getElementById('rememberMeCheckbox').checked;
+
+            if(!eml || !pwd) return showToast("Mohon lengkapi data!");
+            
+            try {
+                const persistenceType = rmbInfo ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+                await auth.setPersistence(persistenceType);
+
+                if (rmbInfo) {
+                    localStorage.setItem('ntSaveLogin', 'true');
+                    localStorage.setItem('ntEmail', eml);
+                    localStorage.setItem('ntPassword', pwd);
+                } else {
+                    localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+                }
+
+                if(mode === 'register') {
+                    const pwdConfirm = document.getElementById('authPasswordConfirm').value;
+                    if(pwd !== pwdConfirm) return showToast("Konfirmasi sandi tidak sama!");
+                    await auth.createUserWithEmailAndPassword(eml, pwd);
+                    showToast("Pendaftaran berhasil!");
+                } else {
+                    await auth.signInWithEmailAndPassword(eml, pwd);
+                    showToast("Login berhasil!");
+                }
+                toggleModal('loginModal');
+            } catch(e) {
+                if(e.code === 'auth/invalid-credential') showToast("Email atau sandi salah!");
+                else if(e.code === 'auth/email-already-in-use') showToast("Email ini sudah terdaftar!");
+                else showToast("Gagal memproses otentikasi: " + e.message);
+            }
+        }
+
+        setTimeout(() => {
+            if(localStorage.getItem('ntSaveLogin')) {
+                document.getElementById('rememberMeCheckbox').checked = true;
+                document.getElementById('authEmail').value = localStorage.getItem('ntEmail') || '';
+                document.getElementById('authPassword').value = localStorage.getItem('ntPassword') || '';
+            }
+        }, 800);
+
+        window.logout = function() { 
+            auth.signOut().then(()=>showToast("Telah Logout")); 
+            localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+            document.getElementById('authEmail').value = ''; document.getElementById('authPassword').value = '';
+            toggleModal('loginModal'); 
+        }
+
+        window.syncNotes = async function() {
+            if(!noteAuthUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk menyinkronkan"); }
+            showToast("Menyinkronkan...");
+            const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+            try {
+                const qSnap = await userNotesRef.get();
+                for(let dSnap of qSnap.docs) {
+                     if(!allNotesData[dSnap.id]) {
+                         await fsDb.collection("devices").doc(deviceId).collection("notes").doc(dSnap.id).set(dSnap.data());
+                     }
+                }
+                for(let id in allNotesData) { await userNotesRef.doc(id).set(allNotesData[id]); }
+                showToast("Sinkronisasi Selesai!");
+            } catch(e){ showToast("Gagal menyinkronkan"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.backupNotes = async function() {
+            if(!noteAuthUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk mencadangkan"); }
+            showToast("Mencadangkan ke awan...");
+            const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+            try {
+                for(let id in allNotesData) { await userNotesRef.doc(id).set(allNotesData[id]); }
+                showToast("Backup Selesai!");
+            } catch(e){ showToast("Gagal membackup"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.openAbout = async function() {
+            toggleModal('appMenuModal', true); toggleModal('aboutModal', true);
+            document.getElementById('aboutContentDisplay').innerText = "Memuat...";
+            try {
+                const aboutDoc = await fsDb.collection("app_settings").get();
+                let abt = "Aplikasi Catatan Web-Note Santridroid.\n\nSelamat menyusun ide dan tugas Anda!";
+                aboutDoc.forEach(d => { if(d.id === 'about') abt = d.data().content; });
+                document.getElementById('aboutContentDisplay').innerText = abt;
+                document.getElementById('aboutContentEdit').value = abt;
+            } catch(e) { document.getElementById('aboutContentDisplay').innerText = "Gagal memuat tentang aplikasi."; }
+        }
+
+        window.toggleEditAbout = function() {
+            document.getElementById('aboutContentDisplay').classList.toggle('hidden');
+            document.getElementById('aboutContentEdit').classList.toggle('hidden');
+            document.getElementById('aboutEditActions').classList.toggle('hidden');
+            document.getElementById('editAboutBtn').classList.toggle('hidden');
+            document.getElementById('closeAboutBtn').classList.toggle('hidden');
+        }
+
+        window.saveAbout = async function() {
+            const text = document.getElementById('aboutContentEdit').value;
+            await fsDb.collection("app_settings").doc("about").set({ content: text });
+            document.getElementById('aboutContentDisplay').innerText = text;
+            toggleEditAbout(); showToast("Disimpan!");
+        }
+
+        if ("Notification" in window) { Notification.requestPermission(); }
+        let currentCalDate = new Date(); let selectedCalDate = new Date();
+        window.openCalendar = function() { toggleSearch(false); toggleModal('calendarModal', true); renderCalendar(); }
+        window.changeMonth = function(dir) { currentCalDate.setMonth(currentCalDate.getMonth() + dir); renderCalendar(); }
+        
+        function renderCalendar() {
+            const y = currentCalDate.getFullYear(); const m = currentCalDate.getMonth();
+            document.getElementById('calendarMonthYear').innerText = new Date(y, m).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m+1, 0).getDate();
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += '<div></div>';
+            const today = new Date();
+            for(let i=1; i<=daysInMonth; i++) {
+                let isToday = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear());
+                let isSel = (i === selectedCalDate.getDate() && m === selectedCalDate.getMonth() && y === selectedCalDate.getFullYear());
+                let cls = `cursor-pointer py-1.5 rounded-full transition-colors ${isToday ? 'bg-teal-100 text-teal-800' : (isSel ? 'border border-teal-600 bg-gray-50' : 'hover:bg-gray-100')}`;
+                html += `<div class="${cls}" onclick="selectDate(${y}, ${m}, ${i})">${i}</div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+            loadReminders();
+        }
+
+        window.selectDate = function(y, m, d) { selectedCalDate = new Date(y, m, d); renderCalendar(); }
+        
+        let reminders = [];
+        try { if(localStorage.getItem('ntReminders')) reminders = JSON.parse(localStorage.getItem('ntReminders')); } catch(e){}
+
+        function saveRemindersLocal() { localStorage.setItem('ntReminders', JSON.stringify(reminders)); }
+
+        function loadReminders() {
+            document.getElementById('selectedDateText').innerText = selectedCalDate.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+            const selY = selectedCalDate.getFullYear(); const selM = selectedCalDate.getMonth(); const selD = selectedCalDate.getDate();
+            const list = document.getElementById('remindersList'); list.innerHTML = '';
+            let found = false;
+            reminders.forEach((r, idx) => {
+                let rDate = new Date(r.timestamp);
+                if(rDate.getFullYear() === selY && rDate.getMonth() === selM && rDate.getDate() === selD) {
+                    found = true;
+                    list.innerHTML += `<div class="flex justify-between items-center bg-white p-2 border rounded-md mb-1"><div class="flex flex-col"><span class="font-semibold text-gray-800">${r.text}</span><span class="text-xs text-gray-500"><i class="far fa-clock"></i> ${rDate.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.',':')}</span></div><button onclick="delReminder(${idx})" class="text-red-400 hover:text-red-600 px-2"><i class="fas fa-trash"></i></button></div>`;
+                }
+            });
+            if(!found) list.innerHTML = '<p class="text-xs text-gray-400 italic">Tidak ada pengingat.</p>';
+        }
+
+        window.openAddReminder = function() { toggleModal('addReminderModal'); document.getElementById('reminderText').value = ''; document.getElementById('reminderTime').value = ''; }
+
+        window.saveReminder = function() {
+            let txt = document.getElementById('reminderText').value;
+            let timeStr = document.getElementById('reminderTime').value;
+            if(!txt || !timeStr) return showToast("Isi judul dan waktu!");
+            let [h, m] = timeStr.split(':');
+            let d = new Date(selectedCalDate.getFullYear(), selectedCalDate.getMonth(), selectedCalDate.getDate(), parseInt(h), parseInt(m), 0);
+            if(d.getTime() < Date.now()) return showToast("Waktu tidak boleh di masa lalu!");
+            reminders.push({ text: txt, timestamp: d.getTime(), notified: false });
+            saveRemindersLocal(); loadReminders(); toggleModal('addReminderModal'); showToast("Pengingat diset!");
+        }
+
+        window.delReminder = function(idx) { reminders.splice(idx, 1); saveRemindersLocal(); loadReminders(); }
+
+        setInterval(() => {
+            const now = Date.now();
+            let changed = false;
+            reminders.forEach(r => {
+                if(!r.notified && r.timestamp <= now) {
+                    r.notified = true; changed = true;
+                    if(Notification.permission === "granted") new Notification("Pengingat Web-Note", { body: r.text }); 
+                    else showToast("ALARM: " + r.text);
+                }
+            });
+            if(changed) saveRemindersLocal();
+        }, 10000);
+
+        let deviceId = localStorage.getItem('santridroid_device_id');
+        if (!deviceId) { deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(); localStorage.setItem('santridroid_device_id', deviceId); }
+        const notesCollectionRef = fsDb.collection("devices").doc(deviceId).collection("notes");
+
+        let rawNotesData = []; 
+        let allNotesData = {}; 
+        
+        let currentFilter = 'all';
+        let currentSort = 'updatedAt';
+        let currentView = 'detail'; 
+
+        let currentEditingId = null;
+        let currentEditingType = 'text';
+        let currentEditingColor = 'yellow';
+        let undoStack = []; let redoStack = []; let historyTimeout;
+        window.shareTarget = 'single';
+
+        window.isMultiSelectMode = false;
+        window.selectedNotes = new Set();
+        let pressTimer; let isLongPress = false;
+
+        window.showToast = function(message) {
+            let container = document.getElementById('toastContainer');
+            if(!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none items-center w-full px-4';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg text-sm bg-opacity-90 transition-all duration-300 transform translate-y-4 opacity-0 max-w-[90%] text-center font-medium';
+            toast.innerText = message;
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // REALTIME LISTENER
+        notesCollectionRef.onSnapshot( (snapshot) => {
+            rawNotesData = [];
+            allNotesData = {};
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                data.id = docSnap.id;
+                rawNotesData.push(data);
+                allNotesData[docSnap.id] = data;
+            });
+            renderNotes();
+        });
+
+        // FUNGSI RENDER
+        function renderNotes() {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = ''; 
+
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            let filteredDocs = [...baseData];
+
+            if (currentFilter !== 'all') {
+                filteredDocs = filteredDocs.filter(n => (n.color || 'yellow') === currentFilter);
+            }
+            if (searchTerm) {
+                filteredDocs = filteredDocs.filter(n => 
+                    (n.title && n.title.toLowerCase().includes(searchTerm)) || 
+                    (n.content && n.content.toLowerCase().includes(searchTerm)) || 
+                    (n.items && n.items.some(i => i.text.toLowerCase().includes(searchTerm)))
+                );
+            }
+
+            filteredDocs.sort((a, b) => {
+                if(currentSort === 'updatedAt') return (b.updatedAt?.toMillis() || Date.now()) - (a.updatedAt?.toMillis() || Date.now());
+                else if(currentSort === 'createdAt') return (b.createdAt?.toMillis() || Date.now()) - (a.createdAt?.toMillis() || Date.now());
+                else if(currentSort === 'alphabet') return (a.title || '').localeCompare(b.title || '');
+                else if(currentSort === 'color') return (a.color || 'yellow').localeCompare(b.color || 'yellow');
+            });
+
+            // Layout Kontainer
+            if (currentView === 'grid-small') container.className = "grid grid-cols-3 gap-2";
+            else if (currentView === 'grid-large') container.className = "grid grid-cols-2 gap-2";
+            else container.className = "flex flex-col gap-2";
+
+            if (filteredDocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10 col-span-3">Belum ada catatan.</p>';
+                return;
+            }
+
+            filteredDocs.forEach((note) => {
+                const dateObj = note.updatedAt ? note.updatedAt.toDate() : new Date();
+                const timeString = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+                const colorClass = `color-${note.color || 'yellow'}`;
+                const noteTitle = note.title || (note.type==='checklist' ? 'Daftar Baru' : 'Catatan Kosong');
+                const lockIcon = note.locked ? `<i class="fas fa-lock text-[10px] opacity-70 ml-1"></i>` : '';
+                
+                let previewContent = '';
+                if(note.type === 'checklist') {
+                    const total = note.items ? note.items.length : 0;
+                    const checked = note.items ? note.items.filter(i => i.checked).length : 0;
+                    previewContent = `<i class="far fa-check-square mr-1 opacity-70"></i> ${checked}/${total} barang`;
+                } else {
+                    previewContent = note.content || '';
+                }
+
+                const isSelected = window.selectedNotes.has(note.id) ? 'selected-note' : '';
+                const noteEl = document.createElement('div');
+                
+                let heightClass = '';
+                let cardHTML = '';
+
+                if (currentView === 'list') {
+                    heightClass = 'min-h-[45px]';
+                    cardHTML = `
+                        <div class="flex justify-between items-center w-full">
+                            <h3 class="text-lg truncate font-medium flex-1 pr-2 text-inherit">${noteTitle}</h3>
+                            <span class="text-[10px] font-mono opacity-70 whitespace-nowrap flex items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'detail') {
+                    heightClass = 'min-h-[70px]';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-lg truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-small') {
+                    heightClass = 'h-24';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-sm truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-[10px] opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[9px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-large') {
+                    heightClass = 'h-36';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <h3 class="text-base truncate font-medium mb-1">${noteTitle}</h3>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-4">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                }
+
+                noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start ${colorClass} ${isSelected} ${heightClass}`;
+                noteEl.innerHTML = cardHTML;
+                
+                noteEl.addEventListener('touchstart', (e) => startPress(e, note.id), {passive: true});
+                noteEl.addEventListener('touchend', () => cancelPress());
+                noteEl.addEventListener('mousedown', (e) => startPress(e, note.id));
+                noteEl.addEventListener('mouseup', () => cancelPress());
+                noteEl.addEventListener('mouseleave', () => cancelPress());
+                noteEl.addEventListener('click', (e) => handleNoteClick(e, note.id));
+
+                container.appendChild(noteEl);
+            });
+            updateFilterBorders();
+        }
+
+        // PENGATURAN TAMPILAN
+        window.openSettingsTab = function(tabName) {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            ['warna', 'urutkan', 'lihat'].forEach(name => {
+                document.getElementById('content-' + name).classList.add('hidden');
+                document.getElementById('tab-' + name).classList.replace('tab-active', 'tab-inactive');
+            });
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.replace('tab-inactive', 'tab-active');
+        }
+
+        window.closeSettingsModal = function() { document.getElementById('settingsModal').classList.add('hidden'); }
+        
+        window.applyFilter = function(color) { 
+            if (currentFilter === color) currentFilter = 'all'; else currentFilter = color;
+            closeSettingsModal(); renderNotes(); 
+        }
+
+        function updateFilterBorders() {
+            const colorDivs = document.querySelectorAll('#content-warna .grid > div');
+            colorDivs.forEach(div => {
+                const onclickStr = div.getAttribute('onclick');
+                if(onclickStr.includes(`applyFilter('${currentFilter}')`)) div.classList.add('border-4', 'border-gray-500');
+                else div.classList.remove('border-4', 'border-gray-500');
+            });
+        }
+
+        window.applySort = function(type) { currentSort = type; closeSettingsModal(); renderNotes(); }
+        window.applyView = function(viewType) { currentView = viewType; closeSettingsModal(); renderNotes(); }
+
+        // MULTI-SELECT INTERAKSI
+        function startPress(e, noteId) {
+            isLongPress = false;
+            pressTimer = setTimeout(() => { isLongPress = true; if (!window.isMultiSelectMode) activateMultiSelect(noteId); }, 500);
+        }
+        function cancelPress() { clearTimeout(pressTimer); }
+
+        function handleNoteClick(e, noteId) {
+            if (isLongPress) return;
+            if (window.isMultiSelectMode) {
+                if (window.selectedNotes.has(noteId)) {
+                    window.selectedNotes.delete(noteId);
+                    e.currentTarget.classList.remove('selected-note');
+                    if (window.selectedNotes.size === 0) cancelMultiSelect();
+                } else {
+                    window.selectedNotes.add(noteId);
+                    e.currentTarget.classList.add('selected-note');
+                }
+                updateMultiSelectHeader();
+            } else { openEditor(noteId); }
+        }
+
+        window.activateMultiSelect = function(firstNoteId) {
+            window.isMultiSelectMode = true; window.selectedNotes.clear(); window.selectedNotes.add(firstNoteId);
+            document.getElementById('mainHeader').classList.add('hidden'); document.getElementById('multiSelectHeader').classList.remove('hidden');
+            updateMultiSelectHeader();
+        }
+
+        window.cancelMultiSelect = function() {
+            window.isMultiSelectMode = false; window.selectedNotes.clear();
+            document.getElementById('mainHeader').classList.remove('hidden'); document.getElementById('multiSelectHeader').classList.add('hidden');
+            document.querySelectorAll('.selected-note').forEach(el => el.classList.remove('selected-note'));
+        }
+
+        function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
+
+        window.deleteSelectedNotes = async function() {
+            if(window.currentAdminTab === 'semua') return showToast("Mode Read-Only. Tidak dapat menghapus dari SEMUA DATA.");
+
+            let hasLocked = false;
+            const idsToDelete = [];
+            window.selectedNotes.forEach(id => {
+                if(allNotesData[id] && allNotesData[id].locked) hasLocked = true;
+                else idsToDelete.push(id);
+            });
+
+            if(hasLocked) showToast("Beberapa catatan terkunci dan tidak akan dihapus. Buka kunci terlebih dahulu jika ingin menghapus.");
+            if(idsToDelete.length === 0) { cancelMultiSelect(); return; }
+            if(!confirm(`Hapus ${idsToDelete.length} catatan?`)) return;
+            
+            cancelMultiSelect();
+            for(const id of idsToDelete) { 
+                if(window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes".delete().doc(id));
+                else await fsDb.collection("devices".delete().doc(deviceId).collection("notes").doc(id)); 
+            }
+        }
+
+        window.copySelectedNotes = async function() {
+            let texts = [];
+            window.selectedNotes.forEach(id => {
+                let note = allNotesData[id];
+                if(note) texts.push(getNoteText(note));
+            });
+            try {
+                await navigator.clipboard.writeText(texts.join("\n\n---\n\n"));
+                showToast(window.selectedNotes.size + " catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin catatan."); }
+            cancelMultiSelect();
+        }
+
+        window.changeSelectedNotesColor = async function(color) {
+            toggleModal('multiColorModal');
+            if(window.isSettingDefaultColor) {
+                 window.isSettingDefaultColor = false;
+                 globalSettings.defaultColor = color; saveGlobalSettings();
+                 showToast("Warna default catatan diubah."); return;
+            }
+            const idsToChange = Array.from(window.selectedNotes); cancelMultiSelect();
+            for(const id of idsToChange) {
+                await fsDb.collection("devices").doc(deviceId).collection("notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+            }
+        }
+
+        // FUNGSI BAGIKAN & TERIMA
+        window.openShareModal = function(target) {
+            window.shareTarget = target;
+            toggleModal('shareMethodModal');
+            if(target === 'single' && !document.getElementById('editorMenuModal').classList.contains('hidden')) {
+                toggleModal('editorMenuModal');
+            }
+        }
+
+        window.executeCopyFromShare = function() {
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'single') executeCopySingle();
+            else copySelectedNotes(); 
+        }
+
+        window.openSendWithCode = function() {
+            toggleModal('shareMethodModal');
+            toggleModal('sendWithCodeModal');
+            document.getElementById('shareCodeInput').value = '';
+        }
+
+        window.sendToAdmin = async function() {
+            let notesToSend = [];
+            if(window.shareTarget === 'single') {
+                notesToSend.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToSend.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+            const adminRef = fsDb.collection("admin_notes");
+            try {
+                for(let note of notesToSend) {
+                    await adminRef.add({ ...note, senderDeviceId: deviceId, sentAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }
+                showToast("Catatan berhasil dikirim ke Admin!");
+            } catch(e) { showToast("Gagal mengirim ke Admin."); }
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'multi') cancelMultiSelect();
+        }
+
+        window.submitShareCode = async function() {
+            const code = document.getElementById('shareCodeInput').value.trim();
+            const duration = document.getElementById('shareDurationSelect').value;
+            if(!code) return showToast("Kode tidak boleh kosong!");
+
+            const sharedRef = fsDb.collection("shared_notes");
+            const q = sharedRef.where("code", "==", code);
+            const querySnapshot = await q.get();
+            
+            let existsAndActive = false;
+            querySnapshot.forEach(doc => { if(doc.data().expiresAt > Date.now()) existsAndActive = true; });
+
+            if(existsAndActive) return showToast("Kode sudah digunakan, silahkan masukkan kode lain!");
+
+            let ms = 0;
+            if(duration === '1h') ms = 3600000;
+            else if(duration === '12h') ms = 43200000;
+            else if(duration === '1d') ms = 86400000;
+            else if(duration === '1w') ms = 604800000;
+            else if(duration === '1m') ms = 2592000000;
+
+            let notesToShare = [];
+            if(window.shareTarget === 'single') {
+                notesToShare.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToShare.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+
+            try {
+                await sharedRef.add({ code: code, notes: notesToShare, expiresAt: Date.now() + ms, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast("Catatan berhasil dibagikan dengan kode: " + code);
+                toggleModal('sendWithCodeModal');
+                if(window.shareTarget === 'multi') cancelMultiSelect();
+            } catch(e) { showToast("Gagal membagikan catatan."); }
+        }
+
+        window.submitImportCode = async function() {
+            const code = document.getElementById('importCodeInput').value.trim();
+            if(!code) return showToast("Silahkan masukkan kode!");
+
+            const sharedRef = fsDb.collection("shared_notes");
+            const q = sharedRef.where("code", "==", code);
+            const querySnapshot = await q.get();
+
+            let imported = false;
+            for (const docSnap of querySnapshot.docs) {
+                let data = docSnap.data();
+                if(data.expiresAt > Date.now()) {
+                    for(let noteData of data.notes) {
+                        await notesCollectionRef.add({
+                            title: noteData.title || '', type: noteData.type || 'text', color: noteData.color || 'yellow',
+                            content: noteData.content || '', items: noteData.items || [], locked: false,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                    imported = true;
+                }
+            }
+
+            if(imported) {
+                showToast("Catatan berhasil diimport!");
+                toggleModal('importCodeModal');
+                document.getElementById('importCodeInput').value = '';
+            } else {
+                showToast("Kode tidak valid atau sudah kadaluarsa!");
+            }
+        }
+
+        // FUNGSI COPY SINGLE NOTE
+        function getNoteText(noteData) {
+            let txt = (noteData.title || "Tanpa Judul") + "\n\n";
+            if(noteData.type === 'text') txt += noteData.content || "";
+            else if(noteData.items) noteData.items.forEach(i => { txt += (i.checked ? "[v] " : "[ ] ") + i.text + "\n"; });
+            return txt;
+        }
+
+        function getCurrentEditorData() {
+            return {
+                title: document.getElementById('editorTitle').value.trim(),
+                type: currentEditingType,
+                color: currentEditingColor,
+                content: currentEditingType === 'text' ? document.getElementById('textEditorBody').value.trim() : '',
+                items: currentEditingType === 'checklist' ? extractChecklistData() : []
+            };
+        }
+
+        window.executeCopySingle = async function() {
+            let noteData = getCurrentEditorData();
+            try {
+                await navigator.clipboard.writeText(getNoteText(noteData));
+                showToast("Catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin."); }
+            toggleModal('editorMenuModal');
+        }
+
+        // FUNGSI KUNCI
+        window.openEditorMenu = function() {
+            const isLocked = currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked;
+            document.getElementById('lockMenuText').innerText = isLocked ? "Buka Kunci" : "Kunci";
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockSingle = async function() {
+            if(!currentEditingId) return showToast("Simpan catatan terlebih dahulu untuk dapat menguncinya.");
+            let note = allNotesData[currentEditingId];
+            if(note) {
+                let newLockStatus = !note.locked;
+                await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).update({ locked: newLockStatus });
+                showToast(newLockStatus ? "Catatan dikunci" : "Kunci dibuka");
+            }
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockMulti = async function() {
+            const idsToLock = Array.from(window.selectedNotes);
+            cancelMultiSelect();
+            for(const id of idsToLock) {
+                let note = allNotesData[id];
+                if(note) await fsDb.collection("devices").doc(deviceId).collection("notes").doc(id).update({ locked: !note.locked });
+            }
+            showToast("Status kunci catatan yang dipilih berhasil diubah.");
+        }
+
+        // LOGIKA EDITOR & THEME
+        window.executeColorChange = function(color) {
+            currentEditingColor = color; applyEditorTheme(); toggleModal('editorColorModal');
+        }
+
+        const pastelColorMap = {
+            'red': '#fad2e1', 'orange': '#ffe5b4', 'yellow': '#fff3cd', 
+            'green': '#d4ebd0', 'blue': '#bde0fe', 'purple': '#d8b4e2', 
+            'black': '#ced4da', 'gray': '#f8f9fa', 'white': '#ffffff'
+        };
+
+        function applyEditorTheme() {
+            const page = document.getElementById('editorPage');
+            page.className = page.className.replace(/\bcolor-\S+/g, '');
+            page.classList.add(`color-${currentEditingColor}`);
+            document.getElementById('editorColorIndicator').style.backgroundColor = pastelColorMap[currentEditingColor];
+        }
+
+        window.recordHistory = function() {
+            clearTimeout(historyTimeout);
+            historyTimeout = setTimeout(() => {
+                const state = { title: document.getElementById('editorTitle').value, content: document.getElementById('textEditorBody').value, checklist: extractChecklistData() };
+                if (undoStack.length === 0 || JSON.stringify(undoStack[undoStack.length-1]) !== JSON.stringify(state)) { undoStack.push(state); redoStack = []; }
+            }, 400);
+        }
+        window.performUndo = function() {
+            if (undoStack.length > 1) {
+                const currentState = undoStack.pop(); redoStack.push(currentState);
+                restoreState(undoStack[undoStack.length - 1]);
+            }
+        }
+        window.performRedo = function() {
+            if (redoStack.length > 0) { const state = redoStack.pop(); undoStack.push(state); restoreState(state); }
+        }
+        function restoreState(state) {
+            document.getElementById('editorTitle').value = state.title;
+            if (currentEditingType === 'text') document.getElementById('textEditorBody').value = state.content;
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                state.checklist.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+        }
+
+        window.createNewNote = function(type) {
+            document.getElementById('fabMenuModal').classList.add('hidden');
+            currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
+            document.getElementById('editorTitle').value = ''; document.getElementById('textEditorBody').value = '';
+            document.getElementById('checklistItemsContainer').innerHTML = ''; document.getElementById('editorTimestamp').innerText = 'Baru saja';
+            if(type === 'checklist') addChecklistItemDOM('', false, false);
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(type);
+        }
+
+        window.openEditor = function(noteId) {
+            const note = allNotesData[noteId]; if(!note) return;
+            currentEditingId = noteId; currentEditingType = note.type || 'text'; currentEditingColor = note.color || 'yellow';
+            document.getElementById('editorTitle').value = note.title || '';
+            document.getElementById('editorTimestamp').innerText = note.updatedAt ? (note.updatedAt.toDate ? note.updatedAt.toDate().toLocaleDateString('id-ID') : new Date().toLocaleDateString('id-ID')) : 'Sekarang';
+            if(currentEditingType === 'text') document.getElementById('textEditorBody').value = note.content || '';
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                if(note.items) note.items.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+            
+            // Check editing permissions based on current admin tab
+            if(window.currentAdminTab === 'semua') {
+                 document.getElementById('editorTitle').readOnly = true;
+                 document.getElementById('textEditorBody').readOnly = true;
+                 // lock all checklists
+                 setTimeout(() => { document.querySelectorAll('.checklist-cb').forEach(cb => cb.disabled = true); }, 100);
+                 showToast("Mode Lihat (Read-Only). Anda tidak dapat mengubah catatan pangkalan semua data.");
+            } else {
+                 document.getElementById('editorTitle').readOnly = false;
+                 document.getElementById('textEditorBody').readOnly = false;
+                 if(window.currentAdminTab === 'kiriman') showToast("Mode Edit Admin: Merubah file kiriman ini akan menyimpan perubahan.");
+            }
+
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
+        }
+
+        function showEditorUI(type) {
+            document.getElementById('editorPage').classList.remove('hidden');
+            if(type === 'text') { document.getElementById('textEditorBody').classList.remove('hidden'); document.getElementById('checklistEditorBody').classList.add('hidden'); }
+            else { document.getElementById('textEditorBody').classList.add('hidden'); document.getElementById('checklistEditorBody').classList.remove('hidden'); }
+        }
+
+        window.deleteCurrentNote = async function() {
+            if(window.currentAdminTab === 'semua') return showToast("Tidak dapat menghapus data dari Semua Data.");
+            if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
+                showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
+                toggleModal('editorMenuModal');
+                return;
+            }
+            if(confirm('Hapus/Buang catatan ini?')) {
+                if(currentEditingId) {
+                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes".delete().doc(currentEditingId));
+                    else await fsDb.collection("devices".delete().doc(deviceId).collection("notes").doc(currentEditingId));
+                }
+                toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
+            }
+        }
+
+        window.saveAndCloseEditor = async function() {
+            if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
+            
+            // Prevent saving if trying to save from 'semua' database public
+            if(window.currentAdminTab === 'semua') {
+                document.getElementById('editorPage').classList.add('hidden');
+                return;
+            }
+
+            const title = document.getElementById('editorTitle').value.trim();
+            let content = ''; let items = [];
+            if(currentEditingType === 'text') {
+                content = document.getElementById('textEditorBody').value.trim();
+                if(title === '' && content === '') { document.getElementById('editorPage').classList.add('hidden'); return; }
+            } else {
+                items = extractChecklistData();
+                if(title === '' && items.length === 0) { document.getElementById('editorPage').classList.add('hidden'); return; }
+            }
+            const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
+            
+            // Jaga state locked
+            if(currentEditingId && allNotesData[currentEditingId]) noteData.locked = allNotesData[currentEditingId].locked || false;
+            else noteData.locked = false;
+
+            try {
+                if (currentEditingId) {
+                    if (window.currentAdminTab === 'kiriman') await updateDoc(fsDb.collection("admin_notes").doc(currentEditingId), noteData);
+                    else await updateDoc(fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId), noteData);
+                }
+                else { 
+                    noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+                    let added;
+                    if (window.currentAdminTab === 'kiriman') added = await addDoc(fsDb.collection("admin_notes"), noteData);
+                    else added = await addDoc(notesCollectionRef, noteData); 
+                    currentEditingId = added.id; 
+                }
+            } catch (error) { console.error("Gagal menyimpan:", error); }
+            
+            if(globalSettings.autoBackup && noteAuthUser && currentEditingId) {
+                const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+                userNotesRef.doc(currentEditingId).set(noteData).catch(()=>{});
+            }
+            
+            document.getElementById('editorPage').classList.add('hidden');
+        }
+
+        window.addChecklistItemDOM = function(text, isChecked, recordHist = true) {
+            const container = document.getElementById('checklistItemsContainer');
+            const itemDiv = document.createElement('div'); itemDiv.className = "flex items-center mb-1 bg-black bg-opacity-0 hover:bg-opacity-10 p-1 rounded transition-colors";
+            const checkbox = document.createElement('input'); checkbox.type = "checkbox"; checkbox.className = "checklist-cb mr-3"; checkbox.checked = isChecked;
+            const input = document.createElement('input'); input.type = "text"; input.value = text;
+            input.className = `flex-1 bg-transparent border-b border-black border-opacity-30 outline-none p-2 text-lg text-inherit ${isChecked ? 'checklist-done' : ''}`;
+            const delBtn = document.createElement('button'); delBtn.className = "ml-2 p-2 text-inherit opacity-60 hover:opacity-100 hover:text-red-600"; delBtn.innerHTML = '<i class="fas fa-times"></i>';
+            checkbox.addEventListener('change', (e) => { if(e.target.checked) input.classList.add('checklist-done'); else input.classList.remove('checklist-done'); recordHistory(); });
+            input.addEventListener('input', recordHistory);
+            delBtn.addEventListener('click', () => { container.removeChild(itemDiv); recordHistory(); });
+            itemDiv.appendChild(checkbox); itemDiv.appendChild(input); itemDiv.appendChild(delBtn); container.appendChild(itemDiv);
+            if(text === '') input.focus(); if(recordHist) recordHistory();
+        }
+
+        function extractChecklistData() {
+            const container = document.getElementById('checklistItemsContainer'); const items = [];
+            container.querySelectorAll('.flex.items-center.mb-1').forEach(row => {
+                const isChecked = row.querySelector('input[type="checkbox"]').checked;
+                const text = row.querySelector('input[type="text"]').value.trim();
+                if(text !== '') items.push({ text: text, checked: isChecked });
+            });
+            return items;
+        }
+
+        window.toggleModal = function(modalId, forceCloseOther = false) { 
+            if(forceCloseOther) document.querySelectorAll('.fixed.inset-0.z-\\[60\\], .fixed.inset-0.z-\\[80\\], .fixed.inset-0.z-\\[90\\]').forEach(el => { if(!el.classList.contains('hidden') && el.id !== modalId) el.classList.add('hidden'); });
+            document.getElementById(modalId)?.classList.toggle('hidden'); 
+        }
+})();
+</script>
 </body>
 </html>
+
