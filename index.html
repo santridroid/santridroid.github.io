@@ -256,7 +256,10 @@
         </div>
         <div id="adminEditToggleContainer" class="hidden p-2 bg-red-50 text-center border-t border-red-100 flex justify-between items-center w-full">
             <span class="text-xs text-red-600 font-medium">Mode Baca (Read-Only) Aktif</span>
-            <button onclick="toggleSemuaEditMode()" id="btnToggleSemuaEdit" class="text-xs bg-red-600 text-white px-3 py-1 rounded shadow-sm">Aktifkan Edit</button>
+            <div class="flex gap-2">
+                <button onclick="triggerGlobalRefresh()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded shadow-sm" title="Refresh Semua Perangkat"><i class="fas fa-sync-alt mr-1"></i> Auto Refresh</button>
+                <button onclick="toggleSemuaEditMode()" id="btnToggleSemuaEdit" class="text-xs bg-red-600 text-white px-3 py-1 rounded shadow-sm">Aktifkan Edit</button>
+            </div>
         </div>
     </div>
 
@@ -302,7 +305,19 @@
             <ul class="py-2">
                 <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('text')"><i class="fas fa-align-justify w-8 text-xl text-gray-600"></i> Teks</li>
                 <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('checklist')"><i class="far fa-check-square w-8 text-xl text-gray-600"></i> Daftar Centang</li>
+                <li class="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center text-red-600 border-t mt-2" onclick="openTrash()"><i class="fas fa-trash-alt w-8 text-xl"></i> Tong Sampah</li>
             </ul>
+        </div>
+    </div>
+
+    <div id="trashModal" class="hidden fixed inset-0 z-[60] bg-gray-100 flex flex-col">
+        <div class="flex items-center p-4 border-b bg-teal-600 text-white shadow-sm">
+            <button onclick="toggleModal('trashModal')" class="p-2 mr-2"><i class="fas fa-arrow-left"></i></button>
+            <h2 class="text-xl font-bold flex-1">Tong Sampah (30 Hari)</h2>
+            <button onclick="emptyTrash()" class="p-2 text-sm bg-red-500 rounded px-3 hover:bg-red-600 shadow font-medium"><i class="fas fa-trash-alt mr-1"></i> Kosongkan</button>
+        </div>
+        <div id="trashContainer" class="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
+            <!-- Trash items go here -->
         </div>
     </div>
 
@@ -579,6 +594,30 @@
     firebase.initializeApp(configMaster);
     const db = firebase.database();
     const auth = firebase.auth();
+    const fsDb = firebase.firestore();
+
+    let lastRefreshSignal = null;
+    db.ref("app_state/refreshSignal").on("value", (snap) => {
+        const val = snap.val();
+        if(val) {
+            if(lastRefreshSignal === null) {
+                lastRefreshSignal = val;
+            } else if (val !== lastRefreshSignal) {
+                if (!document.getElementById('editorPage').classList.contains('hidden') && typeof window.saveAndCloseEditor === 'function') {
+                    window.saveAndCloseEditor();
+                }
+                showToast("Admin sedang memperbarui sistem. Menyegarkan halaman...");
+                setTimeout(() => location.reload(), 2000);
+            }
+        }
+    });
+
+    window.triggerGlobalRefresh = function() {
+        if(!confirm("Kirim sinyal refresh ke SEMUA perangkat pengguna yang sedang membuka aplikasi ini? Ini akan memuat ulang halaman mereka secara otomatis.")) return;
+        db.ref("app_state/refreshSignal").set(firebase.database.ServerValue.TIMESTAMP).then(() => {
+            showToast("Sinyal refresh global terkirim!");
+        }).catch(e => showToast("Gagal mengirim sinyal: " + e.message));
+    }
 
     // ================= VIEW NAVIGATION =================
     function switchToNotesView() {
@@ -1821,13 +1860,25 @@
                 if (window.currentAdminTab === 'pribadi') {
                     rawNotesData = [];
                     allNotesData = {};
+                    const now = Date.now();
                     snapshot.forEach((docSnap) => {
                         let data = docSnap.data();
                         data.id = docSnap.id;
+                        
+                        // AUTO CLEANUP 30 DAYS
+                        if (data.deletedAt && data.deletedAt.toMillis) {
+                            const ageMs = now - data.deletedAt.toMillis();
+                            if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+                                docSnap.ref.delete().catch(()=>{});
+                                return;
+                            }
+                        }
+                        
                         rawNotesData.push(data);
                         allNotesData[docSnap.id] = data;
                     });
                     renderNotes();
+                    if(!document.getElementById('trashModal').classList.contains('hidden')) window.renderTrash && window.renderTrash();
                 }
             });
         };
@@ -1838,7 +1889,7 @@
             container.innerHTML = ''; 
 
             let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
-            let filteredDocs = [...baseData];
+            let filteredDocs = baseData.filter(n => !n.deletedAt);
 
             if (currentFilter !== 'all') {
                 filteredDocs = filteredDocs.filter(n => (n.color || 'yellow') === currentFilter);
@@ -1884,14 +1935,13 @@
                     previewContent = note.content || '';
                 }
 
-                const isSelected = window.selectedNotes.has(note.id) ? 'selected-note' : '';
+                const isSelected = window.selectedNotes.has(note.id);
                 const noteEl = document.createElement('div');
-                
                 let heightClass = '';
                 let cardHTML = '';
-
-                const colorBox = `<div class="w-[18px] h-[18px] rounded-sm inline-block mr-2 border border-black border-opacity-50 flex-shrink-0" style="background-color: ${pastelColorMap[note.color || 'yellow']};"></div>`;
-                
+                const colorBox = `<div onclick="event.stopPropagation(); window.toggleSelectNote('${note.id}')" class="w-[18px] h-[18px] rounded-sm inline-block mr-2 border border-black border-opacity-50 flex-shrink-0 cursor-pointer flex items-center justify-center text-[11px]" style="background-color: ${pastelColorMap[note.color || 'yellow']};">
+                    ${isSelected ? '<i class="fas fa-check text-black opacity-70"></i>' : ''}
+                </div>`;
                 if (currentView === 'list') {
                     heightClass = 'min-h-[45px]';
                     cardHTML = `
@@ -1946,17 +1996,10 @@
                         </div>
                     `;
                 }
-
-                noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start ${colorClass} ${isSelected} ${heightClass}`;
+                noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start ${colorClass} ${isSelected ? 'selected-note' : ''} ${heightClass}`;
                 noteEl.innerHTML = cardHTML;
                 
-                noteEl.addEventListener('touchstart', (e) => startPress(e, note.id), {passive: true});
-                noteEl.addEventListener('touchend', () => cancelPress());
-                noteEl.addEventListener('mousedown', (e) => startPress(e, note.id));
-                noteEl.addEventListener('mouseup', () => cancelPress());
-                noteEl.addEventListener('mouseleave', () => cancelPress());
                 noteEl.addEventListener('click', (e) => handleNoteClick(e, note.id));
-
                 container.appendChild(noteEl);
             });
             updateFilterBorders();
@@ -1992,38 +2035,36 @@
         window.applySort = function(type) { currentSort = type; closeSettingsModal(); renderNotes(); }
         window.applyView = function(viewType) { currentView = viewType; closeSettingsModal(); renderNotes(); }
 
-        // MULTI-SELECT INTERAKSI
-        function startPress(e, noteId) {
-            isLongPress = false;
-            pressTimer = setTimeout(() => { isLongPress = true; if (!window.isMultiSelectMode) activateMultiSelect(noteId); }, 500);
+        window.toggleSelectNote = function(noteId) {
+            if(!window.isMultiSelectMode) {
+                 window.isMultiSelectMode = true;
+                 document.getElementById('mainHeader').classList.add('hidden');
+                 document.getElementById('multiSelectHeader').classList.remove('hidden');
+            }
+            if (window.selectedNotes.has(noteId)) {
+                 window.selectedNotes.delete(noteId);
+                 if (window.selectedNotes.size === 0) cancelMultiSelect();
+            } else window.selectedNotes.add(noteId);
+            
+            updateMultiSelectHeader(); renderNotes();
         }
-        function cancelPress() { clearTimeout(pressTimer); }
 
         function handleNoteClick(e, noteId) {
-            if (isLongPress) return;
             if (window.isMultiSelectMode) {
-                if (window.selectedNotes.has(noteId)) {
-                    window.selectedNotes.delete(noteId);
-                    e.currentTarget.classList.remove('selected-note');
-                    if (window.selectedNotes.size === 0) cancelMultiSelect();
-                } else {
-                    window.selectedNotes.add(noteId);
-                    e.currentTarget.classList.add('selected-note');
-                }
-                updateMultiSelectHeader();
+                window.toggleSelectNote(noteId);
             } else { openEditor(noteId); }
         }
 
         window.activateMultiSelect = function(firstNoteId) {
             window.isMultiSelectMode = true; window.selectedNotes.clear(); window.selectedNotes.add(firstNoteId);
             document.getElementById('mainHeader').classList.add('hidden'); document.getElementById('multiSelectHeader').classList.remove('hidden');
-            updateMultiSelectHeader();
+            updateMultiSelectHeader(); renderNotes();
         }
 
         window.cancelMultiSelect = function() {
             window.isMultiSelectMode = false; window.selectedNotes.clear();
             document.getElementById('mainHeader').classList.remove('hidden'); document.getElementById('multiSelectHeader').classList.add('hidden');
-            document.querySelectorAll('.selected-note').forEach(el => el.classList.remove('selected-note'));
+            renderNotes();
         }
 
         function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
@@ -2040,18 +2081,24 @@
 
             if(hasLocked) showToast("Beberapa catatan terkunci dan tidak akan dihapus. Buka kunci terlebih dahulu jika ingin menghapus.");
             if(idsToDelete.length === 0) { cancelMultiSelect(); return; }
-            if(!confirm(`Hapus ${idsToDelete.length} catatan?`)) return;
+            if(!confirm(`Pindah ${idsToDelete.length} catatan ke Tong Sampah?`)) return;
             
             cancelMultiSelect();
+            const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
             for(const id of idsToDelete) { 
-                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
+                const noteObj = allNotesData[id];
+                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
                 else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
-                     const path = allNotesData[id].fullPath;
-                     if(path) await fsDb.doc(path).delete();
+                     const path = noteObj.fullPath;
+                     if(path) await fsDb.doc(path).update(payload);
                 }
-                else await notesCollectionRef.doc(id).delete();
+                else await notesCollectionRef.doc(id).update(payload);
+                
+                // Optimistic UI
+                if(noteObj) noteObj.deletedAt = new Date();
             }
-            if(window.currentAdminTab === 'semua') switchAdminTab('semua');
+            renderNotes();
+            showToast(`${idsToDelete.length} catatan dipindah ke Tong Sampah.`);
         }
 
         window.copySelectedNotes = async function() {
@@ -2374,34 +2421,136 @@
                 toggleModal('editorMenuModal');
                 return;
             }
-            if(confirm('Hapus/Buang catatan ini?')) {
+            if(confirm('Pindah catatan ini ke Tong Sampah?')) {
                 if(currentEditingId) {
                     try {
-                        if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).delete();
+                        const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                        if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).update(payload);
                         else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
                             const path = allNotesData[currentEditingId].fullPath;
                             if(path) {
-                                await fsDb.doc(path).delete();
-                                showToast("Dihapus dari server publik.");
+                                await fsDb.doc(path).update(payload);
+                                showToast("Dipindah ke Tong Sampah publik.");
                             } else {
                                 showToast("Error: Jalur data tidak ditemukan!"); return;
                             }
                         }
-                        else await notesCollectionRef.doc(currentEditingId).delete();
+                        else await notesCollectionRef.doc(currentEditingId).update(payload);
 
                         // Optimistic UI update
-                        delete allNotesData[currentEditingId];
-                        if(window.extraAdminData) {
-                            window.extraAdminData = window.extraAdminData.filter(n => n.id !== currentEditingId);
-                        }
+                        if(allNotesData[currentEditingId]) allNotesData[currentEditingId].deletedAt = new Date();
                     } catch(e) {
-                        showToast("Gagal menghapus: " + e.message);
+                        showToast("Gagal memindah ke tong sampah: " + e.message);
                         return; // don't close editor if delete failed
                     }
                 }
                 toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
-                if(window.currentAdminTab !== 'pribadi') renderNotes(); // refresh UI quickly
+                renderNotes(); // refresh UI quickly
             }
+        }
+
+        // ================= TONG SAMPAH (TRASH) =================
+        window.openTrash = function() {
+            toggleModal('fabMenuModal');
+            document.getElementById('trashModal').classList.remove('hidden');
+            renderTrash();
+        }
+
+        window.renderTrash = function() {
+            const container = document.getElementById('trashContainer');
+            container.innerHTML = '';
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if(!baseData) baseData = [];
+            let trashDocs = baseData.filter(n => n.deletedAt);
+            
+            if(trashDocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10">Tong Sampah kosong.</p>';
+                return;
+            }
+
+            trashDocs.sort((a, b) => (b.deletedAt?.toMillis ? b.deletedAt.toMillis() : Date.now()) - (a.deletedAt?.toMillis ? a.deletedAt.toMillis() : 0));
+
+            trashDocs.forEach(note => {
+                const el = document.createElement('div');
+                el.className = 'bg-white p-3 rounded shadow-sm border border-gray-200 flex justify-between items-center';
+                const title = note.title || (note.type==='checklist' ? 'Daftar' : 'Catatan Tanpa Judul');
+                let delDate = 'Tidak diketahui';
+                if(note.deletedAt && note.deletedAt.toDate) {
+                    delDate = note.deletedAt.toDate().toLocaleDateString('id-ID');
+                }
+                el.innerHTML = `
+                    <div class="overflow-hidden flex-1 pr-2">
+                        <h3 class="text-md font-bold truncate opacity-60 line-through">${title}</h3>
+                        <p class="text-xs text-red-500 mt-1">Dihapus pada: ${delDate}</p>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="restoreNote('${note.id}')" class="w-8 h-8 rounded bg-teal-100 text-teal-700 flex items-center justify-center hover:bg-teal-200" title="Pulihkan"><i class="fas fa-undo"></i></button>
+                        <button onclick="permanentDeleteNote('${note.id}')" class="w-8 h-8 rounded bg-red-100 text-red-700 flex items-center justify-center hover:bg-red-200" title="Hapus Permanen"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        window.restoreNote = async function(id) {
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
+            const noteObj = allNotesData[id];
+            if(!noteObj) return;
+
+            const payload = { deletedAt: firebase.firestore.FieldValue.delete() };
+            if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
+            else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                 if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).update(payload);
+            }
+            else await notesCollectionRef.doc(id).update(payload);
+            
+            noteObj.deletedAt = null;
+            renderTrash(); renderNotes();
+            showToast("Catatan dipulihkan.");
+        }
+
+        window.permanentDeleteNote = async function(id) {
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
+            if(!confirm("Hapus permanen catatan ini? Tidak dapat dikembalikan!")) return;
+            const noteObj = allNotesData[id];
+            
+            if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
+            else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                 if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+            }
+            else await notesCollectionRef.doc(id).delete();
+            
+            delete allNotesData[id];
+            if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => n.id !== id);
+            if(window.currentAdminTab === 'pribadi') rawNotesData = rawNotesData.filter(n => n.id !== id);
+
+            renderTrash();
+            showToast("Dihapus permanen.");
+        }
+
+        window.emptyTrash = async function() {
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if(!baseData) baseData = [];
+            let trashDocs = baseData.filter(n => n.deletedAt);
+            if(trashDocs.length === 0) return;
+            if(!confirm(`Hapus permanen ${trashDocs.length} catatan dari tong sampah?`)) return;
+
+            for(const noteObj of trashDocs) {
+                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(noteObj.id).delete();
+                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                     if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                }
+                else await notesCollectionRef.doc(noteObj.id).delete();
+                
+                delete allNotesData[noteObj.id];
+            }
+            
+            if(window.currentAdminTab === 'pribadi') rawNotesData = rawNotesData.filter(n => !n.deletedAt);
+            if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => !n.deletedAt);
+            
+            renderTrash();
+            showToast("Tong sampah dikosongkan.");
         }
 
         window.saveAndCloseEditor = async function() {
@@ -2482,4 +2631,3 @@
 </script>
 </body>
 </html>
-
