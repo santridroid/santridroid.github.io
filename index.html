@@ -80,14 +80,14 @@
         /* === NOTES VIEW STYLES === */
         #notes-view { display: none; }
         #notes-view ::-webkit-scrollbar { display: none; }
-        .color-red { background-color: #fad2e1; color: #333 !important; }
-        .color-orange { background-color: #ffe5b4; color: #333 !important; }
-        .color-yellow { background-color: #fff3cd; color: #333 !important; }
-        .color-green { background-color: #d4ebd0; color: #333 !important; }
-        .color-blue { background-color: #bde0fe; color: #333 !important; }
-        .color-purple { background-color: #d8b4e2; color: #333 !important; }
-        .color-black { background-color: #ced4da; color: #333 !important; }
-        .color-gray { background-color: #f8f9fa; color: #333 !important; }
+        .color-red { background-color: #ff7eb3; color: #333 !important; }
+        .color-orange { background-color: #ffb142; color: #333 !important; }
+        .color-yellow { background-color: #ffda79; color: #333 !important; }
+        .color-green { background-color: #33d9b2; color: #333 !important; }
+        .color-blue { background-color: #34ace0; color: #333 !important; }
+        .color-purple { background-color: #cd84f1; color: #333 !important; }
+        .color-black { background-color: #84817a; color: #fff !important; }
+        .color-gray { background-color: #d1ccc0; color: #333 !important; }
         .color-white { background-color: #ffffff; color: #333 !important; }
         .note-card { transition: transform 0.1s; }
         .note-card:active { transform: scale(0.98); }
@@ -248,10 +248,16 @@
         <button onclick="toggleSearch()" class="p-2 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
     </div>
 
-    <div id="adminTabsContainer" class="hidden flex bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
-        <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
-        <button id="tabSentToAdmin" onclick="switchAdminTab('kiriman')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">KIRIMAN MASUK</button>
-        <button id="tabAllNotes" onclick="switchAdminTab('semua')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">SEMUA DATA</button>
+    <div id="adminTabsContainer" class="hidden flex-col bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
+        <div class="flex w-full">
+            <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
+            <button id="tabSentToAdmin" onclick="switchAdminTab('kiriman')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">KIRIMAN MASUK</button>
+            <button id="tabAllNotes" onclick="switchAdminTab('semua')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">SEMUA DATA</button>
+        </div>
+        <div id="adminEditToggleContainer" class="hidden p-2 bg-red-50 text-center border-t border-red-100 flex justify-between items-center w-full">
+            <span class="text-xs text-red-600 font-medium">Mode Baca (Read-Only) Aktif</span>
+            <button onclick="toggleSemuaEditMode()" id="btnToggleSemuaEdit" class="text-xs bg-red-600 text-white px-3 py-1 rounded shadow-sm">Aktifkan Edit</button>
+        </div>
     </div>
 
     <header id="multiSelectHeader" class="hidden bg-teal-600 shadow-md p-4 flex justify-between items-center z-10 text-white w-full">
@@ -301,8 +307,8 @@
     </div>
 
     <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow transition-colors duration-300">
-        <div class="flex items-center p-2 bg-black bg-opacity-10">
-            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-check text-xl"></i></button>
+        <div class="flex items-center p-2 pt-6 bg-black bg-opacity-10">
+            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-arrow-left text-xl"></i></button>
             <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-transparent ml-2 font-semibold text-lg outline-none text-inherit placeholder-gray-500 placeholder-opacity-70">
             <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-6 h-6 rounded bg-[#fff3cd] border border-gray-400 ml-2 shadow-sm"></button>
             <button onclick="openEditorMenu()" class="ml-4 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
@@ -368,28 +374,28 @@
 
     <div id="editorColorModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorColorModal')">
         <div class="absolute top-14 right-10 bg-white rounded-lg shadow-xl p-3 grid grid-cols-3 gap-2 border border-gray-200" onclick="event.stopPropagation()">
-            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#fad2e1] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ffe5b4] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
-            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#d4ebd0] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#bde0fe] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#d8b4e2] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#ced4da] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#ff7eb3] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ffb142] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#ffda79] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#33d9b2] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#34ace0] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#cd84f1] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#84817a] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#d1ccc0] rounded cursor-pointer"></div>
             <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
         </div>
     </div>
     
     <div id="multiColorModal" class="hidden fixed inset-0 z-[60] bg-black bg-opacity-30 flex items-center justify-center" onclick="toggleModal('multiColorModal')">
         <div class="bg-white rounded-lg shadow-xl p-4 grid grid-cols-3 gap-3 border border-gray-200" onclick="event.stopPropagation()">
-            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#fad2e1] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ffe5b4] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#d4ebd0] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#bde0fe] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#d8b4e2] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#ced4da] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#f8f9fa] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#ff7eb3] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ffb142] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#ffda79] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#33d9b2] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#34ace0] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#cd84f1] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#84817a] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#d1ccc0] rounded cursor-pointer"></div>
             <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
         </div>
     </div>
@@ -404,14 +410,14 @@
 
             <div id="content-warna" class="hidden">
                 <div class="grid grid-cols-3 gap-2 mt-2">
-                    <div onclick="applyFilter('red')" class="h-10 bg-[#fad2e1] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('orange')" class="h-10 bg-[#ffe5b4] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('yellow')" class="h-10 bg-[#fff3cd] rounded border border-gray-300 cursor-pointer transition-all"></div>
-                    <div onclick="applyFilter('green')" class="h-10 bg-[#d4ebd0] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('blue')" class="h-10 bg-[#bde0fe] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('purple')" class="h-10 bg-[#d8b4e2] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('black')" class="h-10 bg-[#ced4da] rounded cursor-pointer border border-transparent transition-all"></div>
-                    <div onclick="applyFilter('gray')" class="h-10 bg-[#f8f9fa] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('red')" class="h-10 bg-[#ff7eb3] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('orange')" class="h-10 bg-[#ffb142] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('yellow')" class="h-10 bg-[#ffda79] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                    <div onclick="applyFilter('green')" class="h-10 bg-[#33d9b2] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('blue')" class="h-10 bg-[#34ace0] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('purple')" class="h-10 bg-[#cd84f1] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('black')" class="h-10 bg-[#84817a] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('gray')" class="h-10 bg-[#d1ccc0] rounded cursor-pointer border border-transparent transition-all"></div>
                     <div onclick="applyFilter('white')" class="h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer transition-all"></div>
                 </div>
                 <p class="text-[10px] text-gray-400 text-center mt-3">*Klik warna yang sama untuk membatalkan filter</p>
@@ -597,8 +603,10 @@
             switchAdminTab('pribadi');
         } else if (typeof currentFilter !== 'undefined' && currentFilter !== 'all') {
             applyFilter(currentFilter); // Toggling clears the filter
+        } else if (!document.getElementById('editorPage').classList.contains('hidden')) {
+            saveAndCloseEditor();
         } else {
-            if (typeof renderNotes === 'function') renderNotes();
+            switchToSmsView();
         }
     }
 
@@ -1423,8 +1431,14 @@
         const fsDb = firebase.firestore();
         // auth already initialized globally
 
-        let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: false };
-        try { if(localStorage.getItem('ntSettings')) globalSettings = JSON.parse(localStorage.getItem('ntSettings')); } catch(e){}
+        let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: true };
+        try { 
+            if(localStorage.getItem('ntSettings')) {
+                let parsed = JSON.parse(localStorage.getItem('ntSettings'));
+                if (parsed.autoBackup === undefined) parsed.autoBackup = true;
+                globalSettings = parsed;
+            }
+        } catch(e){}
         
         window.saveGlobalSettings = function() {
             globalSettings.autoBackup = document.getElementById('autoBackupCheckbox').checked;
@@ -1470,11 +1484,30 @@
         window.currentAdminTab = 'pribadi'; // 'pribadi', 'kiriman', 'semua'
         window.extraAdminData = []; 
 
+        window.semuaEditMode = false;
+        window.toggleSemuaEditMode = function() {
+            window.semuaEditMode = !window.semuaEditMode;
+            const container = document.getElementById('adminEditToggleContainer');
+            const btn = document.getElementById('btnToggleSemuaEdit');
+            if(window.semuaEditMode) {
+                container.querySelector('span').innerText = "Mode Edit & Hapus Aktif (HATI-HATI)";
+                btn.innerText = "Matikan Edit";
+                btn.classList.replace('bg-red-600', 'bg-gray-600');
+            } else {
+                container.querySelector('span').innerText = "Mode Baca (Read-Only) Aktif";
+                btn.innerText = "Aktifkan Edit";
+                btn.classList.replace('bg-gray-600', 'bg-red-600');
+            }
+        }
+
         window.switchAdminTab = async function(tabId) {
             window.currentAdminTab = tabId;
             document.getElementById('tabAdminNotes').className = "flex-1 py-3 transition-colors " + (tabId==='pribadi' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
             document.getElementById('tabSentToAdmin').className = "flex-1 py-3 transition-colors " + (tabId==='kiriman' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
             document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='semua' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            
+            document.getElementById('adminEditToggleContainer').classList.toggle('hidden', tabId !== 'semua');
+            if (tabId === 'semua' && window.semuaEditMode) toggleSemuaEditMode(); // Reset to read-only on switch
 
             if(tabId === 'pribadi') {
                  renderNotes();
@@ -1491,7 +1524,7 @@
                  try {
                      const qSnap = await fsDb.collectionGroup("notes").get();
                      window.extraAdminData = [];
-                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; obj.fullPath = d.ref.path; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
                  } catch(e) { showToast("Gagal memuat semua data. Butuh index collectionGroup di API Firebase."); window.extraAdminData = []; }
                  renderNotes();
             }
@@ -1505,7 +1538,6 @@
                 document.getElementById('loginFormContainer').classList.add('hidden');
                 document.getElementById('loggedInUserText').innerText = user.email || user.displayName || 'Pengguna';
                 document.getElementById('loggedInRoleText').innerText = isAdmin ? 'Admin Utama' : 'Akun Pengguna';
-                document.getElementById('syncStatus').innerText = 'Online (' + (user.displayName?user.displayName.split(' ')[0]:'User') + ')';
                 document.getElementById('topLoginBtn').classList.add('text-teal-600');
                 if(isAdmin) { 
                     document.getElementById('editAboutBtn').classList.remove('hidden'); 
@@ -1515,12 +1547,12 @@
                 isAdmin = false;
                 document.getElementById('loggedInContainer').classList.add('hidden');
                 document.getElementById('loginFormContainer').classList.remove('hidden');
-                document.getElementById('syncStatus').innerText = 'Offline';
                 document.getElementById('topLoginBtn').classList.remove('text-teal-600');
                 document.getElementById('editAboutBtn').classList.add('hidden');
                 document.getElementById('adminTabsContainer').classList.add('hidden');
-                window.currentAdminTab = 'pribadi'; renderNotes();
+                window.currentAdminTab = 'pribadi';
             }
+            if(typeof attachNotesListener === 'function') attachNotesListener();
         });
 
         // FUNGSI AUTH & LOGIN
@@ -1596,17 +1628,16 @@
 
         window.syncNotes = async function() {
             if(!noteAuthUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk menyinkronkan"); }
-            showToast("Menyinkronkan...");
-            const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+            showToast("Menyinkronkan dari perangkat ke akun...");
             try {
-                const qSnap = await userNotesRef.get();
-                for(let dSnap of qSnap.docs) {
-                     if(!allNotesData[dSnap.id]) {
-                         await fsDb.collection("devices").doc(deviceId).collection("notes").doc(dSnap.id).set(dSnap.data());
-                     }
+                const localSnap = await fsDb.collection("devices").doc(deviceId).collection("notes").get();
+                const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+                let count = 0;
+                for(let dSnap of localSnap.docs) {
+                     await userNotesRef.doc(dSnap.id).set(dSnap.data());
+                     count++;
                 }
-                for(let id in allNotesData) { await userNotesRef.doc(id).set(allNotesData[id]); }
-                showToast("Sinkronisasi Selesai!");
+                showToast(`Sinkronisasi Selesai! ${count} catatan tersalin ke akun.`);
             } catch(e){ showToast("Gagal menyinkronkan"); }
             toggleModal('appMenuModal');
         }
@@ -1723,14 +1754,13 @@
 
         let deviceId = localStorage.getItem('santridroid_device_id');
         if (!deviceId) { deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(); localStorage.setItem('santridroid_device_id', deviceId); }
-        const notesCollectionRef = fsDb.collection("devices").doc(deviceId).collection("notes");
 
         let rawNotesData = []; 
         let allNotesData = {}; 
         
         let currentFilter = 'all';
         let currentSort = 'updatedAt';
-        let currentView = 'detail'; 
+        let currentView = 'list'; 
 
         let currentEditingId = null;
         let currentEditingType = 'text';
@@ -1764,18 +1794,39 @@
             }, 3000);
         };
 
-        // REALTIME LISTENER
-        notesCollectionRef.onSnapshot( (snapshot) => {
-            rawNotesData = [];
-            allNotesData = {};
-            snapshot.forEach((docSnap) => {
-                let data = docSnap.data();
-                data.id = docSnap.id;
-                rawNotesData.push(data);
-                allNotesData[docSnap.id] = data;
+        let notesCollectionRef;
+        let activeNotesListener = null;
+
+        window.attachNotesListener = function() {
+            if(activeNotesListener) {
+                activeNotesListener(); // unsubscribe
+                activeNotesListener = null;
+            }
+            
+            if(noteAuthUser) {
+                notesCollectionRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+                document.getElementById('syncStatus').innerText = "Online (Akun)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs text-white bg-teal-500 px-2 rounded";
+            } else {
+                notesCollectionRef = fsDb.collection("devices").doc(deviceId).collection("notes");
+                document.getElementById('syncStatus').innerText = "Offline (Perangkat)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs text-gray-500 bg-gray-200 px-2 rounded";
+            }
+
+            activeNotesListener = notesCollectionRef.onSnapshot( (snapshot) => {
+                if (window.currentAdminTab === 'pribadi') {
+                    rawNotesData = [];
+                    allNotesData = {};
+                    snapshot.forEach((docSnap) => {
+                        let data = docSnap.data();
+                        data.id = docSnap.id;
+                        rawNotesData.push(data);
+                        allNotesData[docSnap.id] = data;
+                    });
+                    renderNotes();
+                }
             });
-            renderNotes();
-        });
+        };
 
         // FUNGSI RENDER
         function renderNotes() {
@@ -1835,19 +1886,27 @@
                 let heightClass = '';
                 let cardHTML = '';
 
+                const colorBox = `<div class="w-[18px] h-[18px] rounded-sm inline-block mr-2 border border-black border-opacity-50 flex-shrink-0" style="background-color: ${pastelColorMap[note.color || 'yellow']};"></div>`;
+                
                 if (currentView === 'list') {
                     heightClass = 'min-h-[45px]';
                     cardHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <h3 class="text-lg truncate font-medium flex-1 pr-2 text-inherit">${noteTitle}</h3>
-                            <span class="text-[10px] font-mono opacity-70 whitespace-nowrap flex items-center gap-1">${timeString} ${lockIcon}</span>
+                            <div class="flex items-center flex-1 pr-2 overflow-hidden text-inherit">
+                                ${colorBox}
+                                <h3 class="text-lg truncate font-medium">${noteTitle}</h3>
+                            </div>
+                            <span class="text-[10px] font-mono opacity-70 whitespace-nowrap flex items-center gap-1 flex-shrink-0">${timeString} ${lockIcon}</span>
                         </div>
                     `;
                 } else if (currentView === 'detail') {
                     heightClass = 'min-h-[70px]';
                     cardHTML = `
                         <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
-                            <h3 class="text-lg truncate font-medium mb-1">${noteTitle}</h3>
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-lg truncate font-medium">${noteTitle}</h3>
+                            </div>
                             <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
                         </div>
                         <div class="w-full text-right mt-1">
@@ -1858,7 +1917,10 @@
                     heightClass = 'h-24';
                     cardHTML = `
                         <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
-                            <h3 class="text-sm truncate font-medium mb-1">${noteTitle}</h3>
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-sm truncate font-medium">${noteTitle}</h3>
+                            </div>
                             <p class="text-[10px] opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
                         </div>
                         <div class="w-full text-right mt-1">
@@ -1869,7 +1931,10 @@
                     heightClass = 'h-36';
                     cardHTML = `
                         <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
-                            <h3 class="text-base truncate font-medium mb-1">${noteTitle}</h3>
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-base truncate font-medium">${noteTitle}</h3>
+                            </div>
                             <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-4">${previewContent}</p>
                         </div>
                         <div class="w-full text-right mt-1">
@@ -1960,7 +2025,7 @@
         function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
 
         window.deleteSelectedNotes = async function() {
-            if(window.currentAdminTab === 'semua') return showToast("Mode Read-Only. Tidak dapat menghapus dari SEMUA DATA.");
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only. Tidak dapat menghapus dari SEMUA DATA tanpa mode edit.");
 
             let hasLocked = false;
             const idsToDelete = [];
@@ -1975,9 +2040,14 @@
             
             cancelMultiSelect();
             for(const id of idsToDelete) { 
-                if(window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes".delete().doc(id));
-                else await fsDb.collection("devices".delete().doc(deviceId).collection("notes").doc(id)); 
+                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
+                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                     const path = allNotesData[id].fullPath;
+                     if(path) await fsDb.doc(path).delete();
+                }
+                else await notesCollectionRef.doc(id).delete();
             }
+            if(window.currentAdminTab === 'semua') switchAdminTab('semua');
         }
 
         window.copySelectedNotes = async function() {
@@ -2000,10 +2070,32 @@
                  globalSettings.defaultColor = color; saveGlobalSettings();
                  showToast("Warna default catatan diubah."); return;
             }
-            const idsToChange = Array.from(window.selectedNotes); cancelMultiSelect();
+
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only. Tidak dapat mengubah warna tanpa mode edit.");
+
+            const idsToChange = Array.from(window.selectedNotes); 
+            cancelMultiSelect();
+            
             for(const id of idsToChange) {
-                await fsDb.collection("devices").doc(deviceId).collection("notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                const noteObj = allNotesData[id];
+                if (!noteObj) continue;
+
+                noteObj.color = color; // optimistic update
+                if (window.extraAdminData) {
+                    let ex = window.extraAdminData.find(n => n.id === id);
+                    if (ex) ex.color = color;
+                }
+
+                if (window.currentAdminTab === 'kiriman') {
+                    await fsDb.collection("admin_notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                    const path = noteObj.fullPath;
+                    if(path) await fsDb.doc(path).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else {
+                    await notesCollectionRef.doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }
             }
+            if (window.currentAdminTab !== 'pribadi') renderNotes(); // refresh UI manually since no live listener
         }
 
         // FUNGSI BAGIKAN & TERIMA
@@ -2180,9 +2272,9 @@
         }
 
         const pastelColorMap = {
-            'red': '#fad2e1', 'orange': '#ffe5b4', 'yellow': '#fff3cd', 
-            'green': '#d4ebd0', 'blue': '#bde0fe', 'purple': '#d8b4e2', 
-            'black': '#ced4da', 'gray': '#f8f9fa', 'white': '#ffffff'
+            'red': '#ff7eb3', 'orange': '#ffb142', 'yellow': '#ffda79', 
+            'green': '#33d9b2', 'blue': '#34ace0', 'purple': '#cd84f1', 
+            'black': '#84817a', 'gray': '#d1ccc0', 'white': '#ffffff'
         };
 
         function applyEditorTheme() {
@@ -2219,8 +2311,19 @@
 
         window.createNewNote = function(type) {
             document.getElementById('fabMenuModal').classList.add('hidden');
+            
+            // Automatically switch to personal notes when creating a new note to prevent saving into admin views
+            if(window.currentAdminTab && window.currentAdminTab !== 'pribadi') {
+                switchAdminTab('pribadi');
+            }
+
             currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
             document.getElementById('editorTitle').value = ''; document.getElementById('textEditorBody').value = '';
+            
+            // Reset read-only states in case they were locked by admin view
+            document.getElementById('editorTitle').readOnly = false;
+            document.getElementById('textEditorBody').readOnly = false;
+
             document.getElementById('checklistItemsContainer').innerHTML = ''; document.getElementById('editorTimestamp').innerText = 'Baru saja';
             if(type === 'checklist') addChecklistItemDOM('', false, false);
             undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(type);
@@ -2238,7 +2341,7 @@
             }
             
             // Check editing permissions based on current admin tab
-            if(window.currentAdminTab === 'semua') {
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) {
                  document.getElementById('editorTitle').readOnly = true;
                  document.getElementById('textEditorBody').readOnly = true;
                  // lock all checklists
@@ -2248,6 +2351,7 @@
                  document.getElementById('editorTitle').readOnly = false;
                  document.getElementById('textEditorBody').readOnly = false;
                  if(window.currentAdminTab === 'kiriman') showToast("Mode Edit Admin: Merubah file kiriman ini akan menyimpan perubahan.");
+                 else if(window.currentAdminTab === 'semua' && window.semuaEditMode) showToast("Peringatan: Anda sedang mengubah data publik secara langsung!");
             }
 
             undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
@@ -2260,7 +2364,7 @@
         }
 
         window.deleteCurrentNote = async function() {
-            if(window.currentAdminTab === 'semua') return showToast("Tidak dapat menghapus data dari Semua Data.");
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Tidak dapat menghapus data dari Semua Data tanpa mode Edit.");
             if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
                 showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
                 toggleModal('editorMenuModal');
@@ -2268,18 +2372,39 @@
             }
             if(confirm('Hapus/Buang catatan ini?')) {
                 if(currentEditingId) {
-                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).delete();
-                    else await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).delete();
+                    try {
+                        if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).delete();
+                        else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                            const path = allNotesData[currentEditingId].fullPath;
+                            if(path) {
+                                await fsDb.doc(path).delete();
+                                showToast("Dihapus dari server publik.");
+                            } else {
+                                showToast("Error: Jalur data tidak ditemukan!"); return;
+                            }
+                        }
+                        else await notesCollectionRef.doc(currentEditingId).delete();
+
+                        // Optimistic UI update
+                        delete allNotesData[currentEditingId];
+                        if(window.extraAdminData) {
+                            window.extraAdminData = window.extraAdminData.filter(n => n.id !== currentEditingId);
+                        }
+                    } catch(e) {
+                        showToast("Gagal menghapus: " + e.message);
+                        return; // don't close editor if delete failed
+                    }
                 }
                 toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
+                if(window.currentAdminTab !== 'pribadi') renderNotes(); // refresh UI quickly
             }
         }
 
         window.saveAndCloseEditor = async function() {
             if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
             
-            // Prevent saving if trying to save from 'semua' database public
-            if(window.currentAdminTab === 'semua') {
+            // Prevent saving if trying to save from 'semua' database public without edit mode
+            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) {
                 document.getElementById('editorPage').classList.add('hidden');
                 return;
             }
@@ -2303,7 +2428,11 @@
             try {
                 if (currentEditingId) {
                     if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).update(noteData);
-                    else await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).update(noteData);
+                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                        const path = allNotesData[currentEditingId].fullPath;
+                        if(path) await fsDb.doc(path).update(noteData);
+                    }
+                    else await notesCollectionRef.doc(currentEditingId).update(noteData);
                 }
                 else { 
                     noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
@@ -2313,11 +2442,6 @@
                     currentEditingId = added.id; 
                 }
             } catch (error) { console.error("Gagal menyimpan:", error); }
-            
-            if(globalSettings.autoBackup && noteAuthUser && currentEditingId) {
-                const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
-                userNotesRef.doc(currentEditingId).set(noteData).catch(()=>{});
-            }
             
             document.getElementById('editorPage').classList.add('hidden');
         }
