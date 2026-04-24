@@ -230,8 +230,9 @@
 <div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
 
 
-    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 flex justify-between items-center z-10 transition-all">
-        <button onclick="switchToSmsView()" class="text-gray-600 text-xl mr-3 hover:text-teal-600" title="Kembali ke SMS"><i class="fas fa-arrow-left"></i></button><h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
+    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 pt-8 flex justify-between items-center z-10 transition-all">
+        <button onclick="notesInternalBack()" class="text-gray-600 text-xl mr-3 hover:text-teal-600" title="Kembali"><i class="fas fa-arrow-left"></i></button>
+        <h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
             <span class="font-light text-gray-500">Santridroid</span>Note </span>
         </h1>
         <div class="flex space-x-4 text-gray-600 text-lg">
@@ -276,6 +277,10 @@
 
     <button onclick="toggleModal('fabMenuModal')" class="absolute bottom-20 right-6 bg-teal-600 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 z-10">
         <i class="fas fa-plus"></i>
+    </button>
+    
+    <button onclick="switchToSmsView()" class="absolute bottom-20 left-6 bg-blue-500 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-blue-600 z-10" title="Kembali ke SMS">
+        <i class="fas fa-comment-sms"></i>
     </button>
 
     <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 w-full shrink-0 z-10 relative">
@@ -583,6 +588,18 @@
         document.body.style.display = 'flex';
         document.body.style.justifyContent = 'center';
         document.body.style.backgroundColor = '#eef2f6';
+    }
+
+    function notesInternalBack() {
+        if (!document.getElementById('searchBar').classList.contains('hidden')) {
+            toggleSearch(false);
+        } else if (window.currentAdminTab && window.currentAdminTab !== 'pribadi') {
+            switchAdminTab('pribadi');
+        } else if (typeof currentFilter !== 'undefined' && currentFilter !== 'all') {
+            applyFilter(currentFilter); // Toggling clears the filter
+        } else {
+            if (typeof renderNotes === 'function') renderNotes();
+        }
     }
 
     // ================= PENGATURAN AWAL =================
@@ -2251,8 +2268,8 @@
             }
             if(confirm('Hapus/Buang catatan ini?')) {
                 if(currentEditingId) {
-                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes".delete().doc(currentEditingId));
-                    else await fsDb.collection("devices".delete().doc(deviceId).collection("notes").doc(currentEditingId));
+                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).delete();
+                    else await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).delete();
                 }
                 toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
             }
@@ -2285,14 +2302,14 @@
 
             try {
                 if (currentEditingId) {
-                    if (window.currentAdminTab === 'kiriman') await updateDoc(fsDb.collection("admin_notes").doc(currentEditingId), noteData);
-                    else await updateDoc(fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId), noteData);
+                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).update(noteData);
+                    else await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).update(noteData);
                 }
                 else { 
                     noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                     let added;
-                    if (window.currentAdminTab === 'kiriman') added = await addDoc(fsDb.collection("admin_notes"), noteData);
-                    else added = await addDoc(notesCollectionRef, noteData); 
+                    if (window.currentAdminTab === 'kiriman') added = await fsDb.collection("admin_notes").add(noteData);
+                    else added = await notesCollectionRef.add(noteData); 
                     currentEditingId = added.id; 
                 }
             } catch (error) { console.error("Gagal menyimpan:", error); }
