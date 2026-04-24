@@ -16,7 +16,7 @@
         body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
         input, select, button, textarea { outline: none; }
         .hidden { display: none !important; }
-        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 20px; padding-top: 10px; }
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 8px; padding-top: 10px; }
         .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
         .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
@@ -285,7 +285,7 @@
         <i class="fas fa-plus"></i>
     </button>
     
-    <button onclick="switchToSmsView()" class="absolute bottom-20 left-6 bg-blue-500 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-blue-600 z-10" title="Kembali ke SMS">
+    <button onclick="switchToSmsView()" class="fixed bottom-20 left-6 bg-blue-500 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-blue-600 z-[60]" title="Kembali ke SMS">
         <i class="fas fa-comment-sms"></i>
     </button>
 
@@ -307,7 +307,8 @@
     </div>
 
     <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow transition-colors duration-300">
-        <div class="flex items-center p-2 pt-6 bg-black bg-opacity-10">
+        <div class="h-10 w-full bg-black bg-opacity-20 flex-shrink-0"></div>
+        <div class="flex items-center p-2 bg-black bg-opacity-10 flex-shrink-0">
             <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-arrow-left text-xl"></i></button>
             <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-transparent ml-2 font-semibold text-lg outline-none text-inherit placeholder-gray-500 placeholder-opacity-70">
             <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-6 h-6 rounded bg-[#fff3cd] border border-gray-400 ml-2 shadow-sm"></button>
@@ -589,6 +590,9 @@
         document.body.style.backgroundColor = '#f0f0f0';
     }
     function switchToSmsView() {
+        if (!document.getElementById('editorPage').classList.contains('hidden')) {
+             saveAndCloseEditor();
+        }
         document.getElementById('notes-view').style.display = 'none';
         document.getElementById('sms-view').style.display = 'block';
         document.body.style.display = 'flex';
