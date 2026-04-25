@@ -630,7 +630,7 @@
     }
     function switchToSmsView() {
         if (!document.getElementById('editorPage').classList.contains('hidden')) {
-             saveAndCloseEditor();
+             if (typeof window.saveEditorData === 'function') window.saveEditorData();
         }
         document.getElementById('notes-view').style.display = 'none';
         document.getElementById('sms-view').style.display = 'block';
@@ -2553,12 +2553,11 @@
             showToast("Tong sampah dikosongkan.");
         }
 
-        window.saveAndCloseEditor = async function() {
+        window.saveEditorData = async function() {
             if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
             
             // Prevent saving if trying to save from 'semua' database public without edit mode
             if(window.currentAdminTab === 'semua' && !window.semuaEditMode) {
-                document.getElementById('editorPage').classList.add('hidden');
                 return;
             }
 
@@ -2566,10 +2565,10 @@
             let content = ''; let items = [];
             if(currentEditingType === 'text') {
                 content = document.getElementById('textEditorBody').value.trim();
-                if(title === '' && content === '') { document.getElementById('editorPage').classList.add('hidden'); return; }
+                if(title === '' && content === '') return;
             } else {
                 items = extractChecklistData();
-                if(title === '' && items.length === 0) { document.getElementById('editorPage').classList.add('hidden'); return; }
+                if(title === '' && items.length === 0) return;
             }
             const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
             if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
@@ -2595,7 +2594,10 @@
                     currentEditingId = added.id; 
                 }
             } catch (error) { console.error("Gagal menyimpan:", error); }
-            
+        };
+
+        window.saveAndCloseEditor = async function() {
+            await window.saveEditorData();
             document.getElementById('editorPage').classList.add('hidden');
         }
 
@@ -2631,3 +2633,4 @@
 </script>
 </body>
 </html>
+
