@@ -500,6 +500,7 @@
                 <p id="loggedInUserText" class="text-gray-800 font-medium mb-1"></p>
                 <p id="loggedInRoleText" class="text-xs text-teal-600 font-semibold mb-4 bg-teal-50 inline-block px-2 py-1 rounded"></p>
                 <button onclick="logout()" class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600 font-semibold shadow-sm">Logout</button>
+                <button onclick="logoutOtherDevices()" class="w-full py-2 mt-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-semibold shadow-sm">Logout di Perangkat Lain</button>
             </div>
         </div>
     </div>
@@ -719,6 +720,10 @@
             const customUsers = snap.val() ? Object.values(snap.val()) : [];
             dynamicUsers = [...new Set([...DEFAULT_USERS, ...customUsers])];
             updateDropdownUI();
+        }, err => {
+            console.error("Error membaca custom_users dari Firebase:", err);
+            showToast("Gagal sinkronisasi User: " + err.message);
+            updateDropdownUI();
         });
 
         updateDropdownUI();
@@ -735,7 +740,15 @@
         if (currentUser && !optionsToRender.includes(currentUser)) {
             optionsToRender.push(currentUser);
         }
-        select.innerHTML = optionsToRender.map(u => `<option value="${u}">${u}</option>`).join('');
+        
+        select.options.length = 0; // Hapus opsi lama dengan aman
+        optionsToRender.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            select.appendChild(opt);
+        });
+        
         select.value = currentUser;
     }
 
@@ -929,7 +942,9 @@
 
         db.ref('custom_users').push(name).then(() => {
             document.getElementById('new-username').value = "";
-            showModal("Sukses", "User berhasil ditambahkan", "alert");
+            showModal("Sukses", "User berhasil ditambahkan ke seluruh perangkat", "alert");
+        }).catch(err => {
+            showModal("Gagal", "Gagal sinkronisasi: " + err.message, "alert");
         });
     }
 
@@ -1579,8 +1594,51 @@
             }
         }
 
+        let activeSessionListener = null;
+
+        window.logoutOtherDevices = function() {
+            if(!noteAuthUser) return;
+            if(!confirm("Keluarkan akun Anda dari SEMUA perangkat lain?")) return;
+            const newSession = Date.now().toString() + Math.random();
+            localStorage.setItem('my_session_id', newSession);
+            fsDb.collection("users").doc(noteAuthUser.uid).set({ currentSessionId: newSession }, { merge: true })
+                .then(() => showToast("Berhasil mengeluarkan perangkat lain."));
+        };
+
+        window.syncNotes2Way = async function(uid, devId) {
+            const devRef = fsDb.collection("devices").doc(devId).collection("notes");
+            const usrRef = fsDb.collection("users").doc(uid).collection("notes");
+            try {
+                const devDocs = await devRef.get();
+                const usrDocs = await usrRef.get();
+                let batch = fsDb.batch();
+                let count = 0;
+                
+                devDocs.forEach(doc => {
+                    if (!usrDocs.docs.some(u => u.id === doc.id)) {
+                        batch.set(usrRef.doc(doc.id), doc.data());
+                        count++;
+                    }
+                });
+                
+                usrDocs.forEach(doc => {
+                    if (!devDocs.docs.some(d => d.id === doc.id)) {
+                        batch.set(devRef.doc(doc.id), doc.data());
+                        count++;
+                    }
+                });
+                
+                if (count > 0) {
+                    await batch.commit();
+                    showToast(`Selesai menyinkronkan ${count} catatan lintas perangkat.`);
+                }
+            } catch (err) { console.error("Gagal sinkronisasi 2-arah:", err); }
+        };
+
         auth.onAuthStateChanged((user) => {
             noteAuthUser = user;
+            if(activeSessionListener) { activeSessionListener(); activeSessionListener = null; }
+
             if(user) {
                 isAdmin = (user.email === 'santridroid@gmail.com');
                 document.getElementById('loggedInContainer').classList.remove('hidden');
@@ -1592,6 +1650,20 @@
                     document.getElementById('editAboutBtn').classList.remove('hidden'); 
                     document.getElementById('adminTabsContainer').classList.remove('hidden');
                 } else document.getElementById('editAboutBtn').classList.add('hidden');
+
+                if(!localStorage.getItem('my_session_id')) localStorage.setItem('my_session_id', Date.now().toString() + Math.random());
+                const mySession = localStorage.getItem('my_session_id');
+                
+                activeSessionListener = fsDb.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if(doc.exists) {
+                        const data = doc.data();
+                        if(data.currentSessionId && data.currentSessionId !== mySession) {
+                            auth.signOut().then(() => showToast("Sesi berakhir karena Anda logout dari perangkat lain."));
+                        }
+                    } else fsDb.collection("users").doc(user.uid).set({ currentSessionId: mySession }, { merge: true });
+                });
+
+                if(typeof syncNotes2Way === 'function' && typeof deviceId !== 'undefined') syncNotes2Way(user.uid, deviceId);
             } else {
                 isAdmin = false;
                 document.getElementById('loggedInContainer').classList.add('hidden');
@@ -2098,7 +2170,10 @@
                      const path = noteObj.fullPath;
                      if(path) await fsDb.doc(path).update(payload);
                 }
-                else await notesCollectionRef.doc(id).update(payload);
+                else {
+                    await notesCollectionRef.doc(id).update(payload);
+                    mirrorDeviceNote(id, payload, false);
+                }
                 
                 // Optimistic UI
                 if(noteObj) noteObj.deletedAt = new Date();
@@ -2441,7 +2516,10 @@
                                 showToast("Error: Jalur data tidak ditemukan!"); return;
                             }
                         }
-                        else await notesCollectionRef.doc(currentEditingId).update(payload);
+                        else {
+                            await notesCollectionRef.doc(currentEditingId).update(payload);
+                            mirrorDeviceNote(currentEditingId, payload, false);
+                        }
 
                         // Optimistic UI update
                         if(allNotesData[currentEditingId]) allNotesData[currentEditingId].deletedAt = new Date();
@@ -2508,7 +2586,10 @@
             else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
                  if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).update(payload);
             }
-            else await notesCollectionRef.doc(id).update(payload);
+            else {
+                await notesCollectionRef.doc(id).update(payload);
+                mirrorDeviceNote(id, payload, false);
+            }
             
             noteObj.deletedAt = null;
             renderTrash(); renderNotes();
@@ -2524,7 +2605,10 @@
             else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
                  if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
             }
-            else await notesCollectionRef.doc(id).delete();
+            else {
+                await notesCollectionRef.doc(id).delete();
+                mirrorDeviceNote(id, null, true);
+            }
             
             delete allNotesData[id];
             if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => n.id !== id);
@@ -2547,7 +2631,10 @@
                 else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
                      if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
                 }
-                else await notesCollectionRef.doc(noteObj.id).delete();
+                else {
+                    await notesCollectionRef.doc(noteObj.id).delete();
+                    mirrorDeviceNote(noteObj.id, null, true);
+                }
                 
                 delete allNotesData[noteObj.id];
             }
@@ -2590,13 +2677,19 @@
                         const path = allNotesData[currentEditingId].fullPath;
                         if(path) await fsDb.doc(path).update(noteData);
                     }
-                    else await notesCollectionRef.doc(currentEditingId).update(noteData);
+                    else {
+                        await notesCollectionRef.doc(currentEditingId).update(noteData);
+                        mirrorDeviceNote(currentEditingId, noteData, false);
+                    }
                 }
                 else { 
                     noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                     let added;
                     if (window.currentAdminTab === 'kiriman') added = await fsDb.collection("admin_notes").add(noteData);
-                    else added = await notesCollectionRef.add(noteData); 
+                    else {
+                        added = await notesCollectionRef.add(noteData);
+                        mirrorDeviceNote(added.id, noteData, false);
+                    }
                     currentEditingId = added.id; 
                 }
             } catch (error) { console.error("Gagal menyimpan:", error); }
@@ -2639,3 +2732,4 @@
 </script>
 </body>
 </html>
+
