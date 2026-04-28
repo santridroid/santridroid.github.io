@@ -80,19 +80,28 @@
         /* === NOTES VIEW STYLES === */
         #notes-view { display: none; }
         #notes-view ::-webkit-scrollbar { display: none; }
-        .color-red { background-color: #ff7eb3; color: #333 !important; }
-        .color-orange { background-color: #ffb142; color: #333 !important; }
-        .color-yellow { background-color: #ffda79; color: #333 !important; }
-        .color-green { background-color: #33d9b2; color: #333 !important; }
-        .color-blue { background-color: #34ace0; color: #333 !important; }
-        .color-purple { background-color: #cd84f1; color: #333 !important; }
-        .color-black { background-color: #84817a; color: #fff !important; }
-        .color-gray { background-color: #d1ccc0; color: #333 !important; }
-        .color-white { background-color: #ffffff; color: #333 !important; }
+        :root {
+            --theme-header: #ffca28;
+            --theme-body: #fff9c4;
+            --theme-line: rgba(0,0,0,0.1);
+            --theme-text: #333333;
+        }
+        .color-red { --theme-header: #ef5350; --theme-body: #ffebee; --theme-line: #ffcdd2; --theme-text: #333; }
+        .color-orange { --theme-header: #ff9800; --theme-body: #fff3e0; --theme-line: #ffe0b2; --theme-text: #333; }
+        .color-yellow { --theme-header: #ffca28; --theme-body: #fff9c4; --theme-line: #fff59d; --theme-text: #333; }
+        .color-green { --theme-header: #8bc34a; --theme-body: #e8f5e9; --theme-line: #c8e6c9; --theme-text: #333; }
+        .color-blue { --theme-header: #42a5f5; --theme-body: #e3f2fd; --theme-line: #bbdefb; --theme-text: #333; }
+        .color-purple { --theme-header: #ab47bc; --theme-body: #f3e5f5; --theme-line: #e1bee7; --theme-text: #333; }
+        .color-black { --theme-header: #424242; --theme-body: #f5f5f5; --theme-line: #e0e0e0; --theme-text: #333; }
+        .color-gray { --theme-header: #9e9e9e; --theme-body: #fafafa; --theme-line: #eeeeee; --theme-text: #333; }
+        .color-white { --theme-header: #e0e0e0; --theme-body: #ffffff; --theme-line: #f5f5f5; --theme-text: #333; }
+        
+        .theme-bg-body { background-color: var(--theme-body); color: var(--theme-text) !important; }
+        .theme-bg-header { background-color: var(--theme-header); color: var(--theme-text) !important; }
         .note-card { transition: transform 0.1s; }
         .note-card:active { transform: scale(0.98); }
         .selected-note { border: 3px solid #009688 !important; opacity: 0.8; }
-        .lined-paper { background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.1) 31px, rgba(0,0,0,0.1) 32px); line-height: 32px; background-attachment: local; padding-top: 6px; }
+        .lined-paper { background-image: repeating-linear-gradient(transparent, transparent 31px, var(--theme-line) 31px, var(--theme-line) 32px); line-height: 32px; background-attachment: local; padding-top: 6px; }
         input[type="checkbox"].checklist-cb { width: 1.25rem; height: 1.25rem; accent-color: #666; cursor: pointer; }
         .checklist-done { text-decoration: line-through; color: #888; }
         .tab-active { border-bottom: 2px solid #009688; font-weight: bold; color: #333; }
@@ -327,17 +336,17 @@
         </div>
     </div>
 
-    <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow transition-colors duration-300">
-        <div class="h-10 w-full bg-black bg-opacity-20 flex-shrink-0"></div>
-        <div class="flex items-center p-2 bg-black bg-opacity-10 flex-shrink-0">
-            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-arrow-left text-xl"></i></button>
-            <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-transparent ml-2 font-semibold text-lg outline-none text-inherit placeholder-gray-500 placeholder-opacity-70">
-            <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-6 h-6 rounded bg-[#fff3cd] border border-gray-400 ml-2 shadow-sm"></button>
-            <button onclick="openEditorMenu()" class="ml-4 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
+    <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow theme-bg-body transition-colors duration-300">
+        <div class="h-10 w-full theme-bg-header flex-shrink-0 opacity-90"></div>
+        <div class="flex items-center p-2 theme-bg-header flex-shrink-0 shadow-sm">
+            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-check text-xl"></i></button>
+            <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-white bg-opacity-90 ml-2 font-semibold text-lg outline-none text-black px-2 py-1 rounded placeholder-gray-500 placeholder-opacity-70">
+            <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-7 h-7 rounded border border-black border-opacity-20 ml-3 shadow-sm"></button>
+            <button onclick="openEditorMenu()" class="ml-3 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
         </div>
-        <div class="text-[11px] px-4 py-1 flex justify-between bg-black bg-opacity-10 border-b border-black border-opacity-20 text-inherit">
-            <span class="opacity-80">Suntingan</span>
-            <span id="editorTimestamp" class="opacity-80">Sekarang</span>
+        <div class="text-sm px-4 py-2 flex justify-between theme-bg-body text-inherit opacity-80 border-b border-black border-opacity-10">
+            <span>Suntingan</span>
+            <span id="editorTimestamp">Sekarang</span>
         </div>
         <div class="flex-1 overflow-y-auto relative w-full h-full text-inherit">
             <textarea id="textEditorBody" oninput="recordHistory()" class="w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden text-lg" placeholder="Masukkan catatan..."></textarea>
@@ -396,29 +405,29 @@
 
     <div id="editorColorModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorColorModal')">
         <div class="absolute top-14 right-10 bg-white rounded-lg shadow-xl p-3 grid grid-cols-3 gap-2 border border-gray-200" onclick="event.stopPropagation()">
-            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#ff7eb3] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ffb142] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#ffda79] rounded border border-gray-300 cursor-pointer"></div>
-            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#33d9b2] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#34ace0] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#cd84f1] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#84817a] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#d1ccc0] rounded cursor-pointer"></div>
-            <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#ef5350] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ff9800] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#ffca28] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#8bc34a] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#42a5f5] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#ab47bc] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#424242] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#9e9e9e] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#e0e0e0] rounded border border-gray-300 cursor-pointer"></div>
         </div>
     </div>
     
     <div id="multiColorModal" class="hidden fixed inset-0 z-[60] bg-black bg-opacity-30 flex items-center justify-center" onclick="toggleModal('multiColorModal')">
         <div class="bg-white rounded-lg shadow-xl p-4 grid grid-cols-3 gap-3 border border-gray-200" onclick="event.stopPropagation()">
-            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#ff7eb3] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ffb142] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#ffda79] rounded border border-gray-300 cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#33d9b2] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#34ace0] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#cd84f1] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#84817a] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#d1ccc0] rounded cursor-pointer"></div>
-            <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#ffffff] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#ef5350] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ff9800] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#ffca28] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#8bc34a] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#42a5f5] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#ab47bc] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#424242] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#9e9e9e] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#e0e0e0] rounded border border-gray-300 cursor-pointer"></div>
         </div>
     </div>
 
@@ -613,8 +622,15 @@
                 if (!document.getElementById('editorPage').classList.contains('hidden') && typeof window.saveAndCloseEditor === 'function') {
                     window.saveAndCloseEditor();
                 }
-                showToast("Admin sedang memperbarui sistem. Menyegarkan halaman...");
-                setTimeout(() => location.reload(), 2000);
+                document.getElementById('u-modal-title').innerText = "PERHATIAN";
+                document.getElementById('u-modal-msg').innerText = "Data telah diperbarui oleh admin, mohon untuk segera menutup dan membuka ulang aplikasi atau melakukan paksa berhenti aplikasi terlebih dahulu.\n\nTerima kasih.";
+                document.getElementById('u-modal-actions').innerHTML = ''; // Tanpa tombol agar tidak bisa ditutup
+                document.getElementById('universal-modal').classList.add('active');
+                
+                // Blokir layar tambahan agar tidak bisa ditekan apapun
+                const block = document.createElement('div');
+                block.style.position = 'fixed'; block.style.inset = '0'; block.style.zIndex = '9999';
+                document.body.appendChild(block);
             }
         }
     });
@@ -922,6 +938,7 @@
         const p = document.getElementById('global-pass').value;
         const rememberMe = document.getElementById('remember-me').checked;
 
+        localStorage.removeItem('session_synced');
         auth.signInWithEmailAndPassword(e, p).then(() => {
             if (rememberMe) {
                 localStorage.setItem('xurel_admin_email', e);
@@ -1601,6 +1618,7 @@
             if(!confirm("Keluarkan akun Anda dari SEMUA perangkat lain?")) return;
             const newSession = Date.now().toString() + Math.random();
             localStorage.setItem('my_session_id', newSession);
+            localStorage.setItem('session_synced', 'true');
             fsDb.collection("users").doc(noteAuthUser.uid).set({ currentSessionId: newSession }, { merge: true })
                 .then(() => showToast("Berhasil mengeluarkan perangkat lain."));
         };
@@ -1657,10 +1675,23 @@
                 activeSessionListener = fsDb.collection("users").doc(user.uid).onSnapshot(doc => {
                     if(doc.exists) {
                         const data = doc.data();
-                        if(data.currentSessionId && data.currentSessionId !== mySession) {
-                            auth.signOut().then(() => showToast("Sesi berakhir karena Anda logout dari perangkat lain."));
+                        if(data.currentSessionId) {
+                            if(!localStorage.getItem('session_synced')) {
+                                localStorage.setItem('my_session_id', data.currentSessionId);
+                                localStorage.setItem('session_synced', 'true');
+                            } else {
+                                if(localStorage.getItem('my_session_id') !== data.currentSessionId) {
+                                    auth.signOut().then(() => {
+                                        localStorage.removeItem('session_synced');
+                                        showToast("Sesi berakhir karena Anda logout dari perangkat lain.");
+                                    });
+                                }
+                            }
                         }
-                    } else fsDb.collection("users").doc(user.uid).set({ currentSessionId: mySession }, { merge: true });
+                    } else {
+                        fsDb.collection("users").doc(user.uid).set({ currentSessionId: mySession }, { merge: true });
+                        localStorage.setItem('session_synced', 'true');
+                    }
                 });
 
                 if(typeof syncNotes2Way === 'function' && typeof deviceId !== 'undefined') syncNotes2Way(user.uid, deviceId);
@@ -1721,6 +1752,7 @@
                     await auth.createUserWithEmailAndPassword(eml, pwd);
                     showToast("Pendaftaran berhasil!");
                 } else {
+                    localStorage.removeItem('session_synced');
                     await auth.signInWithEmailAndPassword(eml, pwd);
                     showToast("Login berhasil!");
                 }
@@ -1990,7 +2022,7 @@
             // Layout Kontainer
             if (currentView === 'grid-small') container.className = "grid grid-cols-3 gap-2";
             else if (currentView === 'grid-large') container.className = "grid grid-cols-2 gap-2";
-            else container.className = "flex flex-col gap-2";
+            else container.className = "flex flex-col gap-0";
 
             if (filteredDocs.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-500 mt-10 col-span-3">Belum ada catatan.</p>';
@@ -1999,7 +2031,15 @@
 
             filteredDocs.forEach((note) => {
                 const dateObj = note.updatedAt ? note.updatedAt.toDate() : new Date();
-                const timeString = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+                const now = new Date();
+                let timeString;
+                if (dateObj.toDateString() === now.toDateString()) {
+                    timeString = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+                } else {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    timeString = `${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
+                }
+                
                 const colorClass = `color-${note.color || 'yellow'}`;
                 const noteTitle = note.title || (note.type==='checklist' ? 'Daftar Baru' : 'Catatan Kosong');
                 const lockIcon = note.locked ? `<i class="fas fa-lock text-[10px] opacity-70 ml-1"></i>` : '';
@@ -2021,14 +2061,16 @@
                     ${isSelected ? '<i class="fas fa-check text-black opacity-70"></i>' : ''}
                 </div>`;
                 if (currentView === 'list') {
-                    heightClass = 'min-h-[45px]';
+                    heightClass = 'h-[50px]';
                     cardHTML = `
-                        <div class="flex justify-between items-center w-full">
-                            <div class="flex items-center flex-1 pr-2 overflow-hidden text-inherit">
-                                ${colorBox}
-                                <h3 class="text-lg truncate font-medium">${noteTitle}</h3>
+                        <div class="flex justify-between items-center w-full h-full relative">
+                            <div class="w-1.5 h-full absolute left-0 top-0 bottom-0 theme-bg-header flex items-center justify-center">
+                                ${isSelected ? '<i class="fas fa-check text-black opacity-70 text-[10px] absolute ml-2"></i>' : ''}
                             </div>
-                            <span class="text-[10px] font-mono opacity-70 whitespace-nowrap flex items-center gap-1 flex-shrink-0">${timeString} ${lockIcon}</span>
+                            <div class="flex items-center flex-1 pr-2 overflow-hidden text-inherit h-full">
+                                <h3 class="text-lg truncate font-medium ml-4 text-black opacity-90">${noteTitle}</h3>
+                            </div>
+                            <span class="text-xs opacity-60 whitespace-nowrap flex items-center gap-1 flex-shrink-0 mr-3 text-black">${timeString} ${lockIcon}</span>
                         </div>
                     `;
                 } else if (currentView === 'detail') {
@@ -2074,10 +2116,45 @@
                         </div>
                     `;
                 }
-                noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start ${colorClass} ${isSelected ? 'selected-note' : ''} ${heightClass}`;
+                
+                if (currentView === 'list') {
+                    noteEl.className = `note-card flex flex-col justify-center items-start theme-bg-body overflow-hidden border-b border-black border-opacity-[0.03] ${isSelected ? 'selected-note' : ''} ${colorClass} ${heightClass}`;
+                } else {
+                    noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start theme-bg-body ${isSelected ? 'selected-note' : ''} ${colorClass} ${heightClass}`;
+                }
                 noteEl.innerHTML = cardHTML;
                 
-                noteEl.addEventListener('click', (e) => handleNoteClick(e, note.id));
+                let pressTimer;
+                let justLongPressed = false;
+                const startPress = (e) => {
+                    if (e.type === 'mousedown' && e.button !== 0) return; // Only left click
+                    justLongPressed = false;
+                    pressTimer = setTimeout(() => {
+                        justLongPressed = true;
+                        if (!window.isMultiSelectMode) {
+                            if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+                            window.toggleSelectNote(note.id);
+                        }
+                    }, 500);
+                };
+                const cancelPress = () => { if (pressTimer) clearTimeout(pressTimer); };
+
+                noteEl.addEventListener('touchstart', startPress, {passive: true});
+                noteEl.addEventListener('touchend', cancelPress);
+                noteEl.addEventListener('touchmove', cancelPress);
+                noteEl.addEventListener('mousedown', startPress);
+                noteEl.addEventListener('mouseup', cancelPress);
+                noteEl.addEventListener('mouseleave', cancelPress);
+                noteEl.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (!window.isMultiSelectMode) window.toggleSelectNote(note.id);
+                });
+                
+                noteEl.addEventListener('click', (e) => {
+                    if (justLongPressed) { justLongPressed = false; return; }
+                    handleNoteClick(e, note.id);
+                });
+                
                 container.appendChild(noteEl);
             });
             updateFilterBorders();
@@ -2163,23 +2240,35 @@
             
             cancelMultiSelect();
             const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            let successCount = 0;
+            let failCount = 0;
             for(const id of idsToDelete) { 
                 const noteObj = allNotesData[id];
-                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
-                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
-                     const path = noteObj.fullPath;
-                     if(path) await fsDb.doc(path).update(payload);
+                try {
+                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
+                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                         const path = noteObj.fullPath;
+                         if(path) await fsDb.doc(path).update(payload);
+                    }
+                    else {
+                        await notesCollectionRef.doc(id).update(payload);
+                        mirrorDeviceNote(id, payload, false);
+                    }
+                    
+                    // Optimistic UI
+                    if(noteObj) noteObj.deletedAt = new Date();
+                    successCount++;
+                } catch(e) {
+                    console.error("Gagal Hapus:", e);
+                    failCount++;
                 }
-                else {
-                    await notesCollectionRef.doc(id).update(payload);
-                    mirrorDeviceNote(id, payload, false);
-                }
-                
-                // Optimistic UI
-                if(noteObj) noteObj.deletedAt = new Date();
             }
             renderNotes();
-            showToast(`${idsToDelete.length} catatan dipindah ke Tong Sampah.`);
+            if (failCount > 0) {
+                showModal("Gagal Menghapus", `Berhasil: ${successCount}\nGagal: ${failCount}\n\nPenyebab: Firebase Firestore menolak akses hapus. Harap pastikan Rules Anda persis sama dengan kode yang saya berikan.`, "alert");
+            } else {
+                showToast(`${successCount} catatan dipindah ke Tong Sampah.`);
+            }
         }
 
         window.copySelectedNotes = async function() {
@@ -2324,11 +2413,17 @@
                 let data = docSnap.data();
                 if(data.expiresAt > Date.now()) {
                     for(let noteData of data.notes) {
-                        await notesCollectionRef.add({
-                            title: noteData.title || '', type: noteData.type || 'text', color: noteData.color || 'yellow',
+                        let importedTitle = noteData.title || '';
+                        if (!importedTitle.toLowerCase().startsWith('salinan')) {
+                            importedTitle = "Salinan - " + importedTitle;
+                        }
+                        const payload = {
+                            title: importedTitle, type: noteData.type || 'text', color: noteData.color || 'yellow',
                             content: noteData.content || '', items: noteData.items || [], locked: false,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
+                        };
+                        let added = await notesCollectionRef.add(payload);
+                        if (typeof mirrorDeviceNote === 'function') mirrorDeviceNote(added.id, payload, false);
                     }
                     imported = true;
                 }
@@ -2404,9 +2499,9 @@
         }
 
         const pastelColorMap = {
-            'red': '#ff7eb3', 'orange': '#ffb142', 'yellow': '#ffda79', 
-            'green': '#33d9b2', 'blue': '#34ace0', 'purple': '#cd84f1', 
-            'black': '#84817a', 'gray': '#d1ccc0', 'white': '#ffffff'
+            'red': '#ef5350', 'orange': '#ff9800', 'yellow': '#ffca28', 
+            'green': '#8bc34a', 'blue': '#42a5f5', 'purple': '#ab47bc', 
+            'black': '#424242', 'gray': '#9e9e9e', 'white': '#e0e0e0'
         };
 
         function applyEditorTheme() {
@@ -2456,7 +2551,9 @@
             document.getElementById('editorTitle').readOnly = false;
             document.getElementById('textEditorBody').readOnly = false;
 
-            document.getElementById('checklistItemsContainer').innerHTML = ''; document.getElementById('editorTimestamp').innerText = 'Baru saja';
+            document.getElementById('checklistItemsContainer').innerHTML = ''; 
+            let dt = new Date();
+            document.getElementById('editorTimestamp').innerText = dt.toLocaleDateString('id-ID', { year: '2-digit', month: '2-digit', day: '2-digit' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
             if(type === 'checklist') addChecklistItemDOM('', false, false);
             undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(type);
         }
@@ -2465,7 +2562,8 @@
             const note = allNotesData[noteId]; if(!note) return;
             currentEditingId = noteId; currentEditingType = note.type || 'text'; currentEditingColor = note.color || 'yellow';
             document.getElementById('editorTitle').value = note.title || '';
-            document.getElementById('editorTimestamp').innerText = note.updatedAt ? (note.updatedAt.toDate ? note.updatedAt.toDate().toLocaleDateString('id-ID') : new Date().toLocaleDateString('id-ID')) : 'Sekarang';
+            let dt = note.updatedAt && note.updatedAt.toDate ? note.updatedAt.toDate() : new Date();
+            document.getElementById('editorTimestamp').innerText = dt.toLocaleDateString('id-ID', { year: '2-digit', month: '2-digit', day: '2-digit' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
             if(currentEditingType === 'text') document.getElementById('textEditorBody').value = note.content || '';
             else {
                 const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
@@ -2524,7 +2622,7 @@
                         // Optimistic UI update
                         if(allNotesData[currentEditingId]) allNotesData[currentEditingId].deletedAt = new Date();
                     } catch(e) {
-                        showToast("Gagal memindah ke tong sampah: " + e.message);
+                        showModal("Gagal Membuang", "Firebase Firestore menolak akses hapus.\n\nHarap pastikan Rules Anda persis sama dengan kode yang saya berikan.", "alert");
                         return; // don't close editor if delete failed
                     }
                 }
@@ -2601,13 +2699,18 @@
             if(!confirm("Hapus permanen catatan ini? Tidak dapat dikembalikan!")) return;
             const noteObj = allNotesData[id];
             
-            if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
-            else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
-                 if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
-            }
-            else {
-                await notesCollectionRef.doc(id).delete();
-                mirrorDeviceNote(id, null, true);
+            try {
+                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
+                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                     if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                }
+                else {
+                    await notesCollectionRef.doc(id).delete();
+                    mirrorDeviceNote(id, null, true);
+                }
+            } catch(e) {
+                console.error("Gagal hapus permanen:", e);
+                return showToast("Gagal menghapus: Akses ditolak oleh Firebase Rules. Pastikan Admin memiliki akses Hapus.");
             }
             
             delete allNotesData[id];
@@ -2626,24 +2729,35 @@
             if(trashDocs.length === 0) return;
             if(!confirm(`Hapus permanen ${trashDocs.length} catatan dari tong sampah?`)) return;
 
+            let successCount = 0;
+            let failCount = 0;
             for(const noteObj of trashDocs) {
-                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(noteObj.id).delete();
-                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
-                     if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                try {
+                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(noteObj.id).delete();
+                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                         if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                    }
+                    else {
+                        await notesCollectionRef.doc(noteObj.id).delete();
+                        mirrorDeviceNote(noteObj.id, null, true);
+                    }
+                    delete allNotesData[noteObj.id];
+                    successCount++;
+                } catch(e) {
+                    console.error("Gagal kosongkan:", e);
+                    failCount++;
                 }
-                else {
-                    await notesCollectionRef.doc(noteObj.id).delete();
-                    mirrorDeviceNote(noteObj.id, null, true);
-                }
-                
-                delete allNotesData[noteObj.id];
             }
             
             if(window.currentAdminTab === 'pribadi') rawNotesData = rawNotesData.filter(n => !n.deletedAt);
             if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => !n.deletedAt);
             
             renderTrash();
-            showToast("Tong sampah dikosongkan.");
+            if (failCount > 0) {
+                showModal("Gagal Kosongkan", `Berhasil: ${successCount}\nGagal: ${failCount}\n\nPenyebab: Firebase Firestore menolak akses hapus. Harap pastikan Rules Anda persis sama dengan kode yang saya berikan.`, "alert");
+            } else {
+                showToast("Tong sampah dikosongkan.");
+            }
         }
 
         window.saveEditorData = async function() {
@@ -2655,13 +2769,24 @@
             }
 
             const title = document.getElementById('editorTitle').value.trim();
+            
+            if (!currentEditingId && title !== "") {
+                const isDuplicate = Object.values(allNotesData).some(n => 
+                    !n.deletedAt && n.title && n.title.toLowerCase() === title.toLowerCase()
+                );
+                if (isDuplicate) {
+                    showModal("Judul Duplikat", "Gunakan Judul lain untuk menghindari duplikat. Karena judul yang anda gunakan sudah tersedia di database.", "alert");
+                    return false;
+                }
+            }
+
             let content = ''; let items = [];
             if(currentEditingType === 'text') {
                 content = document.getElementById('textEditorBody').value.trim();
-                if(title === '' && content === '') return;
+                if(title === '' && content === '') return false;
             } else {
                 items = extractChecklistData();
-                if(title === '' && items.length === 0) return;
+                if(title === '' && items.length === 0) return false;
             }
             const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
             if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
@@ -2696,8 +2821,10 @@
         };
 
         window.saveAndCloseEditor = async function() {
-            await window.saveEditorData();
-            document.getElementById('editorPage').classList.add('hidden');
+            const res = await window.saveEditorData();
+            if (res !== false) {
+                document.getElementById('editorPage').classList.add('hidden');
+            }
         }
 
         window.addChecklistItemDOM = function(text, isChecked, recordHist = true) {
