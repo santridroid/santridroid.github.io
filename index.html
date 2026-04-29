@@ -266,15 +266,10 @@
     <div id="adminTabsContainer" class="hidden flex-col bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
         <div class="flex w-full">
             <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
-            <button id="tabSentToAdmin" onclick="switchAdminTab('kiriman')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">KIRIMAN MASUK</button>
-            <button id="tabAllNotes" onclick="switchAdminTab('semua')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">SEMUA DATA</button>
+            <button id="tabAllNotes" onclick="switchAdminTab('umum')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">UMUM</button>
         </div>
-        <div id="adminEditToggleContainer" class="hidden p-2 bg-red-50 text-center border-t border-red-100 flex justify-between items-center w-full">
-            <span class="text-xs text-red-600 font-medium">Mode Baca (Read-Only) Aktif</span>
-            <div class="flex gap-2">
-                <button onclick="triggerGlobalRefresh()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded shadow-sm" title="Refresh Semua Perangkat"><i class="fas fa-sync-alt mr-1"></i> Auto Refresh</button>
-                <button onclick="toggleSemuaEditMode()" id="btnToggleSemuaEdit" class="text-xs bg-red-600 text-white px-3 py-1 rounded shadow-sm">Aktifkan Edit</button>
-            </div>
+        <div id="adminEditToggleContainer" class="p-2 bg-gray-50 border-t border-gray-200 flex justify-end items-center w-full">
+            <button onclick="triggerGlobalRefresh()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded shadow-sm" title="Refresh Semua Perangkat"><i class="fas fa-sync-alt mr-1"></i> Auto Refresh Semua Perangkat</button>
         </div>
     </div>
 
@@ -320,7 +315,6 @@
             <ul class="py-2">
                 <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('text')"><i class="fas fa-align-justify w-8 text-xl text-gray-600"></i> Teks</li>
                 <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('checklist')"><i class="far fa-check-square w-8 text-xl text-gray-600"></i> Daftar Centang</li>
-                <li class="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center text-red-600 border-t mt-2" onclick="openTrash()"><i class="fas fa-trash-alt w-8 text-xl"></i> Tong Sampah</li>
             </ul>
         </div>
     </div>
@@ -343,6 +337,14 @@
             <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-white bg-opacity-90 ml-2 font-semibold text-lg outline-none text-black px-2 py-1 rounded placeholder-gray-500 placeholder-opacity-70">
             <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-7 h-7 rounded border border-black border-opacity-20 ml-3 shadow-sm"></button>
             <button onclick="openEditorMenu()" class="ml-3 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
+        </div>
+        
+        <div id="adminSaveOptions" class="hidden p-2 theme-bg-header bg-opacity-50 flex justify-between items-center border-b border-black border-opacity-10 text-inherit text-sm">
+            <span class="font-semibold"><i class="fas fa-folder-open mr-1"></i> Lokasi Simpan:</span>
+            <select id="editorSaveDest" class="p-1 rounded bg-white text-black border border-gray-300 outline-none font-medium">
+                <option value="pribadi">Folder Pribadi Admin</option>
+                <option value="umum">Folder Umum (Publik)</option>
+            </select>
         </div>
         <div class="text-sm px-4 py-2 flex justify-between theme-bg-body text-inherit opacity-80 border-b border-black border-opacity-10">
             <span>Suntingan</span>
@@ -524,6 +526,7 @@
                 <ul class="py-1 text-gray-700 text-[15px]">
                     <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="syncNotes()"><i class="fas fa-sync-alt w-8 text-center text-teal-600"></i> Sinkronisasi Catatan <span id="syncStatus" class="ml-auto text-xs text-gray-400 bg-gray-100 px-2 rounded">Offline</span></li>
                     <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="backupNotes()"><i class="fas fa-cloud-upload-alt w-8 text-center text-teal-600"></i> Cadangkan Catatan</li>
+                    <li class="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center border-b text-red-600" onclick="openTrash()"><i class="fas fa-trash-alt w-8 text-center"></i> Tong Sampah</li>
                     <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center justify-between border-b">
                         <div class="flex items-center"><i class="fas fa-history w-8 text-center text-gray-600"></i> Cadangkan Otomatis</div>
                         <input type="checkbox" id="autoBackupCheckbox" onchange="saveGlobalSettings()" class="w-4 h-4 accent-teal-600 cursor-pointer">
@@ -1565,48 +1568,21 @@
         window.currentAdminTab = 'pribadi'; // 'pribadi', 'kiriman', 'semua'
         window.extraAdminData = []; 
 
-        window.semuaEditMode = false;
-        window.toggleSemuaEditMode = function() {
-            window.semuaEditMode = !window.semuaEditMode;
-            const container = document.getElementById('adminEditToggleContainer');
-            const btn = document.getElementById('btnToggleSemuaEdit');
-            if(window.semuaEditMode) {
-                container.querySelector('span').innerText = "Mode Edit & Hapus Aktif (HATI-HATI)";
-                btn.innerText = "Matikan Edit";
-                btn.classList.replace('bg-red-600', 'bg-gray-600');
-            } else {
-                container.querySelector('span').innerText = "Mode Baca (Read-Only) Aktif";
-                btn.innerText = "Aktifkan Edit";
-                btn.classList.replace('bg-gray-600', 'bg-red-600');
-            }
-        }
-
         window.switchAdminTab = async function(tabId) {
             window.currentAdminTab = tabId;
             document.getElementById('tabAdminNotes').className = "flex-1 py-3 transition-colors " + (tabId==='pribadi' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
-            document.getElementById('tabSentToAdmin').className = "flex-1 py-3 transition-colors " + (tabId==='kiriman' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
-            document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='semua' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
-            
-            document.getElementById('adminEditToggleContainer').classList.toggle('hidden', tabId !== 'semua');
-            if (tabId === 'semua' && window.semuaEditMode) toggleSemuaEditMode(); // Reset to read-only on switch
+            document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='umum' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+
 
             if(tabId === 'pribadi') {
                  renderNotes();
-            } else if (tabId === 'kiriman') {
-                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Bentar, memuat kiriman...</p>';
+            } else if (tabId === 'umum') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Memuat catatan umum...</p>';
                  try {
-                     const qSnap = await fsDb.collection("admin_notes").orderBy("sentAt", "desc").get();
-                     window.extraAdminData = [];
-                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
-                 } catch(e) { showToast("Gagal memuat kiriman."); window.extraAdminData = []; }
-                 renderNotes();
-            } else if (tabId === 'semua') {
-                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Mencari ke seluruh sistem...</p>';
-                 try {
-                     const qSnap = await fsDb.collectionGroup("notes").get();
+                     const qSnap = await fsDb.collection("public_notes").get();
                      window.extraAdminData = [];
                      qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; obj.fullPath = d.ref.path; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
-                 } catch(e) { showToast("Gagal memuat semua data. Butuh index collectionGroup di API Firebase."); window.extraAdminData = []; }
+                 } catch(e) { showToast("Gagal memuat catatan umum."); window.extraAdminData = []; }
                  renderNotes();
             }
         }
@@ -1956,37 +1932,38 @@
                 activeNotesListener = null;
             }
             
-            if(noteAuthUser) {
-                notesCollectionRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
-                document.getElementById('syncStatus').innerText = "Online (Akun)";
-                document.getElementById('syncStatus').className = "ml-auto text-xs text-white bg-teal-500 px-2 rounded";
+            if (isAdmin) {
+                notesCollectionRef = fsDb.collection("private_notes");
+                document.getElementById('syncStatus').innerText = "Online (Admin)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs font-semibold text-white bg-teal-500 px-2 rounded";
             } else {
-                notesCollectionRef = fsDb.collection("devices").doc(deviceId).collection("notes");
-                document.getElementById('syncStatus').innerText = "Offline (Perangkat)";
-                document.getElementById('syncStatus').className = "ml-auto text-xs text-gray-500 bg-gray-200 px-2 rounded";
+                notesCollectionRef = fsDb.collection("public_notes");
+                document.getElementById('syncStatus').innerText = "Online (Publik)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs font-semibold text-white bg-green-500 px-2 rounded";
             }
 
             activeNotesListener = notesCollectionRef.onSnapshot( (snapshot) => {
-                if (window.currentAdminTab === 'pribadi') {
-                    rawNotesData = [];
-                    allNotesData = {};
-                    const now = Date.now();
-                    snapshot.forEach((docSnap) => {
-                        let data = docSnap.data();
-                        data.id = docSnap.id;
-                        
-                        // AUTO CLEANUP 30 DAYS
-                        if (data.deletedAt && data.deletedAt.toMillis) {
-                            const ageMs = now - data.deletedAt.toMillis();
-                            if (ageMs > 30 * 24 * 60 * 60 * 1000) {
-                                docSnap.ref.delete().catch(()=>{});
-                                return;
-                            }
+                rawNotesData = [];
+                const now = Date.now();
+                snapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    data.id = docSnap.id;
+                    
+                    // AUTO CLEANUP 30 DAYS
+                    if (data.deletedAt && data.deletedAt.toMillis) {
+                        const ageMs = now - data.deletedAt.toMillis();
+                        if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+                            docSnap.ref.delete().catch(()=>{});
+                            return;
                         }
-                        
-                        rawNotesData.push(data);
-                        allNotesData[docSnap.id] = data;
-                    });
+                    }
+                    
+                    rawNotesData.push(data);
+                    allNotesData[docSnap.id] = data;
+                });
+                
+                // Only trigger re-render if we are actually viewing the tab that uses this snapshot data
+                if (!isAdmin || window.currentAdminTab === 'pribadi') {
                     renderNotes();
                     if(!document.getElementById('trashModal').classList.contains('hidden')) window.renderTrash && window.renderTrash();
                 }
@@ -2225,7 +2202,6 @@
         function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
 
         window.deleteSelectedNotes = async function() {
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only. Tidak dapat menghapus dari SEMUA DATA tanpa mode edit.");
 
             let hasLocked = false;
             const idsToDelete = [];
@@ -2245,8 +2221,8 @@
             for(const id of idsToDelete) { 
                 const noteObj = allNotesData[id];
                 try {
-                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
-                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                    if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).update(payload);
+                    else if (isAdmin && window.currentAdminTab === 'umum') {
                          const path = noteObj.fullPath;
                          if(path) await fsDb.doc(path).update(payload);
                     }
@@ -2292,9 +2268,8 @@
                  showToast("Warna default catatan diubah."); return;
             }
 
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only. Tidak dapat mengubah warna tanpa mode edit.");
-
             const idsToChange = Array.from(window.selectedNotes); 
+            if(idsToChange.length === 0) return;
             cancelMultiSelect();
             
             for(const id of idsToChange) {
@@ -2307,9 +2282,9 @@
                     if (ex) ex.color = color;
                 }
 
-                if (window.currentAdminTab === 'kiriman') {
-                    await fsDb.collection("admin_notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                } else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                if (isAdmin && window.currentAdminTab === 'pribadi') {
+                    await fsDb.collection("private_notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else if (isAdmin && window.currentAdminTab === 'umum') {
                     const path = noteObj.fullPath;
                     if(path) await fsDb.doc(path).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
                 } else {
@@ -2539,12 +2514,16 @@
         window.createNewNote = function(type) {
             document.getElementById('fabMenuModal').classList.add('hidden');
             
-            // Automatically switch to personal notes when creating a new note to prevent saving into admin views
-            if(window.currentAdminTab && window.currentAdminTab !== 'pribadi') {
-                switchAdminTab('pribadi');
+            currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
+            
+            if (isAdmin) {
+                document.getElementById('adminSaveOptions').classList.remove('hidden');
+                document.getElementById('editorSaveDest').disabled = false;
+                document.getElementById('editorSaveDest').value = window.currentAdminTab === 'umum' ? 'umum' : 'pribadi';
+            } else {
+                document.getElementById('adminSaveOptions').classList.add('hidden');
             }
 
-            currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
             document.getElementById('editorTitle').value = ''; document.getElementById('textEditorBody').value = '';
             
             // Reset read-only states in case they were locked by admin view
@@ -2561,6 +2540,28 @@
         window.openEditor = function(noteId) {
             const note = allNotesData[noteId]; if(!note) return;
             currentEditingId = noteId; currentEditingType = note.type || 'text'; currentEditingColor = note.color || 'yellow';
+            
+            if (isAdmin) {
+                document.getElementById('adminSaveOptions').classList.remove('hidden');
+                document.getElementById('editorSaveDest').disabled = true;
+                if (note.fullPath && note.fullPath.includes('public_notes')) {
+                     document.getElementById('editorSaveDest').value = 'umum';
+                } else if (window.currentAdminTab === 'umum') {
+                     document.getElementById('editorSaveDest').value = 'umum';
+                } else {
+                     document.getElementById('editorSaveDest').value = 'pribadi';
+                }
+            } else {
+                document.getElementById('adminSaveOptions').classList.add('hidden');
+            }
+            
+            // Store original state for smart edit tracking
+            window.originalNoteState = JSON.stringify({
+                title: note.title || '',
+                color: currentEditingColor,
+                content: note.content || '',
+                items: note.items || []
+            });
             document.getElementById('editorTitle').value = note.title || '';
             let dt = note.updatedAt && note.updatedAt.toDate ? note.updatedAt.toDate() : new Date();
             document.getElementById('editorTimestamp').innerText = dt.toLocaleDateString('id-ID', { year: '2-digit', month: '2-digit', day: '2-digit' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
@@ -2570,18 +2571,10 @@
                 if(note.items) note.items.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
             }
             
-            // Check editing permissions based on current admin tab
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) {
-                 document.getElementById('editorTitle').readOnly = true;
-                 document.getElementById('textEditorBody').readOnly = true;
-                 // lock all checklists
-                 setTimeout(() => { document.querySelectorAll('.checklist-cb').forEach(cb => cb.disabled = true); }, 100);
-                 showToast("Mode Lihat (Read-Only). Anda tidak dapat mengubah catatan pangkalan semua data.");
-            } else {
+            // Admins can freely edit
+            if(isAdmin) {
                  document.getElementById('editorTitle').readOnly = false;
                  document.getElementById('textEditorBody').readOnly = false;
-                 if(window.currentAdminTab === 'kiriman') showToast("Mode Edit Admin: Merubah file kiriman ini akan menyimpan perubahan.");
-                 else if(window.currentAdminTab === 'semua' && window.semuaEditMode) showToast("Peringatan: Anda sedang mengubah data publik secara langsung!");
             }
 
             undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
@@ -2594,7 +2587,6 @@
         }
 
         window.deleteCurrentNote = async function() {
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Tidak dapat menghapus data dari Semua Data tanpa mode Edit.");
             if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
                 showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
                 toggleModal('editorMenuModal');
@@ -2604,8 +2596,8 @@
                 if(currentEditingId) {
                     try {
                         const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
-                        if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).update(payload);
-                        else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                        if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(currentEditingId).update(payload);
+                        else if (isAdmin && window.currentAdminTab === 'umum') {
                             const path = allNotesData[currentEditingId].fullPath;
                             if(path) {
                                 await fsDb.doc(path).update(payload);
@@ -2633,17 +2625,48 @@
 
         // ================= TONG SAMPAH (TRASH) =================
         window.openTrash = function() {
-            toggleModal('fabMenuModal');
+            document.getElementById('appMenuModal').classList.add('hidden');
+            document.getElementById('fabMenuModal').classList.add('hidden');
             document.getElementById('trashModal').classList.remove('hidden');
             renderTrash();
         }
 
-        window.renderTrash = function() {
+        window.renderTrash = async function() {
             const container = document.getElementById('trashContainer');
             container.innerHTML = '';
+            
             let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if (!isAdmin || window.currentAdminTab === undefined) baseData = rawNotesData;
+
             if(!baseData) baseData = [];
             let trashDocs = baseData.filter(n => n.deletedAt);
+            
+            // Auto cleanup 30 days
+            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            let hasCleanedUp = false;
+            
+            for (let i = trashDocs.length - 1; i >= 0; i--) {
+                const note = trashDocs[i];
+                if (note.deletedAt) {
+                    const delTime = note.deletedAt.toMillis ? note.deletedAt.toMillis() : Date.now();
+                    if (now - delTime > thirtyDaysMs) {
+                        try {
+                            if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(note.id).delete();
+                            else if (window.currentAdminTab === 'umum') await fsDb.collection("public_notes").doc(note.id).delete();
+                            else await notesCollectionRef.doc(note.id).delete();
+                            
+                            delete allNotesData[note.id];
+                            trashDocs.splice(i, 1);
+                            hasCleanedUp = true;
+                        } catch(e) { console.error("Auto delete failed", e); }
+                    }
+                }
+            }
+            if (hasCleanedUp) {
+                if (window.currentAdminTab === 'pribadi' || !isAdmin) rawNotesData = rawNotesData.filter(n => !n.deletedAt || (now - (n.deletedAt.toMillis?n.deletedAt.toMillis():now) <= thirtyDaysMs));
+                if (window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => !n.deletedAt || (now - (n.deletedAt.toMillis?n.deletedAt.toMillis():now) <= thirtyDaysMs));
+            }
             
             if(trashDocs.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-500 mt-10">Tong Sampah kosong.</p>';
@@ -2675,13 +2698,12 @@
         }
 
         window.restoreNote = async function(id) {
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
             const noteObj = allNotesData[id];
             if(!noteObj) return;
 
             const payload = { deletedAt: firebase.firestore.FieldValue.delete() };
-            if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).update(payload);
-            else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+            if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).update(payload);
+            else if (isAdmin && window.currentAdminTab === 'umum') {
                  if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).update(payload);
             }
             else {
@@ -2695,13 +2717,12 @@
         }
 
         window.permanentDeleteNote = async function(id) {
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
             if(!confirm("Hapus permanen catatan ini? Tidak dapat dikembalikan!")) return;
             const noteObj = allNotesData[id];
             
             try {
-                if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(id).delete();
-                else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).delete();
+                else if (isAdmin && window.currentAdminTab === 'umum') {
                      if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
                 }
                 else {
@@ -2722,8 +2743,8 @@
         }
 
         window.emptyTrash = async function() {
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) return showToast("Mode Read-Only!");
             let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if (!isAdmin || window.currentAdminTab === undefined) baseData = rawNotesData;
             if(!baseData) baseData = [];
             let trashDocs = baseData.filter(n => n.deletedAt);
             if(trashDocs.length === 0) return;
@@ -2733,8 +2754,8 @@
             let failCount = 0;
             for(const noteObj of trashDocs) {
                 try {
-                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(noteObj.id).delete();
-                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
+                    if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(noteObj.id).delete();
+                    else if (isAdmin && window.currentAdminTab === 'umum') {
                          if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
                     }
                     else {
@@ -2762,32 +2783,37 @@
 
         window.saveEditorData = async function() {
             if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
-            
-            // Prevent saving if trying to save from 'semua' database public without edit mode
-            if(window.currentAdminTab === 'semua' && !window.semuaEditMode) {
-                return;
-            }
 
             const title = document.getElementById('editorTitle').value.trim();
             
-            if (!currentEditingId && title !== "") {
-                const isDuplicate = Object.values(allNotesData).some(n => 
-                    !n.deletedAt && n.title && n.title.toLowerCase() === title.toLowerCase()
-                );
-                if (isDuplicate) {
-                    showModal("Judul Duplikat", "Gunakan Judul lain untuk menghindari duplikat. Karena judul yang anda gunakan sudah tersedia di database.", "alert");
-                    return false;
-                }
-            }
-
             let content = ''; let items = [];
             if(currentEditingType === 'text') {
                 content = document.getElementById('textEditorBody').value.trim();
-                if(title === '' && content === '') return false;
             } else {
                 items = extractChecklistData();
-                if(title === '' && items.length === 0) return false;
             }
+            
+            const color = currentEditingColor;
+
+            // Smart Edit Detection: Don't save if nothing actually changed
+            if (currentEditingId && window.originalNoteState) {
+                const currentStateStr = JSON.stringify({
+                    title: title,
+                    color: color,
+                    content: content,
+                    items: items
+                });
+                if (currentStateStr === window.originalNoteState) {
+                    return true; // Exit silently without saving or updating timestamp, but allow modal to close
+                }
+            }
+
+            if(currentEditingType === 'text') {
+                if(title === '' && content === '') return true;
+            } else {
+                if(title === '' && items.length === 0) return true;
+            }
+
             const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
             if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
             
@@ -2797,10 +2823,14 @@
 
             try {
                 if (currentEditingId) {
-                    if (window.currentAdminTab === 'kiriman') await fsDb.collection("admin_notes").doc(currentEditingId).update(noteData);
-                    else if (window.currentAdminTab === 'semua' && window.semuaEditMode) {
-                        const path = allNotesData[currentEditingId].fullPath;
-                        if(path) await fsDb.doc(path).update(noteData);
+                    if (isAdmin) {
+                        const dest = document.getElementById('editorSaveDest').value;
+                        if (dest === 'pribadi') await fsDb.collection("private_notes").doc(currentEditingId).update(noteData);
+                        else {
+                            const path = allNotesData[currentEditingId] ? allNotesData[currentEditingId].fullPath : null;
+                            if(path) await fsDb.doc(path).update(noteData);
+                            else await fsDb.collection("public_notes").doc(currentEditingId).update(noteData);
+                        }
                     }
                     else {
                         await notesCollectionRef.doc(currentEditingId).update(noteData);
@@ -2810,7 +2840,14 @@
                 else { 
                     noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                     let added;
-                    if (window.currentAdminTab === 'kiriman') added = await fsDb.collection("admin_notes").add(noteData);
+                    if (isAdmin) {
+                        const dest = document.getElementById('editorSaveDest').value;
+                        if (dest === 'pribadi') added = await fsDb.collection("private_notes").add(noteData);
+                        else {
+                            added = await fsDb.collection("public_notes").add(noteData);
+                            mirrorDeviceNote(added.id, noteData, false);
+                        }
+                    }
                     else {
                         added = await notesCollectionRef.add(noteData);
                         mirrorDeviceNote(added.id, noteData, false);
@@ -2859,4 +2896,3 @@
 </script>
 </body>
 </html>
-
