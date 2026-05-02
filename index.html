@@ -1399,6 +1399,11 @@
         const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
     }
 
+    function copyOTP(txt, el) {
+        if(!txt) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
     function renderSmsOrders(orders) {
         const container = document.getElementById('sms-active-orders'); 
         const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
@@ -1441,8 +1446,15 @@
                 existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
                 existing.querySelector('.order-phone').innerText = phone;
                 existing.querySelector('.order-otp').innerHTML = otpDisplay;
-                if(o.otp_code) existing.querySelector('.btn-resend').disabled = false;
-                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; existing.querySelector('.btn-replace').disabled = false; }
+                if(o.otp_code) {
+                    existing.querySelector('.btn-resend').disabled = false;
+                    let salinBtn = existing.querySelector('.btn-salin');
+                    if(salinBtn) {
+                        salinBtn.disabled = false;
+                        salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
+                    }
+                }
+                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; }
             } else {
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="order-${o.id}">
@@ -1453,7 +1465,7 @@
                         <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
                         <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
                         <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                        <button class="btn-sm btn-replace" onclick="actSms('replace', '${o.id}')" ${passed2Mins?'':'disabled'}>REPLACE</button>
+                        <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
                     </div>
                 </div>`);
             }
@@ -2896,3 +2908,4 @@
 </script>
 </body>
 </html>
+
