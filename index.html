@@ -1206,7 +1206,18 @@
         const kecamatan = randomRow[7] ? randomRow[7].trim() : '';
         const kodepos = randomRow[5] ? randomRow[5].trim() : '';
         
-        const fullData = `${nama}, ${nohp}, ${provinsi}, ${kota}, ${kecamatan}, ${kodepos}`;
+        const streetPrefix = ["Jl", "Jalan"][Math.floor(Math.random() * 2)];
+        const streetName = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        const noPrefix = ["No.", "No", "Nomor"][Math.floor(Math.random() * 3)];
+        const noValue = Math.floor(Math.random() * 300) + 1;
+        
+        // Logical for RT with padded zero if less than 10
+        let rtValue = Math.floor(Math.random() * 20) + 1;
+        let rtDisplay = rtValue < 10 ? '0' + rtValue : String(rtValue);
+        
+        const addressDetail = `${streetPrefix} ${streetName}, ${noPrefix} ${noValue} - RT.${rtDisplay}`;
+        
+        const fullData = `${nama}, ${nohp}, ${provinsi}, ${kota}, ${kecamatan}, ${kodepos}, ${addressDetail}`;
         
         navigator.clipboard.writeText(fullData).then(() => { 
             showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Lengkap'); 
