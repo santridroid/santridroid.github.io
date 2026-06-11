@@ -200,9 +200,9 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
             <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
-            <button id="btn-data-lengkap" class="btn btn-blue btn-lg" onclick="generateDataLengkap(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
+            <button id="btn-data-acak" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
+            <button id="btn-data-asli" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)"><i class="fas fa-id-card"></i> Data Asli</button>
             <button id="btn-copy-kode" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyKode(this)"><i class="fas fa-spinner fa-spin"></i> Memuat Kode...</button>
-            <button id="btn-buka-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="bukaLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
             <button id="btn-copy-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
         </div>
     </div>
@@ -1094,18 +1094,11 @@
         }
     }
 
-    // --- UPDATE TOMBOL LINK (Buka Link & Copy Link) ---
+    // --- UPDATE TOMBOL LINK (Copy Link) ---
     function updateLinkButtonState() {
-        const btnBuka = document.getElementById('btn-buka-link');
         const btnCopy = document.getElementById('btn-copy-link');
         
         if(availableShopeeLinks.length > 0) {
-            if(btnBuka && !isCuttingLink) {
-                btnBuka.className = "btn btn-teal btn-lg";
-                btnBuka.style.backgroundColor = ""; 
-                btnBuka.innerHTML = `<i class="fas fa-external-link-alt"></i> Buka Link (${availableShopeeLinks.length})`;
-                btnBuka.disabled = false;
-            }
             if(btnCopy && !isCuttingLink) {
                 btnCopy.className = "btn btn-orange btn-lg";
                 btnCopy.style.backgroundColor = ""; 
@@ -1113,12 +1106,6 @@
                 btnCopy.disabled = false;
             }
         } else {
-            if(btnBuka) {
-                btnBuka.className = "btn btn-lg";
-                btnBuka.style.backgroundColor = "#95a5a6"; 
-                btnBuka.innerHTML = `<i class="fas fa-external-link-alt"></i> Link Habis`;
-                btnBuka.disabled = true;
-            }
             if(btnCopy) {
                 btnCopy.className = "btn btn-lg";
                 btnCopy.style.backgroundColor = "#95a5a6"; 
@@ -1275,33 +1262,7 @@
         }
     }
 
-    // --- FUNGSI BUKA LINK (Cut/Rotator) - Membuka di browser/app ---
-    function bukaLink(btnElement) {
-        if(availableShopeeLinks.length === 0 || isCuttingLink) return;
-        
-        isCuttingLink = true;
-        btnElement.disabled = true;
 
-        if (currentLinkMode === 'rotator') {
-            if (linkRotatorIndex >= availableShopeeLinks.length) linkRotatorIndex = 0;
-            const linkData = availableShopeeLinks[linkRotatorIndex];
-            linkRotatorIndex++;
-
-            window.open(linkData.url, '_blank');
-            btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Terbuka!';
-            setTimeout(() => { isCuttingLink = false; updateLinkButtonState(); }, 1000);
-        } else {
-            const linkData = availableShopeeLinks[0];
-            window.open(linkData.url, '_blank');
-            db.ref('linkshopee/' + linkData.key).remove().then(() => {
-                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tercut & Terbuka!';
-                setTimeout(() => { isCuttingLink = false; updateLinkButtonState(); }, 1000);
-            }).catch(err => {
-                showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
-                isCuttingLink = false; updateLinkButtonState();
-            });
-        }
-    }
 
     // --- FUNGSI COPY LINK (Cut/Rotator) - Copy ke clipboard ---
     function copyLink(btnElement) {
@@ -1380,17 +1341,17 @@
             }
         }
         
-        const btnData = document.getElementById('btn-data-lengkap');
+        const btnData = document.getElementById('btn-data-acak');
         if(btnData) {
-            btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Lengkap`;
+            btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
         }
     }).catch(e => {
         console.log("Gagal memuat pos.csv", e);
-        const btnData = document.getElementById('btn-data-lengkap');
+        const btnData = document.getElementById('btn-data-acak');
         if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
     });
     
-    function generateDataLengkap(btnElement) {
+    function generateDataAcak(btnElement) {
         if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
         
         const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
@@ -1419,7 +1380,67 @@
         const fullData = `${nama}, ${nohp}, ${provinsi}, ${kota}, ${kecamatan}, ${kodepos}, ${addressDetail}`;
         
         navigator.clipboard.writeText(fullData).then(() => { 
-            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Lengkap'); 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Acak'); 
+        });
+    }
+
+    function generateDataAsli(btnElement) {
+        if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
+        
+        const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        
+        let nohp = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) nohp += Math.floor(Math.random() * 10);
+        
+        const desaList = ["Ds Kemlagi Kendal", "Ds Kendalkemlagi", "Desa Pucangtelu", "Ds, Dandang", "Desa Kemlagi", "Desa Kendal", "Desa Kemlagi-dandang"];
+        const desa = desaList[Math.floor(Math.random() * desaList.length)];
+        
+        const perumList = ["perum", "perumahan", "cluster"];
+        const perum = perumList[Math.floor(Math.random() * perumList.length)];
+        
+        const ksmList = ["KSM", "K-SM", "KS-M", "Ka-Es-M", "K-Es-M", "KS-Em", "K-S-M"];
+        const ksm = ksmList[Math.floor(Math.random() * ksmList.length)];
+        
+        const centerList = ["Center", "Senter", "Semter", "Sentre", "Centre", "Dandang", "Kemlagi"];
+        const center = centerList[Math.floor(Math.random() * centerList.length)];
+        
+        const gangList = ["Gang", "Gg", "jalan", "Jl", "Jln."];
+        const gangWord = gangList[Math.floor(Math.random() * gangList.length)];
+        
+        const wordList = [
+            "Abadi", "Agung", "Alam", "Aman", "Amerta", "Anggrek", "Angkasa", "Anila", "Antariksa", "Apsari",
+            "Arga", "Arjuna", "Aruna", "Asih", "Asoka", "Asri", "Awan", "Bagus", "Bahagia", "Bahar",
+            "Bakau", "Bakti", "Bambu", "Bangsa", "Barat", "Baru", "Baswara", "Bata", "Batik", "Batu",
+            "Bayu", "Bejo", "Belimbing", "Benua", "Beringin", "Besar", "Bintang", "Biru", "Bismo", "Budi",
+            "Bulan", "Bumi", "Cahaya", "Candi", "Cantik", "Cempaka", "Cendana", "Cendrawasih", "Cengkeh", "Cerah",
+            "Cinta", "Citra", "Dahlia", "Damai", "Danau", "Darma", "Daun", "Dewa", "Dewi", "Dian",
+            "Dirgantara", "Elang", "Emas", "Elok", "Endah", "Fajar", "Fitri", "Flamboyan", "Gagah", "Gajah",
+            "Garuda", "Gede", "Gelora", "Gemilang", "Gempa", "Guntur", "Gunung", "Halimun", "Harapan", "Harum",
+            "Hijau", "Indah", "Intan", "Jambu", "Jasmine", "Jati", "Jaya", "Jelita", "Jember", "Joko",
+            "Juara", "Kabut", "Kancil", "Kancana", "Kartika", "Kasih", "Kencana", "Kenanga", "Kenari", "Kertajaya",
+            "Kijang", "Kila", "Kilat", "Kresna", "Kuning", "Kusuma", "Laksmana", "Lancar", "Langit", "Laut",
+            "Lembah", "Lestari", "Limau", "Lintang", "Logam", "Luhur", "Madya", "Madu", "Mahadewa", "Mahajaya",
+            "Mahardika", "Mahkota", "Majestic", "Makmur", "Malang", "Mandiri", "Mangga", "Manggala", "Manis", "Mapan",
+            "Melati", "Merapi", "Merbabu", "Merdeka", "Merak", "Merah", "Mulia", "Murni", "Mutiara", "Naga",
+            "Nakula", "Nusa", "Nusantara", "Ombak", "Outfit", "Padi", "Pahlawan", "Paku", "Palapa", "Pandan",
+            "Panglima", "Pantai", "Patria", "Pelangi", "Permata", "Pertiwi", "Perwira", "Pilar", "Pinang", "Pinus",
+            "Pratama", "Pribadi", "Priya", "Puji", "Putera", "Puteri", "Putih", "Rama", "Rakyat", "Raya",
+            "Riana", "Rimba", "Rindang", "Roda", "Rosela", "Sadewa", "Sagara", "Sakti", "Salak", "Saman",
+            "Samudra", "Santosa", "Sari", "Satria", "Satu", "Sawo", "Sederhana", "Sejahtera", "Selatan", "Semeru",
+            "Sempurna", "Senja", "Sentosa", "Setya", "Sinar", "Sindu", "Siregar", "Slamet", "Srikandi", "Suci",
+            "Sudirman", "Sugeng", "Sujatmiko", "Suko", "Sulung", "Sumatra", "Sumber", "Surya", "Suryo", "Taman",
+            "Tanah", "Tanjung", "Tapan", "Teguh", "Teja", "Telaga", "Tenggara", "Terang", "Teratai", "Timur",
+            "Toba", "Trisula", "Tulus", "Tunas", "Utama", "Utara", "Wahyu", "Wibawa", "Widodo", "Wijaya",
+            "Wira", "Wirya", "Wisma", "Wulan", "Yuda", "Yustisia"
+        ];
+        const pandanWord = wordList[Math.floor(Math.random() * wordList.length)];
+        
+        const noValue = String(Math.floor(Math.random() * 300) + 1).padStart(3, '0');
+        
+        const fullData = `${nama}, ${nohp}, Jawa Timur, Lamongan, Karanggeneng, 62254, ${desa}, ${perum} ${ksm} ${center}, ${gangWord} ${pandanWord} No. ${noValue}\nRW_O8S-648.7.5675-8`;
+        
+        navigator.clipboard.writeText(fullData).then(() => { 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Asli'); 
         });
     }
 
@@ -1529,7 +1550,7 @@
         if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
         const provider = document.getElementById('provider-selector').value;
         let priceTxt = `Rp ${price}`;
-        if (provider === "herosms" || provider === "smspool" || provider === "5sim") priceTxt = `${price}`;
+        if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim") priceTxt = `${price}`;
 
         if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
         try {
@@ -1550,6 +1571,7 @@
         if(!isWorkerLocked) return;
         try { 
             let idsHero = [];
+            let idsHero2 = [];
             let idsSmsCode = [];
             let idsOtpCepat1 = []; 
             let idsOtpCepat2 = []; 
@@ -1566,6 +1588,7 @@
                     let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
                     
                     if (prov === 'herosms') idsHero.push(id);
+                    else if (prov === 'herosms2') idsHero2.push(id);
                     else if (prov === 'otpcepat1') idsOtpCepat1.push(id);
                     else if (prov === 'otpcepat2') idsOtpCepat2.push(id);
                     else if (prov === 'otpcepat') idsOtpCepat1.push(id); // Menangkap old data jika ada
@@ -1593,6 +1616,7 @@
 
             await Promise.all([
                 fetchOrders('herosms', idsHero),
+                fetchOrders('herosms2', idsHero2),
                 fetchOrders('smscode', idsSmsCode),
                 fetchOrders('otpcepat1', idsOtpCepat1),
                 fetchOrders('otpcepat2', idsOtpCepat2),
@@ -1626,10 +1650,10 @@
             const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
             
             let currStr = "Rp ";
-            if (orderProv === "herosms" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
+            if (orderProv === "herosms" || orderProv === "herosms2" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
             
             let cardClass = "card-smscode";
-            if (orderProv === "herosms") cardClass = "card-herosms";
+            if (orderProv === "herosms" || orderProv === "herosms2") cardClass = "card-herosms";
             else if (orderProv === "otpcepat" || orderProv === "otpcepat1" || orderProv === "otpcepat2") cardClass = "card-otpcepat";
             else if (orderProv === "smspool") cardClass = "card-smspool";
             else if (orderProv === "5sim") cardClass = "card-5sim";
