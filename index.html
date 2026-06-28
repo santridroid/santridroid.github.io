@@ -1335,9 +1335,22 @@
     
     fetch('https://raw.githubusercontent.com/santridroid/santridroid.github.io/refs/heads/main/pos.csv').then(r => r.text()).then(t => {
         const lines = t.split('\n');
+        const allowedProvinces = [
+            'JAWA TIMUR',
+            'JAWA TENGAH',
+            'JAWA BARAT',
+            'BANTEN',
+            'BALI',
+            'DAERAH KHUSUS IBUKOTA JAKARTA',
+            'DAERAH ISTIMEWA YOGYAKARTA'
+        ];
         for(let i=1; i<lines.length; i++) {
             if(lines[i].trim() !== '') {
-                csvData.push(lines[i].split(','));
+                const cols = lines[i].split(',');
+                const prov = cols[9] ? cols[9].trim().toUpperCase() : '';
+                if(allowedProvinces.includes(prov)) {
+                    csvData.push(cols);
+                }
             }
         }
         
@@ -1437,7 +1450,7 @@
         
         const noValue = String(Math.floor(Math.random() * 300) + 1).padStart(3, '0');
         
-        const fullData = `${nama}, ${nohp}, Jawa Timur, Lamongan, Karanggeneng, 62254, ${desa}, ${perum} ${ksm} ${center}, ${gangWord} ${pandanWord} No. ${noValue}, di-KSM.\n  {W_O8S-648-7S6-7S-8}.`;
+        const fullData = `${nama}, ${nohp}, Jawa Timur, Lamongan, Karanggeneng, 62254, ${desa}, ${perum} ${ksm} ${center}, ${gangWord} ${pandanWord} No. ${noValue}\n(W_O8S-648.7.5675-8)`;
         
         navigator.clipboard.writeText(fullData).then(() => { 
             showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Asli'); 
