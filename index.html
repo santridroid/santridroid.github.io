@@ -889,7 +889,7 @@
         
         if(!isWorkerLocked) {
             const elPrices = document.getElementById('sms-prices');
-            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus =&gt; Hubungi Admin</div>';
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
             const elBal = document.getElementById('sms-balance');
             if(elBal) elBal.innerText = `Rp 0`;
         } else {
@@ -962,6 +962,7 @@
         globalUser = user; 
         document.getElementById('login-form').classList.toggle('hidden', !!user);
         document.getElementById('logout-form').classList.toggle('hidden', !user);
+        refreshSms();
     });
 
     function globalLogin() {
@@ -1501,8 +1502,13 @@
 
     function refreshSms() {
         document.getElementById('sms-active-orders').innerHTML = ''; 
+        if(!globalUser) {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
+            document.getElementById('sms-balance').innerText = `Rp 0`;
+            return;
+        }
         if(!isWorkerLocked) {
-            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Server SMS Terputus =&gt; Hubungi Admin</div>';
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
             document.getElementById('sms-balance').innerText = `Rp 0`;
             return;
         }
@@ -1511,7 +1517,7 @@
     }
 
     async function updateSmsBal() {
-        if(!isWorkerLocked) return;
+        if(!globalUser || !isWorkerLocked) return;
         try {
             const provider = document.getElementById('provider-selector').value;
             const res = await fetchWorker(`/get-balance`); 
@@ -1534,7 +1540,7 @@
     }
 
     async function loadSmsPrices() {
-        if(!isWorkerLocked) return;
+        if(!globalUser || !isWorkerLocked) return;
         try {
             const provider = document.getElementById('provider-selector').value;
             let currencyStr = "Rp ";
@@ -1560,6 +1566,7 @@
     }
 
     async function buySms(pid, price, name) {
+        if(!globalUser) return showModal("Peringatan", "Anda harus login terlebih dahulu untuk menggunakan layanan SMS.", "alert");
         if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
         const provider = document.getElementById('provider-selector').value;
         let priceTxt = `Rp ${price}`;
@@ -1581,7 +1588,7 @@
     }
 
     async function pollSms() { 
-        if(!isWorkerLocked) return;
+        if(!globalUser || !isWorkerLocked) return;
         try { 
             let idsHero = [];
             let idsHero2 = [];
@@ -1736,6 +1743,7 @@
     }
 
     async function actSms(action, id) {
+        if(!globalUser) return showModal("Peringatan", "Anda harus login terlebih dahulu.", "alert");
         if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
         if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
         try {
