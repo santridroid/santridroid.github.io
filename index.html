@@ -1334,38 +1334,53 @@
     let listFN = [], listLN = [];
     let csvData = [];
     
-    fetch('https://raw.githubusercontent.com/muzans/muzans.github.io/main/base.json').then(r => r.json()).then(d => { listFN = d.FirstNames || []; listLN = d.LastNames || listFN; }).catch(e=>console.log(e));
+    fetch('https://cdn.jsdelivr.net/gh/muzans/muzans.github.io@main/base.json')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.json();
+        })
+        .then(d => { 
+            listFN = d.FirstNames || []; 
+            listLN = d.LastNames || listFN; 
+        })
+        .catch(e => console.log("Gagal memuat base.json", e));
     
-    fetch('https://raw.githubusercontent.com/santridroid/santridroid.github.io/refs/heads/main/pos.csv').then(r => r.text()).then(t => {
-        const lines = t.split('\n');
-        const allowedProvinces = [
-            'JAWA TIMUR',
-            'JAWA TENGAH',
-            'JAWA BARAT',
-            'BANTEN',
-            'BALI',
-            'DAERAH KHUSUS IBUKOTA JAKARTA',
-            'DAERAH ISTIMEWA YOGYAKARTA'
-        ];
-        for(let i=1; i<lines.length; i++) {
-            if(lines[i].trim() !== '') {
-                const cols = lines[i].split(',');
-                const prov = cols[9] ? cols[9].trim().toUpperCase() : '';
-                if(allowedProvinces.includes(prov)) {
-                    csvData.push(cols);
+    fetch('https://cdn.jsdelivr.net/gh/santridroid/santridroid.github.io@main/pos.csv')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.text();
+        })
+        .then(t => {
+            const lines = t.split('\n');
+            const allowedProvinces = [
+                'JAWA TIMUR',
+                'JAWA TENGAH',
+                'JAWA BARAT',
+                'BANTEN',
+                'BALI',
+                'DAERAH KHUSUS IBUKOTA JAKARTA',
+                'DAERAH ISTIMEWA YOGYAKARTA'
+            ];
+            for(let i=1; i<lines.length; i++) {
+                if(lines[i].trim() !== '') {
+                    const cols = lines[i].split(',');
+                    const prov = cols[9] ? cols[9].trim().toUpperCase() : '';
+                    if(allowedProvinces.includes(prov)) {
+                        csvData.push(cols);
+                    }
                 }
             }
-        }
-        
-        const btnData = document.getElementById('btn-data-acak');
-        if(btnData) {
-            btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
-        }
-    }).catch(e => {
-        console.log("Gagal memuat pos.csv", e);
-        const btnData = document.getElementById('btn-data-acak');
-        if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
-    });
+            
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) {
+                btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
+            }
+        })
+        .catch(e => {
+            console.log("Gagal memuat pos.csv", e);
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
+        });
     
     function generateDataAcak(btnElement) {
         if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
