@@ -166,6 +166,13 @@
                     <button class="btn btn-green" onclick="addCustomUser()" style="width: auto; padding: 0 15px;">Tambah</button>
                 </div>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Edit Hasil Paste:</div>
+                <textarea id="admin-paste-input" class="form-input" placeholder="Teks hasil paste (pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="saveAdminPasteData()" style="flex: 1;">Simpan Paste</button>
+                    <button class="btn btn-red" onclick="clearAdminPasteData()" style="flex: 1;">Hapus Paste</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Kode:</div>
                 <select id="admin-kode-mode" class="form-input" onchange="changeKodeMode()" style="margin-bottom: 10px;">
                     <option value="cut">Mode Cut Kode</option>
@@ -206,6 +213,8 @@
             <button id="btn-data-asli" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)"><i class="fas fa-id-card"></i> Data Asli</button>
             <button id="btn-copy-kode" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyKode(this)"><i class="fas fa-spinner fa-spin"></i> Memuat Kode...</button>
             <button id="btn-copy-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
+            <button id="btn-paste" class="btn btn-teal btn-lg" onclick="handlePasteAction(this)"><i class="fas fa-paste"></i> Paste</button>
+            <button id="btn-unduh" class="btn btn-pink btn-lg" onclick="handleUnduhAction(this)"><i class="fas fa-download"></i> Unduh</button>
         </div>
     </div>
     <div id="sms-active-orders"></div>
@@ -996,6 +1005,116 @@
             showModal("Sukses", "User berhasil ditambahkan ke seluruh perangkat", "alert");
         }).catch(err => {
             showModal("Gagal", "Gagal sinkronisasi: " + err.message, "alert");
+        });
+    }
+
+    // ================= LOGIKA PASTE & UNDUH REALTIME =================
+    let currentPasteData = "";
+
+    db.ref('paste_data').on('value', snap => {
+        const val = snap.val();
+        currentPasteData = (val !== null && val !== undefined) ? String(val) : (localStorage.getItem('xurel_paste_data') || "");
+        updatePasteUI();
+    }, error => {
+        console.warn("Gagal membaca paste_data dari Firebase:", error);
+        currentPasteData = localStorage.getItem('xurel_paste_data') || "";
+        updatePasteUI();
+    });
+
+    function savePasteData(newData, callback) {
+        currentPasteData = newData;
+        localStorage.setItem('xurel_paste_data', newData);
+        db.ref('paste_data').set(newData).then(() => {
+            updatePasteUI();
+            if (callback) callback();
+        }).catch(err => {
+            console.warn("Gagal simpan paste_data ke Firebase:", err);
+            updatePasteUI();
+            if (callback) callback();
+        });
+    }
+
+    function updatePasteUI() {
+        const lines = currentPasteData ? currentPasteData.split('\n').filter(l => l.trim() !== '') : [];
+        const count = lines.length;
+
+        const btnPaste = document.getElementById('btn-paste');
+        const btnUnduh = document.getElementById('btn-unduh');
+        const adminInput = document.getElementById('admin-paste-input');
+
+        if (btnPaste) {
+            btnPaste.innerHTML = `<i class="fas fa-paste"></i> Paste${count > 0 ? ` (${count})` : ''}`;
+        }
+        if (btnUnduh) {
+            btnUnduh.innerHTML = `<i class="fas fa-download"></i> Unduh${count > 0 ? ` (${count})` : ''}`;
+        }
+        if (adminInput && document.activeElement !== adminInput) {
+            adminInput.value = currentPasteData;
+        }
+    }
+
+    async function handlePasteAction(btnElement) {
+        try {
+            let text = "";
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                text = await navigator.clipboard.readText();
+            } else {
+                text = prompt("Masukkan / Tempelkan teks di sini:");
+            }
+
+            if (!text || !text.trim()) {
+                showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Clipboard Kosong', `<i class="fas fa-paste"></i> Paste${currentPasteData ? ` (${currentPasteData.split('\n').filter(l=>l.trim()!=='').length})` : ''}`);
+                return;
+            }
+
+            const trimmedText = text.trim();
+            let newPasteData = (currentPasteData && currentPasteData.trim() !== "") ? (currentPasteData + '\n' + trimmedText) : trimmedText;
+
+            savePasteData(newPasteData, () => {
+                const count = newPasteData.split('\n').filter(l => l.trim() !== '').length;
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Dipaste!', `<i class="fas fa-paste"></i> Paste (${count})`);
+            });
+        } catch (err) {
+            console.error("Paste Error:", err);
+            const manualText = prompt("Akses Clipboard ditolak browser. Tempelkan teks di bawah ini:");
+            if (manualText && manualText.trim()) {
+                const trimmedText = manualText.trim();
+                let newPasteData = (currentPasteData && currentPasteData.trim() !== "") ? (currentPasteData + '\n' + trimmedText) : trimmedText;
+                savePasteData(newPasteData, () => {
+                    const count = newPasteData.split('\n').filter(l => l.trim() !== '').length;
+                    showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Dipaste!', `<i class="fas fa-paste"></i> Paste (${count})`);
+                });
+            } else {
+                showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Gagal Read', `<i class="fas fa-paste"></i> Paste`);
+            }
+        }
+    }
+
+    function handleUnduhAction(btnElement) {
+        if (!currentPasteData || !currentPasteData.trim()) {
+            return showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Data Kosong', '<i class="fas fa-download"></i> Unduh');
+        }
+
+        const dataToCopy = currentPasteData;
+        doCopy(dataToCopy, () => {
+            savePasteData("", () => {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin & Cut!', '<i class="fas fa-download"></i> Unduh');
+            });
+        }, () => {
+            showModal("Gagal", "Gagal menyalin data paste ke clipboard", "alert");
+        });
+    }
+
+    function saveAdminPasteData() {
+        const val = document.getElementById('admin-paste-input').value;
+        savePasteData(val, () => {
+            showModal("Sukses", "Hasil paste berhasil diperbarui", "alert");
+        });
+    }
+
+    function clearAdminPasteData() {
+        savePasteData("", () => {
+            showModal("Sukses", "Hasil paste berhasil dihapus", "alert");
         });
     }
 
