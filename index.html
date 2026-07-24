@@ -1979,25 +1979,42 @@
     }
 
     function blockSms(id) {
-        const blockEndTime = Date.now() + 130 * 1000;
-        localStorage.setItem(`${currentUser}_block_timer_${id}`, blockEndTime);
-        
-        const card = document.getElementById('order-' + id);
-        if (card) {
-            const serverPrice = localStorage.getItem(`${currentUser}_price_${id}`) || '...';
-            const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
-            let currStr = "Rp ";
-            if (orderProvider === "herosms" || orderProvider === "herosms2" || orderProvider === "smspool" || orderProvider === "5sim") currStr = "$";
-
-            card.className = `order-card order-blocked`;
-            card.innerHTML = `
-                <div class="blocked-status-bar">
-                    <span>Cancel: <span class="block-countdown" data-id="${id}">130s</span></span>
-                    <span>${currStr}${serverPrice}</span>
-                </div>
-            `;
+        let expireTime = localStorage.getItem(`${currentUser}_timer_${id}`);
+        if (!expireTime) {
+            expireTime = Date.now() + (20 * 60000);
+            localStorage.setItem(`${currentUser}_timer_${id}`, expireTime);
         }
-        updateSmsTimers();
+
+        const remainingSecs = Math.floor((parseInt(expireTime) - Date.now()) / 1000);
+        const passed2Mins = (remainingSecs <= 1080);
+
+        if (passed2Mins) {
+            // Sudah lewat 2 menit (sisa waktu <= 18 menit), langsung cancel sekarang
+            autoCancelSms(id);
+        } else {
+            // Belum 2 menit, hitung sisa waktu tunggu sampai mencapai batas 18 menit (1080s)
+            const blockEndTime = parseInt(expireTime) - (1080 * 1000);
+            localStorage.setItem(`${currentUser}_block_timer_${id}`, blockEndTime);
+            
+            const card = document.getElementById('order-' + id);
+            if (card) {
+                const serverPrice = localStorage.getItem(`${currentUser}_price_${id}`) || '...';
+                const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
+                let currStr = "Rp ";
+                if (orderProvider === "herosms" || orderProvider === "herosms2" || orderProvider === "smspool" || orderProvider === "5sim") currStr = "$";
+
+                const initialDiff = Math.max(0, Math.floor((blockEndTime - Date.now()) / 1000));
+
+                card.className = `order-card order-blocked`;
+                card.innerHTML = `
+                    <div class="blocked-status-bar">
+                        <span>Cancel: <span class="block-countdown" data-id="${id}">${initialDiff}s</span></span>
+                        <span>${currStr}${serverPrice}</span>
+                    </div>
+                `;
+            }
+            updateSmsTimers();
+        }
     }
 </script>
 
