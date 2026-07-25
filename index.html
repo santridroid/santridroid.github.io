@@ -742,6 +742,7 @@
         }
         
         initUserDropdown();
+        if (typeof updatePasteUI === 'function') updatePasteUI();
 
         
         
@@ -941,6 +942,7 @@
     function openAdminMenu() { 
         document.getElementById('main-menu').classList.remove('active'); 
         document.getElementById('admin-menu').classList.add('active'); 
+        if (typeof updatePasteUI === 'function') updatePasteUI();
     }
 
     function openServerModal() {
@@ -1008,30 +1010,14 @@
         });
     }
 
-    // ================= LOGIKA PASTE & UNDUH REALTIME =================
-    let currentPasteData = "";
-
-    db.ref('paste_data').on('value', snap => {
-        const val = snap.val();
-        currentPasteData = (val !== null && val !== undefined) ? String(val) : (localStorage.getItem('xurel_paste_data') || "");
-        updatePasteUI();
-    }, error => {
-        console.warn("Gagal membaca paste_data dari Firebase:", error);
-        currentPasteData = localStorage.getItem('xurel_paste_data') || "";
-        updatePasteUI();
-    });
+    // ================= LOGIKA PASTE & UNDUH (PENYIMPANAN INTERNAL PERANGKAT) =================
+    let currentPasteData = localStorage.getItem('xurel_paste_data') || "";
 
     function savePasteData(newData, callback) {
         currentPasteData = newData;
         localStorage.setItem('xurel_paste_data', newData);
-        db.ref('paste_data').set(newData).then(() => {
-            updatePasteUI();
-            if (callback) callback();
-        }).catch(err => {
-            console.warn("Gagal simpan paste_data ke Firebase:", err);
-            updatePasteUI();
-            if (callback) callback();
-        });
+        updatePasteUI();
+        if (callback) callback();
     }
 
     function updatePasteUI() {
