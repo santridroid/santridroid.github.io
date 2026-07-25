@@ -1,0 +1,3382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANTRIDROID TOOLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        /* === SMS VIEW STYLES === */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
+        input, select, button, textarea { outline: none; }
+        .hidden { display: none !important; }
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 8px; padding-top: 10px; }
+        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
+        .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
+        .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
+        .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 115px; text-overflow: ellipsis; cursor: pointer; }
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+        .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; max-height: 80vh; overflow-y: auto; }
+        .admin-popup.active { display: block; }
+        .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
+        #main-menu { padding: 10px; width: 230px; }
+        .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
+        .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
+        .menu-item:last-child { border-bottom: none; }
+        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
+        .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
+        .btn { width: 100%; padding: 8px 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-lg { padding: 11px 8px; font-size: 14px; min-height: 45px; }
+        .btn-orange { background-color: #f39c12; }
+        .btn-blue { background-color: #2e86de; }
+        .btn-green { background-color: #27ae60; }
+        .btn-purple { background-color: #8e44ad; }
+        .btn-red { background-color: #e74c3c; }
+        .btn-teal { background-color: #16a085; }
+        .btn-pink { background-color: #e84393; }
+        .btn-row { display: flex; gap: 10px; }
+        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
+        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
+        .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
+        .list-item:hover { background-color: #f9f9f9; }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-weight: bold; }
+        .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
+        .item-stock { color: #7f8c8d; font-size: 12px; }
+        .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
+        .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
+        .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+        .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; }
+        .card-smspool { background-color: #fdf2e9; border-left: 4px solid #e67e22; }
+        .card-5sim { background-color: #f0f3f4; border-left: 4px solid #34495e; }
+        .order-blocked { background-color: #e74c3c !important; border-left: 4px solid #c0392b !important; padding: 10px 15px !important; }
+        .blocked-status-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: white; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
+        .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
+        .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
+        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
+        .btn-sm { flex: 1; padding: 6px 5px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
+        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
+        .fab-quick-note { width: 50px; height: 50px; border-radius: 50%; background-color: #f1c40f; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .fab-quick-note:hover { background-color: #f39c12; transform: scale(1.05); }
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* === NOTES VIEW STYLES === */
+        #notes-view { display: none; }
+        #notes-view ::-webkit-scrollbar { display: none; }
+        :root {
+            --theme-header: #ffca28;
+            --theme-body: #fff9c4;
+            --theme-line: rgba(0,0,0,0.1);
+            --theme-text: #333333;
+        }
+        .color-red { --theme-header: #ef5350; --theme-body: #ffebee; --theme-line: #ffcdd2; --theme-text: #333; }
+        .color-orange { --theme-header: #ff9800; --theme-body: #fff3e0; --theme-line: #ffe0b2; --theme-text: #333; }
+        .color-yellow { --theme-header: #ffca28; --theme-body: #fff9c4; --theme-line: #fff59d; --theme-text: #333; }
+        .color-green { --theme-header: #8bc34a; --theme-body: #e8f5e9; --theme-line: #c8e6c9; --theme-text: #333; }
+        .color-blue { --theme-header: #42a5f5; --theme-body: #e3f2fd; --theme-line: #bbdefb; --theme-text: #333; }
+        .color-purple { --theme-header: #ab47bc; --theme-body: #f3e5f5; --theme-line: #e1bee7; --theme-text: #333; }
+        .color-black { --theme-header: #424242; --theme-body: #f5f5f5; --theme-line: #e0e0e0; --theme-text: #333; }
+        .color-gray { --theme-header: #9e9e9e; --theme-body: #fafafa; --theme-line: #eeeeee; --theme-text: #333; }
+        .color-white { --theme-header: #e0e0e0; --theme-body: #ffffff; --theme-line: #f5f5f5; --theme-text: #333; }
+        
+        .theme-bg-body { background-color: var(--theme-body); color: var(--theme-text) !important; }
+        .theme-bg-header { background-color: var(--theme-header); color: var(--theme-text) !important; }
+        .note-card { transition: transform 0.1s; }
+        .note-card:active { transform: scale(0.98); }
+        .selected-note { border: 3px solid #009688 !important; opacity: 0.8; }
+        .lined-paper { background-image: repeating-linear-gradient(transparent, transparent 31px, var(--theme-line) 31px, var(--theme-line) 32px); line-height: 32px; background-attachment: local; padding-top: 6px; }
+        input[type="checkbox"].checklist-cb { width: 1.25rem; height: 1.25rem; accent-color: #666; cursor: pointer; }
+        .checklist-done { text-decoration: line-through; color: #888; }
+        .tab-active { border-bottom: 2px solid #009688; font-weight: bold; color: #333; }
+        .tab-inactive { color: #6b7280; }
+    </style>
+</head>
+<body>
+<!-- ==================== SMS VIEW ==================== -->
+<div id="sms-view">
+<div class="app-container">
+    <div class="sticky-header-wrapper">
+        <header class="header">
+            <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
+            <div class="dropdown-group">
+                <select id="provider-selector" onchange="changeProvider()">
+                    <option value="smscode">SMS Code</option>
+                    <option value="herosms">Hero SMS</option>
+                    <option value="herosms2">Hero SMS 2</option>
+                    <option value="otpcepat1">OTP Cepat 1</option>
+                    <option value="otpcepat2">OTP Cepat 2</option>
+                    <option value="smspool">SMS Pool</option>
+                    <option value="5sim">5SIM</option>
+                </select>
+                <select id="user-selector" onchange="changeGlobalUser()"></select>
+            </div>
+            <div class="header-right">
+                <span class="saldo-text" id="sms-balance">Rp 0</span>
+                <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
+            </div>
+        </header>
+        <div id="main-menu" class="admin-popup">
+            <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
+        </div>
+        <div id="admin-menu" class="admin-popup">
+            <div id="login-form">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+                <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
+                <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
+                    <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
+                    <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+                </div>
+                <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+            </div>
+            <div id="logout-form" class="hidden">
+                <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Koneksi Worker (Sistem SMS):</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="btn-worker-lock" class="btn btn-green" onclick="setWorkerLock(true)"><i class="fas fa-lock"></i> Lock</button>
+                    <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah User SMS:</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="new-username" class="form-input" placeholder="Nama User (Cth: UDIN)" style="margin-bottom: 0;">
+                    <button class="btn btn-green" onclick="addCustomUser()" style="width: auto; padding: 0 15px;">Tambah</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Edit Hasil Paste:</div>
+                <textarea id="admin-paste-input" class="form-input" placeholder="Teks hasil paste (pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="saveAdminPasteData()" style="flex: 1;">Simpan Paste</button>
+                    <button class="btn btn-red" onclick="clearAdminPasteData()" style="flex: 1;">Hapus Paste</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Kode:</div>
+                <select id="admin-kode-mode" class="form-input" onchange="changeKodeMode()" style="margin-bottom: 10px;">
+                    <option value="cut">Mode Cut Kode</option>
+                    <option value="rotator">Mode Rotator Kode</option>
+                </select>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Masukkan Kode:</div>
+                <textarea id="kode-input" class="form-input" placeholder="Masukkan Kode (Bisa lebih dari 1, pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="addKodeData()" style="flex: 1;">Terbitkan Kode</button>
+                    <button class="btn btn-orange" onclick="openEditKodeModal()" style="flex: 1;">Edit Kode</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pengaturan Link:</div>
+                <select id="admin-link-mode" class="form-input" onchange="changeLinkMode()" style="margin-bottom: 10px;">
+                    <option value="cut">Mode Cut Link</option>
+                    <option value="rotator">Mode Rotator Link</option>
+                </select>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Masukkan Link:</div>
+                <textarea id="shopee-url" class="form-input" placeholder="URL Link (Bisa lebih dari 1, pisahkan dengan enter)" style="height: 80px; resize: vertical;"></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="btn btn-green" onclick="addShopeeMenu()" style="flex: 1;">Terbitkan Link</button>
+                    <button class="btn btn-orange" onclick="openEditLinkModal()" style="flex: 1;">Edit Link</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <button class="btn btn-red" onclick="globalLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
+            <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
+            <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('shorif_saved_email', this.value)">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
+            <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
+            <button id="btn-data-acak" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
+            <button id="btn-data-asli" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)"><i class="fas fa-id-card"></i> Data Asli</button>
+            <button id="btn-copy-kode" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyKode(this)"><i class="fas fa-spinner fa-spin"></i> Memuat Kode...</button>
+            <button id="btn-copy-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
+            <button id="btn-paste" class="btn btn-teal btn-lg" onclick="handlePasteAction(this)"><i class="fas fa-paste"></i> Paste</button>
+            <button id="btn-unduh" class="btn btn-pink btn-lg" onclick="handleUnduhAction(this)"><i class="fas fa-download"></i> Unduh</button>
+        </div>
+    </div>
+    <div id="sms-active-orders"></div>
+    <div class="list-header">PESAN NOMOR BARU</div>
+    <div class="list-group" id="sms-prices">
+        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+    </div>
+</div>
+<div id="toast-container"></div>
+<div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
+    <div class="modal-box">
+        <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
+        <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
+        <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
+    </div>
+</div>
+<div id="server-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Pilih Server Worker</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-blue server-btn" style="position: relative;" data-url="https://shorif.santridroid.workers.dev" onclick="setServer('https://shorif.santridroid.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 1 (shorif)
+            </button>
+            <button class="btn" style="background:#bdc3c7; color:#333; margin-top:10px;" onclick="closeServerModal()">Batal</button>
+        </div>
+    </div>
+</div>
+<div id="edit-link-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Link</h3>
+        <textarea id="edit-shopee-textarea" class="form-input" style="height: 200px; resize: vertical; font-size: 12px; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Daftar link..."></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditLinkModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllLinks()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedLinks()">Simpan</button>
+        </div>
+    </div>
+</div>
+<div id="edit-kode-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:15px; color:#333;">Edit Kode</h3>
+        <textarea id="edit-kode-textarea" class="form-input" style="height: 200px; resize: vertical; font-size: 12px; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Daftar kode..."></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditKodeModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllKode()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedKode()">Simpan</button>
+        </div>
+    </div>
+</div>
+<button class="fab-quick-note" onclick="switchToNotesView()">
+    <i class="fas fa-pencil-alt"></i>
+</button>
+</div>
+<!-- ==================== NOTES VIEW ==================== -->
+<div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
+
+
+    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 pt-8 flex justify-between items-center z-10 transition-all">
+        <button onclick="notesInternalBack()" class="text-gray-600 text-xl mr-3 hover:text-teal-600" title="Kembali"><i class="fas fa-arrow-left"></i></button>
+        <h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
+            <span class="font-light text-gray-500">Santridroid</span>Note </span>
+        </h1>
+        <div class="flex space-x-4 text-gray-600 text-lg">
+            <button onclick="toggleModal('importCodeModal')" title="Terima/Import Catatan"><i class="fas fa-file-import"></i></button>
+            <button onclick="toggleModal('settingsModal'); setTimeout(() => openSettingsTab('warna'), 50);" title="Alat"><i class="fas fa-wrench"></i></button>
+            <button id="topLoginBtn" onclick="toggleModal('loginModal', true)" title="Login / Akun"><i class="fas fa-user-circle"></i></button>
+        </div>
+    </header>
+
+    <div id="searchBar" class="hidden bg-white shadow-sm p-2 flex items-center z-10 w-full relative">
+        <i class="fas fa-search text-gray-400 ml-2"></i>
+        <input type="text" id="searchInput" oninput="applySearch()" placeholder="Cari catatan..." class="flex-1 bg-transparent ml-3 outline-none text-gray-700">
+        <button onclick="toggleSearch()" class="p-2 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div id="adminTabsContainer" class="hidden flex-col bg-white shadow-sm border-b text-[12px] font-semibold z-10 w-full shrink-0">
+        <div class="flex w-full">
+            <button id="tabAdminNotes" onclick="switchAdminTab('pribadi')" class="flex-1 py-3 text-teal-600 border-b-2 border-teal-600 transition-colors">PRIBADI</button>
+            <button id="tabAllNotes" onclick="switchAdminTab('umum')" class="flex-1 py-3 text-gray-500 hover:text-teal-600 border-b-2 border-transparent transition-colors">UMUM</button>
+        </div>
+        <div id="adminEditToggleContainer" class="p-2 bg-gray-50 border-t border-gray-200 flex justify-end items-center w-full">
+            <button onclick="triggerGlobalRefresh()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded shadow-sm" title="Refresh Semua Perangkat"><i class="fas fa-sync-alt mr-1"></i> Auto Refresh Semua Perangkat</button>
+        </div>
+    </div>
+
+    <header id="multiSelectHeader" class="hidden bg-teal-600 shadow-md p-4 flex justify-between items-center z-10 text-white w-full">
+        <div class="flex items-center space-x-4">
+            <button onclick="cancelMultiSelect()" class="text-xl"><i class="fas fa-times"></i></button>
+            <span id="selectCount" class="text-lg font-semibold">1 dipilih</span>
+        </div>
+        <div class="flex space-x-5 text-lg">
+            <button onclick="toggleModal('multiColorModal')" title="Ubah Warna"><i class="fas fa-palette"></i></button>
+            <button onclick="toggleLockMulti()" title="Kunci"><i class="fas fa-lock"></i></button>
+            <button onclick="copySelectedNotes()" title="Salin"><i class="far fa-copy"></i></button>
+            <button onclick="deleteSelectedNotes()" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+            <button onclick="openShareModal('multi')" title="Bagikan"><i class="fas fa-share-alt"></i></button>
+            <button><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-2 relative" id="mainContent">
+        <div id="notesContainer" class="flex flex-col gap-2">
+            <p class="text-center text-gray-500 mt-10">Memuat catatan...</p>
+        </div>
+    </main>
+
+    <button onclick="toggleModal('fabMenuModal')" class="absolute bottom-20 right-6 bg-teal-600 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-teal-700 z-10">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <button onclick="switchToSmsView()" class="fixed bottom-20 left-6 bg-blue-500 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-blue-600 z-[60]" title="Kembali ke SMS">
+        <i class="fas fa-comment-sms"></i>
+    </button>
+
+    <nav class="bg-gray-100 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex justify-around items-center p-3 w-full shrink-0 z-10 relative">
+        <button onclick="toggleSearch(false); toggleModal('calendarModal', true)" class="text-teal-600 text-xl"><i class="fas fa-clipboard-list"></i></button>
+        <button onclick="openCalendar()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-calendar-alt"></i></button>
+        <button onclick="toggleSearch()" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-search"></i></button>
+        <button onclick="toggleModal('appMenuModal', true)" class="text-gray-500 text-xl hover:text-teal-600"><i class="fas fa-bars"></i></button>
+    </nav>
+
+    <div id="fabMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center" onclick="toggleModal('fabMenuModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Tambahkan</div>
+            <ul class="py-2">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('text')"><i class="fas fa-align-justify w-8 text-xl text-gray-600"></i> Teks</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="createNewNote('checklist')"><i class="far fa-check-square w-8 text-xl text-gray-600"></i> Daftar Centang</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="trashModal" class="hidden fixed inset-0 z-[60] bg-gray-100 flex flex-col">
+        <div class="flex items-center p-4 border-b bg-teal-600 text-white shadow-sm">
+            <button onclick="toggleModal('trashModal')" class="p-2 mr-2"><i class="fas fa-arrow-left"></i></button>
+            <h2 class="text-xl font-bold flex-1">Tong Sampah (30 Hari)</h2>
+            <button onclick="emptyTrash()" class="p-2 text-sm bg-red-500 rounded px-3 hover:bg-red-600 shadow font-medium"><i class="fas fa-trash-alt mr-1"></i> Kosongkan</button>
+        </div>
+        <div id="trashContainer" class="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
+            <!-- Trash items go here -->
+        </div>
+    </div>
+
+    <div id="editorPage" class="hidden fixed inset-0 z-50 flex flex-col color-yellow theme-bg-body transition-colors duration-300">
+        <div class="h-10 w-full theme-bg-header flex-shrink-0 opacity-90"></div>
+        <div class="flex items-center p-2 theme-bg-header flex-shrink-0 shadow-sm">
+            <button onclick="saveAndCloseEditor()" class="text-inherit p-2"><i class="fas fa-check text-xl"></i></button>
+            <input type="text" id="editorTitle" oninput="recordHistory()" placeholder="Judul..." class="flex-1 bg-white bg-opacity-90 ml-2 font-semibold text-lg outline-none text-black px-2 py-1 rounded placeholder-gray-500 placeholder-opacity-70">
+            <button id="editorColorIndicator" onclick="toggleModal('editorColorModal')" class="w-7 h-7 rounded border border-black border-opacity-20 ml-3 shadow-sm"></button>
+            <button onclick="openEditorMenu()" class="ml-3 p-2 text-inherit"><i class="fas fa-ellipsis-v text-lg"></i></button>
+        </div>
+        
+        <div id="adminSaveOptions" class="hidden p-2 theme-bg-header bg-opacity-50 flex justify-between items-center border-b border-black border-opacity-10 text-inherit text-sm">
+            <span class="font-semibold"><i class="fas fa-folder-open mr-1"></i> Lokasi Simpan:</span>
+            <select id="editorSaveDest" class="p-1 rounded bg-white text-black border border-gray-300 outline-none font-medium">
+                <option value="pribadi">Folder Pribadi Admin</option>
+                <option value="umum">Folder Umum (Publik)</option>
+            </select>
+        </div>
+        <div class="text-sm px-4 py-2 flex justify-between theme-bg-body text-inherit opacity-80 border-b border-black border-opacity-10">
+            <span>Suntingan</span>
+            <span id="editorTimestamp">Sekarang</span>
+        </div>
+        <div class="flex-1 overflow-y-auto relative w-full h-full text-inherit">
+            <textarea id="textEditorBody" oninput="recordHistory()" class="w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden text-lg" placeholder="Masukkan catatan..."></textarea>
+            <div id="checklistEditorBody" class="w-full min-h-full p-2 hidden">
+                <div id="checklistItemsContainer" class="flex flex-col"></div>
+                <button onclick="addChecklistItemDOM('', false, true)" class="flex items-center p-3 w-full hover:bg-black hover:bg-opacity-10 rounded font-semibold mt-2 opacity-90">
+                    <i class="fas fa-plus-circle text-xl mr-3"></i> Tambah Barang
+                </button>
+            </div>
+        </div>
+        <div class="h-12 bg-black bg-opacity-10 border-t border-black border-opacity-20 flex justify-center items-center space-x-10 text-xl text-inherit opacity-80">
+            <button onclick="performUndo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-undo"></i></button>
+            <button onclick="performRedo()" class="active:opacity-100 hover:opacity-100"><i class="fas fa-redo"></i></button>
+        </div>
+    </div>
+
+    <div id="importCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('importCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Terima Catatan</h3>
+            <input type="text" id="importCodeInput" placeholder="Masukkan Kode Catatan" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('importCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitImportCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sendWithCodeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('sendWithCodeModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-80" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Kirim dengan Kode</h3>
+            <input type="text" id="shareCodeInput" placeholder="Masukkan Kode (Teks/Angka)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <select id="shareDurationSelect" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+                <option value="1h">1 Jam</option>
+                <option value="12h">12 Jam</option>
+                <option value="1d">1 Hari</option>
+                <option value="1w">1 Minggu</option>
+                <option value="1m">1 Bulan</option>
+            </select>
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('sendWithCodeModal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="submitShareCode()" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="shareMethodModal" class="hidden fixed inset-0 z-[70] bg-black bg-opacity-40 flex items-center justify-center" onclick="toggleModal('shareMethodModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b text-lg font-semibold text-gray-800">Bagikan Catatan</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="sendToAdmin()"><i class="fas fa-user-shield w-8 text-xl text-gray-600"></i> Kirim ke Admin</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="openSendWithCode()"><i class="fas fa-qrcode w-8 text-xl text-gray-600"></i> Kirim dengan Kode</li>
+                <li class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center" onclick="executeCopyFromShare()"><i class="far fa-copy w-8 text-xl text-gray-600"></i> Salin Catatan</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="editorColorModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorColorModal')">
+        <div class="absolute top-14 right-10 bg-white rounded-lg shadow-xl p-3 grid grid-cols-3 gap-2 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeColorChange('red')" class="w-10 h-10 bg-[#ef5350] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('orange')" class="w-10 h-10 bg-[#ff9800] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('yellow')" class="w-10 h-10 bg-[#ffca28] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="executeColorChange('green')" class="w-10 h-10 bg-[#8bc34a] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('blue')" class="w-10 h-10 bg-[#42a5f5] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('purple')" class="w-10 h-10 bg-[#ab47bc] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('black')" class="w-10 h-10 bg-[#424242] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('gray')" class="w-10 h-10 bg-[#9e9e9e] rounded cursor-pointer"></div>
+            <div onclick="executeColorChange('white')" class="w-10 h-10 bg-[#e0e0e0] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
+    
+    <div id="multiColorModal" class="hidden fixed inset-0 z-[60] bg-black bg-opacity-30 flex items-center justify-center" onclick="toggleModal('multiColorModal')">
+        <div class="bg-white rounded-lg shadow-xl p-4 grid grid-cols-3 gap-3 border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="changeSelectedNotesColor('red')" class="w-14 h-14 bg-[#ef5350] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('orange')" class="w-14 h-14 bg-[#ff9800] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('yellow')" class="w-14 h-14 bg-[#ffca28] rounded border border-gray-300 cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('green')" class="w-14 h-14 bg-[#8bc34a] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('blue')" class="w-14 h-14 bg-[#42a5f5] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('purple')" class="w-14 h-14 bg-[#ab47bc] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('black')" class="w-14 h-14 bg-[#424242] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('gray')" class="w-14 h-14 bg-[#9e9e9e] rounded cursor-pointer"></div>
+            <div onclick="changeSelectedNotesColor('white')" class="w-14 h-14 bg-[#e0e0e0] rounded border border-gray-300 cursor-pointer"></div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center" onclick="closeSettingsModal()">
+        <div class="bg-white rounded p-4 w-72 shadow-lg" onclick="event.stopPropagation()">
+            <div class="flex border-b mb-3 text-sm cursor-pointer select-none">
+                <div id="tab-warna" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('warna')">WARNA</div>
+                <div id="tab-urutkan" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('urutkan')">URUTKAN</div>
+                <div id="tab-lihat" class="px-2 py-2 flex-1 text-center tab-inactive hover:bg-gray-50" onclick="openSettingsTab('lihat')">LIHAT</div>
+            </div>
+
+            <div id="content-warna" class="hidden">
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <div onclick="applyFilter('red')" class="h-10 bg-[#ff7eb3] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('orange')" class="h-10 bg-[#ffb142] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('yellow')" class="h-10 bg-[#ffda79] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                    <div onclick="applyFilter('green')" class="h-10 bg-[#33d9b2] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('blue')" class="h-10 bg-[#34ace0] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('purple')" class="h-10 bg-[#cd84f1] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('black')" class="h-10 bg-[#84817a] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('gray')" class="h-10 bg-[#d1ccc0] rounded cursor-pointer border border-transparent transition-all"></div>
+                    <div onclick="applyFilter('white')" class="h-10 bg-[#ffffff] rounded border border-gray-300 cursor-pointer transition-all"></div>
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-3">*Klik warna yang sama untuk membatalkan filter</p>
+            </div>
+
+            <div id="content-urutkan" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('updatedAt')"><i class="far fa-clock w-6 text-center"></i> berdasarkan waktu diubah</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('createdAt')"><i class="fas fa-calendar-plus w-6 text-center"></i> berdasarkan waktu dibuat</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('alphabet')"><i class="fas fa-sort-alpha-down w-6 text-center"></i> alfabet</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applySort('color')"><i class="fas fa-palette w-6 text-center"></i> berdasarkan warna</li>
+                </ul>
+            </div>
+
+            <div id="content-lihat" class="hidden">
+                <ul class="space-y-1 text-gray-700">
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('list')"><i class="fas fa-list w-6 text-center"></i> Daftar</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('detail')"><i class="fas fa-bars w-6 text-center"></i> Detail</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-small')"><i class="fas fa-th w-6 text-center"></i> Petak (Grid Kecil)</li>
+                    <li class="cursor-pointer hover:bg-teal-50 p-2 rounded" onclick="applyView('grid-large')"><i class="fas fa-th-large w-6 text-center"></i> Petak Besar (Grid Besar)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="editorMenuModal" class="hidden fixed inset-0 z-[60] bg-transparent" onclick="toggleModal('editorMenuModal')">
+        <div class="absolute top-12 right-2 bg-white rounded shadow-xl py-2 w-44 text-gray-800 text-sm border border-gray-200" onclick="event.stopPropagation()">
+            <div onclick="executeCopySingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="far fa-copy w-6 text-gray-600"></i> Salin Catatan</div>
+            <div onclick="openShareModal('single')" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-paper-plane w-6 text-gray-600"></i> Kirim / Bagikan</div>
+            <div onclick="toggleLockSingle()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-lock w-6 text-gray-600"></i> <span id="lockMenuText">Kunci</span></div>
+            <div onclick="deleteCurrentNote()" class="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center"><i class="fas fa-trash-alt w-6 text-gray-600"></i> Buang</div>
+        </div>
+    </div>
+
+    <!-- NEW MODALS -->
+    <div id="loginModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('loginModal')">
+        <div class="bg-white rounded shadow-xl p-5 w-full max-w-sm" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex justify-between" id="loginTitle">Login Akun <button onclick="toggleModal('loginModal')"><i class="fas fa-times text-gray-500"></i></button></h3>
+            <div id="loginFormContainer">
+                <input type="email" id="authEmail" placeholder="Email" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPassword" placeholder="Kata Sandi" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+                <input type="password" id="authPasswordConfirm" placeholder="Konfirmasi Sandi (Untuk Daftar)" class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500 hidden">
+                
+                <div class="flex items-center mb-4 text-sm text-gray-600">
+                    <input type="checkbox" id="rememberMeCheckbox" class="w-4 h-4 mr-2 accent-teal-600 cursor-pointer">
+                    <label for="rememberMeCheckbox" class="cursor-pointer select-none">Simpan sandi (data login)</label>
+                </div>
+
+                <div class="flex space-x-2">
+                    <button id="authLoginBtn" onclick="submitAuth('login')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors">Login</button>
+                    <button id="authRegisterBtn" onclick="submitAuth('register')" class="w-full py-2 bg-teal-600 text-white rounded hover:bg-teal-700 font-semibold transition-colors hidden">Daftar Akun</button>
+                </div>
+                
+                <p class="text-center text-sm text-gray-500 mt-4 cursor-pointer hover:text-teal-600 font-medium" onclick="toggleAuthMode()" id="authModeToggleText">Belum punya akun? Daftar disini</p>
+            </div>
+            <div id="loggedInContainer" class="hidden text-center">
+                <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fas fa-user"></i></div>
+                <p id="loggedInUserText" class="text-gray-800 font-medium mb-1"></p>
+                <p id="loggedInRoleText" class="text-xs text-teal-600 font-semibold mb-4 bg-teal-50 inline-block px-2 py-1 rounded"></p>
+                <button onclick="logout()" class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600 font-semibold shadow-sm">Logout</button>
+                <button onclick="logoutOtherDevices()" class="w-full py-2 mt-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-semibold shadow-sm">Logout di Perangkat Lain</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appMenuModal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-[60] flex items-end justify-center" onclick="toggleModal('appMenuModal')">
+        <div class="bg-white rounded-t-xl w-full max-w-md shadow-xl" onclick="event.stopPropagation()">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Menu & Pengaturan</h3>
+                <button onclick="toggleModal('appMenuModal')"><i class="fas fa-times text-gray-500 text-xl"></i></button>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto pb-4">
+                <ul class="py-1 text-gray-700 text-[15px]">
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="syncNotes()"><i class="fas fa-sync-alt w-8 text-center text-teal-600"></i> Sinkronisasi Catatan <span id="syncStatus" class="ml-auto text-xs text-gray-400 bg-gray-100 px-2 rounded">Offline</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="backupNotes()"><i class="fas fa-cloud-upload-alt w-8 text-center text-teal-600"></i> Cadangkan Catatan</li>
+                    <li class="px-4 py-3 hover:bg-red-50 cursor-pointer flex items-center border-b text-red-600" onclick="openTrash()"><i class="fas fa-trash-alt w-8 text-center"></i> Tong Sampah</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center justify-between border-b">
+                        <div class="flex items-center"><i class="fas fa-history w-8 text-center text-gray-600"></i> Cadangkan Otomatis</div>
+                        <input type="checkbox" id="autoBackupCheckbox" onchange="saveGlobalSettings()" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                    </li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="selectDefaultColor()"><i class="fas fa-palette w-8 text-center text-gray-600"></i> Warna Default Catatan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('fontSizeModal', true)"><i class="fas fa-font w-8 text-center text-gray-600"></i> Ukuran Font Catatan <span id="fontLabel" class="ml-auto text-xs text-gray-400">Sedang</span></li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="toggleModal('settingsModal', true)"><i class="fas fa-sort-amount-down w-8 text-center text-gray-600"></i> Urutkan / Alat Tampilan</li>
+                    <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center border-b" onclick="openAbout()"><i class="fas fa-info-circle w-8 text-center text-gray-600"></i> Tentang Aplikasi</li>
+                    <li id="menuLoginBtn" class="px-4 py-3 hover:bg-teal-50 cursor-pointer flex items-center text-teal-700 mt-2" onclick="toggleModal('loginModal', true)"><i class="fas fa-sign-in-alt w-8 text-center"></i> Login / Akun</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendarModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('calendarModal')">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
+            <div class="bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-xl">
+                <button onclick="changeMonth(-1)" class="p-2"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="calendarMonthYear" class="text-lg font-semibold uppercase tracking-wider"></h3>
+                <button onclick="changeMonth(1)" class="p-2"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="p-3">
+                <div class="grid grid-cols-7 text-center text-xs font-semibold text-gray-400 mb-2">
+                    <div>Mng</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                <div id="calendarDays" class="grid grid-cols-7 gap-1 text-center text-sm font-medium"></div>
+            </div>
+            <div class="p-4 border-t bg-gray-50 flex flex-col justify-end max-h-[40vh]">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-gray-700">Pengingat: <span id="selectedDateText" class="text-teal-600"></span></h4>
+                    <button onclick="openAddReminder()" class="text-teal-600 hover:text-teal-800 text-sm"><i class="fas fa-plus-circle text-lg"></i></button>
+                </div>
+                <div id="remindersList" class="overflow-y-auto mb-2 text-sm text-gray-600 space-y-2 flex-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addReminderModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-50 flex items-center justify-center p-4" onclick="toggleModal('addReminderModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-xs" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Tambah Pengingat</h3>
+            <input type="text" id="reminderText" placeholder="Judul Pengingat..." class="w-full border border-gray-300 p-2 rounded mb-3 outline-none focus:border-teal-500">
+            <input type="time" id="reminderTime" class="w-full border border-gray-300 p-2 rounded mb-4 outline-none focus:border-teal-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="toggleModal('addReminderModal')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">Batal</button>
+                <button onclick="saveReminder()" class="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-700">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="hidden fixed inset-0 z-[90] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('aboutModal')">
+        <div class="bg-white rounded-lg shadow-xl p-5 w-full max-w-md max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2 flex justify-between items-center">
+                <span><i class="fas fa-info-circle text-teal-600 mr-2"></i> Tentang Aplikasi</span>
+                <button id="editAboutBtn" class="hidden text-teal-600 text-sm bg-teal-50 px-2 py-1 rounded" onclick="toggleEditAbout()"><i class="fas fa-edit"></i> Edit</button>
+            </h3>
+            <div id="aboutContentDisplay" class="flex-1 overflow-y-auto text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed px-1">Memuat informasi...</div>
+            <textarea id="aboutContentEdit" class="hidden flex-1 overflow-y-auto text-[15px] border border-gray-300 rounded p-3 w-full mb-2 resize-none h-48 outline-none focus:border-teal-500" placeholder="Tulis deskripsi aplikasi..."></textarea>
+            <div id="aboutEditActions" class="hidden flex justify-end space-x-2 mt-3 pt-3 border-t">
+                <button onclick="toggleEditAbout()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded">Batal</button>
+                <button onclick="saveAbout()" class="px-4 py-2 bg-teal-600 text-white border border-teal-700 rounded hover:bg-teal-700 shadow-sm">Simpan</button>
+            </div>
+            <button onclick="toggleModal('aboutModal')" id="closeAboutBtn" class="mt-4 w-full py-2.5 font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 border border-gray-200">Tutup</button>
+        </div>
+    </div>
+
+    <div id="fontSizeModal" class="hidden fixed inset-0 z-[80] bg-black bg-opacity-40 flex items-center justify-center p-4" onclick="toggleModal('fontSizeModal')">
+        <div class="bg-white rounded shadow-xl w-64" onclick="event.stopPropagation()">
+            <div class="p-4 border-b font-semibold text-gray-800">Pilih Ukuran Font</div>
+            <ul class="py-2 text-gray-700">
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-sm" onclick="saveFontSize('small')">Kecil</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-base bg-gray-50" onclick="saveFontSize('medium')">Sedang (Default)</li>
+                <li class="px-4 py-3 hover:bg-teal-50 cursor-pointer text-lg" onclick="saveFontSize('large')">Besar</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<script>
+    // ================= FIREBASE INIT =================
+    const configMaster = { 
+        apiKey: "AIzaSyBuquQlJWdSUuHhmJBxBGa1LNzWUdFNdzE", authDomain: "santridroid-link.firebaseapp.com",
+        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "santridroid-link"
+    };
+    firebase.initializeApp(configMaster);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    const fsDb = firebase.firestore();
+
+    let lastRefreshSignal = null;
+    db.ref("app_state/refreshSignal").on("value", (snap) => {
+        const val = snap.val();
+        if(val) {
+            if(lastRefreshSignal === null) {
+                lastRefreshSignal = val;
+            } else if (val !== lastRefreshSignal) {
+                if (!document.getElementById('editorPage').classList.contains('hidden') && typeof window.saveAndCloseEditor === 'function') {
+                    window.saveAndCloseEditor();
+                }
+                document.getElementById('u-modal-title').innerText = "PERHATIAN";
+                document.getElementById('u-modal-msg').innerText = "Data telah diperbarui oleh admin, mohon untuk segera menutup dan membuka ulang aplikasi atau melakukan paksa berhenti aplikasi terlebih dahulu.\n\nTerima kasih.";
+                document.getElementById('u-modal-actions').innerHTML = ''; // Tanpa tombol agar tidak bisa ditutup
+                document.getElementById('universal-modal').classList.add('active');
+                
+                // Blokir layar tambahan agar tidak bisa ditekan apapun
+                const block = document.createElement('div');
+                block.style.position = 'fixed'; block.style.inset = '0'; block.style.zIndex = '9999';
+                document.body.appendChild(block);
+            }
+        }
+    });
+
+    window.triggerGlobalRefresh = function() {
+        if(!confirm("Kirim sinyal refresh ke SEMUA perangkat pengguna yang sedang membuka aplikasi ini? Ini akan memuat ulang halaman mereka secara otomatis.")) return;
+        db.ref("app_state/refreshSignal").set(firebase.database.ServerValue.TIMESTAMP).then(() => {
+            showToast("Sinyal refresh global terkirim!");
+        }).catch(e => showToast("Gagal mengirim sinyal: " + e.message));
+    }
+
+    // ================= VIEW NAVIGATION =================
+    function switchToNotesView() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('sms-view').style.display = 'none';
+        document.getElementById('notes-view').style.display = 'flex';
+        document.body.style.padding = '0';
+        document.body.style.display = 'block';
+        document.body.style.backgroundColor = '#f0f0f0';
+    }
+    function switchToSmsView() {
+        if (!document.getElementById('editorPage').classList.contains('hidden')) {
+             if (typeof window.saveEditorData === 'function') window.saveEditorData();
+        }
+        document.getElementById('notes-view').style.display = 'none';
+        document.getElementById('sms-view').style.display = 'block';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.backgroundColor = '#eef2f6';
+    }
+
+    function notesInternalBack() {
+        if (!document.getElementById('searchBar').classList.contains('hidden')) {
+            toggleSearch(false);
+        } else if (window.currentAdminTab && window.currentAdminTab !== 'pribadi') {
+            switchAdminTab('pribadi');
+        } else if (typeof currentFilter !== 'undefined' && currentFilter !== 'all') {
+            applyFilter(currentFilter); // Toggling clears the filter
+        } else if (!document.getElementById('editorPage').classList.contains('hidden')) {
+            saveAndCloseEditor();
+        } else {
+            switchToSmsView();
+        }
+    }
+
+    // ================= PENGATURAN AWAL =================
+    const DEFAULT_USERS = ["ATHAR"];
+    let dynamicUsers = [...DEFAULT_USERS]; 
+    
+    let WORKER_URL = localStorage.getItem('shorif_worker_url') || "https://shorif.santridroid.workers.dev"; 
+    
+    let currentUser = "ATHAR"; 
+    let isUserLocked = false;
+    let audioCtx;
+    let isWorkerLocked = true; // State bawaan tersambung
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('shorif_saved_email');
+        if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
+
+        const savedAdminEmail = localStorage.getItem('shorif_admin_email');
+        const savedAdminPass = localStorage.getItem('shorif_admin_pass');
+        if (savedAdminEmail && savedAdminPass) {
+            document.getElementById('global-email').value = savedAdminEmail;
+            document.getElementById('global-pass').value = savedAdminPass;
+            document.getElementById('remember-me').checked = true;
+        }
+        
+        initUserDropdown();
+        if (typeof updatePasteUI === 'function') updatePasteUI();
+
+        
+        
+        
+
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+    });
+
+    // ================= FUNGSI DASAR UI =================
+    document.addEventListener('click', function(event) {
+        const mainMenu = document.getElementById('main-menu');
+        const adminMenu = document.getElementById('admin-menu');
+        const menuIcon = document.querySelector('.menu-icon');
+
+        if (mainMenu && adminMenu && menuIcon) {
+            if (!mainMenu.contains(event.target) && !adminMenu.contains(event.target) && !menuIcon.contains(event.target)) {
+                mainMenu.classList.remove('active');
+                adminMenu.classList.remove('active');
+            }
+        }
+    });
+
+    function initUserDropdown() {
+        isUserLocked = localStorage.getItem('shorif_user_locked') === 'true';
+        const savedUser = localStorage.getItem('shorif_selected_user');
+        if(savedUser) currentUser = savedUser;
+
+        const savedProvider = localStorage.getItem('shorif_provider');
+        if(savedProvider) document.getElementById('provider-selector').value = savedProvider;
+
+        dynamicUsers = ["ATHAR"];
+        currentUser = "ATHAR";
+        updateDropdownUI();
+
+        updateDropdownUI();
+        applyUserLockUI();
+        refreshAllData();
+        
+        setInterval(pollSms, 5000); 
+        setInterval(updateSmsTimers, 1000);
+    }
+
+    function updateDropdownUI() {
+        const select = document.getElementById('user-selector');
+        let optionsToRender = [...dynamicUsers];
+        if (currentUser && !optionsToRender.includes(currentUser)) {
+            optionsToRender.push(currentUser);
+        }
+        
+        select.options.length = 0; // Hapus opsi lama dengan aman
+        optionsToRender.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            select.appendChild(opt);
+        });
+        
+        select.value = currentUser;
+    }
+
+    function toggleUserLock() { 
+        isUserLocked = !isUserLocked; 
+        localStorage.setItem('shorif_user_locked', isUserLocked); 
+        applyUserLockUI(); 
+    }
+
+    function applyUserLockUI() {
+        const select = document.getElementById('user-selector'); 
+        const icon = document.getElementById('user-lock-icon'); 
+        if(select && icon) {
+            select.disabled = isUserLocked;
+            if (isUserLocked) { icon.className = 'fas fa-lock lock-icon'; icon.style.color = '#e74c3c'; } 
+            else { icon.className = 'fas fa-unlock lock-icon'; icon.style.color = '#666'; }
+        }
+    }
+
+    function changeGlobalUser() {
+        if(isUserLocked) return;
+        currentUser = document.getElementById('user-selector').value;
+        localStorage.setItem('shorif_selected_user', currentUser);
+        refreshAllData();
+    }
+
+    function changeProvider() {
+        const provider = document.getElementById('provider-selector').value;
+        localStorage.setItem('shorif_provider', provider);
+        refreshSms();
+    }
+
+    function refreshAllData() { refreshSms(); }
+
+    function showTempNotif(btnElement, notifText, originalHTML) {
+        btnElement.innerHTML = notifText;
+        setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
+    }
+
+    // ================= MODAL & AUDIO =================
+    function showModal(title, msg, type='confirm') {
+        return new Promise(resolve => {
+            const ov = document.getElementById('universal-modal');
+            document.getElementById('u-modal-title').innerText = title;
+            document.getElementById('u-modal-msg').innerText = msg;
+            const actions = document.getElementById('u-modal-actions');
+            actions.innerHTML = '';
+            if (type === 'confirm') {
+                actions.innerHTML = `
+                    <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
+                    <button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>
+                `;
+            } else {
+                actions.innerHTML = `<button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>`;
+            }
+            window.modalResolve = resolve;
+            ov.classList.add('active');
+        });
+    }
+
+    function playNotifSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
+    function showOtpToast(otpCode) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'otp-toast';
+        toast.innerHTML = `<i class="fa-solid fa-bell"></i> OTP: <span>${otpCode}</span>`;
+        container.appendChild(toast);
+        playNotifSound();
+        setTimeout(() => { toast.remove(); }, 5000);
+    }
+
+    // ================= FIREBASE, MENU & ADMIN =================
+    let globalUser = null;
+
+    // --- LISTENER STATUS WORKER GLOBAL (REALTIME) DENGAN ERROR HANDLER ---
+    db.ref('worker_status/is_locked').on('value', snap => {
+        const val = snap.val();
+        isWorkerLocked = (val === null) ? true : val; 
+        updateWorkerLockUI();
+        
+        if(!isWorkerLocked) {
+            const elPrices = document.getElementById('sms-prices');
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
+            const elBal = document.getElementById('sms-balance');
+            if(elBal) elBal.innerText = `Rp 0`;
+        } else {
+            if(document.getElementById('sms-prices')) refreshSms(); 
+        }
+    }, error => {
+        console.warn("Worker Status Error (Kemungkinan Rules):", error);
+        isWorkerLocked = true; 
+        refreshSms();
+    });
+
+    function setWorkerLock(status) {
+        db.ref('worker_status/is_locked').set(status).catch(err => {
+            showModal("Error Database", "Gagal mengubah status. Pastikan login & Cek Aturan Firebase: " + err.message, "alert");
+        });
+    }
+
+    function updateWorkerLockUI() {
+        const btnLock = document.getElementById('btn-worker-lock');
+        const btnUnlock = document.getElementById('btn-worker-unlock');
+        if(btnLock && btnUnlock) {
+            if(isWorkerLocked) {
+                btnLock.style.opacity = '1'; btnLock.style.border = '2px solid #2ecc71';
+                btnUnlock.style.opacity = '0.5'; btnUnlock.style.border = 'none';
+            } else {
+                btnLock.style.opacity = '0.5'; btnLock.style.border = 'none';
+                btnUnlock.style.opacity = '1'; btnUnlock.style.border = '2px solid #e74c3c';
+            }
+        }
+    }
+
+    function toggleMainMenu() { 
+        document.getElementById('main-menu').classList.toggle('active'); 
+        document.getElementById('admin-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.remove('active');
+    }
+    
+    function openAdminMenu() { 
+        document.getElementById('main-menu').classList.remove('active'); 
+        document.getElementById('admin-menu').classList.add('active'); 
+        if (typeof updatePasteUI === 'function') updatePasteUI();
+    }
+
+    function openServerModal() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.add('active');
+        document.querySelectorAll('.server-btn').forEach(btn => {
+            const url = btn.getAttribute('data-url');
+            const icon = btn.querySelector('.server-check-icon');
+            if (url === WORKER_URL) {
+                icon.style.display = 'inline-block';
+            } else {
+                icon.style.display = 'none';
+            }
+        });
+    }
+
+    function closeServerModal() {
+        document.getElementById('server-modal').classList.remove('active');
+    }
+
+    function setServer(url) {
+        WORKER_URL = url;
+        localStorage.setItem('shorif_worker_url', url);
+        showModal("Sukses", "Server Worker berhasil diubah", "alert");
+        closeServerModal();
+        refreshAllData();
+    }
+
+    auth.onAuthStateChanged(user => {
+        globalUser = user; 
+        document.getElementById('login-form').classList.toggle('hidden', !!user);
+        document.getElementById('logout-form').classList.toggle('hidden', !user);
+        refreshSms();
+    });
+
+    function globalLogin() {
+        const e = document.getElementById('global-email').value; 
+        const p = document.getElementById('global-pass').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+
+        localStorage.removeItem('session_synced');
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            if (rememberMe) {
+                localStorage.setItem('shorif_admin_email', e);
+                localStorage.setItem('shorif_admin_pass', p);
+            } else {
+                localStorage.removeItem('shorif_admin_email');
+                localStorage.removeItem('shorif_admin_pass');
+            }
+            document.getElementById('admin-menu').classList.remove('active');
+        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
+    }
+    
+    function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    function addCustomUser() {
+        const name = document.getElementById('new-username').value.trim().toUpperCase();
+        if(!name) return showModal("Peringatan", "Nama User wajib diisi!", "alert");
+
+        db.ref('custom_users').push(name).then(() => {
+            document.getElementById('new-username').value = "";
+            showModal("Sukses", "User berhasil ditambahkan ke seluruh perangkat", "alert");
+        }).catch(err => {
+            showModal("Gagal", "Gagal sinkronisasi: " + err.message, "alert");
+        });
+    }
+
+    // ================= LOGIKA PASTE & UNDUH (PENYIMPANAN INTERNAL PERANGKAT) =================
+    let currentPasteData = localStorage.getItem('shorif_paste_data') || "";
+
+    function savePasteData(newData, callback) {
+        currentPasteData = newData;
+        localStorage.setItem('shorif_paste_data', newData);
+        updatePasteUI();
+        if (callback) callback();
+    }
+
+    function updatePasteUI() {
+        const lines = currentPasteData ? currentPasteData.split('\n').filter(l => l.trim() !== '') : [];
+        const count = lines.length;
+
+        const btnPaste = document.getElementById('btn-paste');
+        const btnUnduh = document.getElementById('btn-unduh');
+        const adminInput = document.getElementById('admin-paste-input');
+
+        if (btnPaste) {
+            btnPaste.innerHTML = `<i class="fas fa-paste"></i> Paste${count > 0 ? ` (${count})` : ''}`;
+        }
+        if (btnUnduh) {
+            btnUnduh.innerHTML = `<i class="fas fa-download"></i> Unduh${count > 0 ? ` (${count})` : ''}`;
+        }
+        if (adminInput && document.activeElement !== adminInput) {
+            adminInput.value = currentPasteData;
+        }
+    }
+
+    async function handlePasteAction(btnElement) {
+        try {
+            let text = "";
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                text = await navigator.clipboard.readText();
+            } else {
+                text = prompt("Masukkan / Tempelkan teks di sini:");
+            }
+
+            if (!text || !text.trim()) {
+                showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Clipboard Kosong', `<i class="fas fa-paste"></i> Paste${currentPasteData ? ` (${currentPasteData.split('\n').filter(l=>l.trim()!=='').length})` : ''}`);
+                return;
+            }
+
+            const trimmedText = text.trim();
+            let newPasteData = (currentPasteData && currentPasteData.trim() !== "") ? (currentPasteData + '\n' + trimmedText) : trimmedText;
+
+            savePasteData(newPasteData, () => {
+                const count = newPasteData.split('\n').filter(l => l.trim() !== '').length;
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Dipaste!', `<i class="fas fa-paste"></i> Paste (${count})`);
+            });
+        } catch (err) {
+            console.error("Paste Error:", err);
+            const manualText = prompt("Akses Clipboard ditolak browser. Tempelkan teks di bawah ini:");
+            if (manualText && manualText.trim()) {
+                const trimmedText = manualText.trim();
+                let newPasteData = (currentPasteData && currentPasteData.trim() !== "") ? (currentPasteData + '\n' + trimmedText) : trimmedText;
+                savePasteData(newPasteData, () => {
+                    const count = newPasteData.split('\n').filter(l => l.trim() !== '').length;
+                    showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Dipaste!', `<i class="fas fa-paste"></i> Paste (${count})`);
+                });
+            } else {
+                showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Gagal Read', `<i class="fas fa-paste"></i> Paste`);
+            }
+        }
+    }
+
+    function handleUnduhAction(btnElement) {
+        if (!currentPasteData || !currentPasteData.trim()) {
+            return showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Data Kosong', '<i class="fas fa-download"></i> Unduh');
+        }
+
+        const dataToCopy = currentPasteData;
+        doCopy(dataToCopy, () => {
+            savePasteData("", () => {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin & Cut!', '<i class="fas fa-download"></i> Unduh');
+            });
+        }, () => {
+            showModal("Gagal", "Gagal menyalin data paste ke clipboard", "alert");
+        });
+    }
+
+    function saveAdminPasteData() {
+        const val = document.getElementById('admin-paste-input').value;
+        savePasteData(val, () => {
+            showModal("Sukses", "Hasil paste berhasil diperbarui", "alert");
+        });
+    }
+
+    function clearAdminPasteData() {
+        savePasteData("", () => {
+            showModal("Sukses", "Hasil paste berhasil dihapus", "alert");
+        });
+    }
+
+    // ================= LOGIKA KODE & LINK REALTIME =================
+    let availableKodeData = [];
+    let availableShopeeLinks = [];
+    let isCuttingKode = false;
+    let isCuttingLink = false;
+    let currentKodeMode = 'cut';
+    let currentLinkMode = 'cut';
+    let kodeRotatorIndex = 0;
+    let linkRotatorIndex = 0;
+
+    // --- LISTENER MODE KODE ---
+    db.ref('worker_status/kode_mode').on('value', snap => {
+        const val = snap.val();
+        currentKodeMode = val ? val : 'cut';
+        const selectMode = document.getElementById('admin-kode-mode');
+        if (selectMode) selectMode.value = currentKodeMode;
+        updateKodeButtonState();
+    }, error => {
+        console.warn("Gagal membaca kode_mode dari Firebase:", error);
+    });
+
+    function changeKodeMode() {
+        const mode = document.getElementById('admin-kode-mode').value;
+        currentKodeMode = mode;
+        db.ref('worker_status/kode_mode').set(mode).catch(err => {
+            console.warn("Gagal simpan kode_mode ke Firebase:", err);
+        });
+        updateKodeButtonState();
+    }
+
+    // --- LISTENER MODE LINK ---
+    db.ref('worker_status/link_mode').on('value', snap => {
+        const val = snap.val();
+        currentLinkMode = val ? val : 'cut';
+        const selectMode = document.getElementById('admin-link-mode');
+        if (selectMode) selectMode.value = currentLinkMode;
+        updateLinkButtonState();
+    }, error => {
+        console.warn("Gagal membaca link_mode dari Firebase:", error);
+    });
+
+    function changeLinkMode() {
+        const mode = document.getElementById('admin-link-mode').value;
+        currentLinkMode = mode;
+        db.ref('worker_status/link_mode').set(mode).catch(err => {
+            console.warn("Gagal simpan link_mode ke Firebase:", err);
+        });
+        updateLinkButtonState();
+    }
+
+    // --- LISTENER DATA KODE ---
+    db.ref('kodeshopee').orderByChild('createdAt').on('value', snap => {
+        availableKodeData = [];
+        snap.forEach(child => {
+            const data = child.val();
+            if(data && data.kode) {
+                availableKodeData.push({ key: child.key, kode: data.kode });
+            }
+        });
+        updateKodeButtonState();
+    }, error => {
+        console.warn("Gagal memuat Kode, cek Aturan Firebase!", error);
+        updateKodeButtonState();
+    });
+
+    // --- LISTENER DATA LINK ---
+    db.ref('linkshopee').orderByChild('createdAt').on('value', snap => {
+        availableShopeeLinks = [];
+        snap.forEach(child => {
+            const data = child.val();
+            if(data && data.title === "UMUM" && data.url) {
+                availableShopeeLinks.push({ key: child.key, url: data.url });
+            }
+        });
+        updateLinkButtonState();
+    }, error => {
+        console.warn("Gagal memuat Link, cek Aturan Firebase!", error);
+        updateLinkButtonState(); 
+    });
+
+    // --- UPDATE TOMBOL KODE ---
+    function updateKodeButtonState() {
+        const btn = document.getElementById('btn-copy-kode');
+        if(!btn || isCuttingKode) return; 
+        
+        if(availableKodeData.length > 0) {
+            btn.className = "btn btn-green btn-lg";
+            btn.style.backgroundColor = ""; 
+            btn.innerHTML = `<i class="fas fa-copy"></i> Copy Kode (${availableKodeData.length})`;
+            btn.disabled = false;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6"; 
+            btn.innerHTML = `<i class="fas fa-copy"></i> Kode Habis`;
+            btn.disabled = true;
+        }
+    }
+
+    // --- UPDATE TOMBOL LINK (Copy Link) ---
+    function updateLinkButtonState() {
+        const btnCopy = document.getElementById('btn-copy-link');
+        
+        if(availableShopeeLinks.length > 0) {
+            if(btnCopy && !isCuttingLink) {
+                btnCopy.className = "btn btn-orange btn-lg";
+                btnCopy.style.backgroundColor = ""; 
+                btnCopy.innerHTML = `<i class="fas fa-link"></i> Copy Link (${availableShopeeLinks.length})`;
+                btnCopy.disabled = false;
+            }
+        } else {
+            if(btnCopy) {
+                btnCopy.className = "btn btn-lg";
+                btnCopy.style.backgroundColor = "#95a5a6"; 
+                btnCopy.innerHTML = `<i class="fas fa-link"></i> Link Habis`;
+                btnCopy.disabled = true;
+            }
+        }
+    }
+
+    // --- ADMIN: TAMBAH KODE ---
+    async function addKodeData() {
+        const raw = document.getElementById('kode-input').value;
+        if(!raw) return showModal("Peringatan", "Kode wajib diisi!", "alert");
+        
+        const kodeArray = raw.split('\n').map(l => l.trim()).filter(l => l !== '');
+        
+        kodeArray.forEach(kode => {
+            db.ref('kodeshopee').push({
+                kode: kode,
+                createdAt: Date.now()
+            });
+        });
+
+        document.getElementById('kode-input').value = "";
+        showModal("Sukses", `${kodeArray.length} kode berhasil ditambahkan`, "alert");
+    }
+
+    // --- ADMIN: TAMBAH LINK ---
+    async function addShopeeMenu() {
+        const uRaw = document.getElementById('shopee-url').value;
+        if(!uRaw) return showModal("Peringatan", "URL wajib diisi!", "alert");
+        
+        const urlsArray = uRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
+        
+        urlsArray.forEach(url => {
+            db.ref('linkshopee').push({
+                title: "UMUM",
+                url: url,
+                createdAt: Date.now()
+            });
+        });
+
+        document.getElementById('shopee-url').value = "";
+        showModal("Sukses", `${urlsArray.length} link berhasil ditambahkan`, "alert");
+    }
+
+    // --- MODAL EDIT KODE ---
+    function openEditKodeModal() {
+        const ta = document.getElementById('edit-kode-textarea');
+        ta.value = availableKodeData.map(k => k.kode).join('\n');
+        document.getElementById('edit-kode-modal').classList.add('active');
+    }
+
+    function closeEditKodeModal() {
+        document.getElementById('edit-kode-modal').classList.remove('active');
+    }
+
+    async function saveEditedKode() {
+        const raw = document.getElementById('edit-kode-textarea').value;
+        const kodeArray = raw.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+        await db.ref('kodeshopee').remove();
+
+        const updates = {};
+        kodeArray.forEach(kode => {
+            const newKey = db.ref('kodeshopee').push().key;
+            updates[newKey] = { kode: kode, createdAt: Date.now() };
+        });
+
+        if (Object.keys(updates).length > 0) {
+            await db.ref('kodeshopee').update(updates);
+        }
+
+        closeEditKodeModal();
+        showModal("Sukses", "Kode berhasil diperbarui", "alert");
+    }
+
+    async function deleteAllKode() {
+        if(await showModal("Hapus Semua", "Yakin ingin menghapus semua kode?")) {
+            await db.ref('kodeshopee').remove();
+            closeEditKodeModal();
+            showModal("Sukses", "Semua kode telah dihapus", "alert");
+        }
+    }
+
+    // --- MODAL EDIT LINK ---
+    function openEditLinkModal() {
+        const ta = document.getElementById('edit-shopee-textarea');
+        ta.value = availableShopeeLinks.map(l => l.url).join('\n');
+        document.getElementById('edit-link-modal').classList.add('active');
+    }
+
+    function closeEditLinkModal() {
+        document.getElementById('edit-link-modal').classList.remove('active');
+    }
+
+    async function saveEditedLinks() {
+        const uRaw = document.getElementById('edit-shopee-textarea').value;
+        const urlsArray = uRaw.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+        await db.ref('linkshopee').remove();
+
+        const updates = {};
+        urlsArray.forEach(url => {
+            const newKey = db.ref('linkshopee').push().key;
+            updates[newKey] = { title: "UMUM", url: url, createdAt: Date.now() };
+        });
+
+        if (Object.keys(updates).length > 0) {
+            await db.ref('linkshopee').update(updates);
+        }
+
+        closeEditLinkModal();
+        showModal("Sukses", "Link berhasil diperbarui", "alert");
+    }
+
+    async function deleteAllLinks() {
+        if(await showModal("Hapus Semua", "Yakin ingin menghapus semua link?")) {
+            await db.ref('linkshopee').remove();
+            closeEditLinkModal();
+            showModal("Sukses", "Semua link telah dihapus", "alert");
+        }
+    }
+
+    // --- FUNGSI COPY KODE (Cut/Rotator) ---
+    function copyKode(btnElement) {
+        if(availableKodeData.length === 0 || isCuttingKode) return;
+        
+        isCuttingKode = true;
+        btnElement.disabled = true;
+
+        if (currentKodeMode === 'rotator') {
+            if (kodeRotatorIndex >= availableKodeData.length) kodeRotatorIndex = 0;
+            const kodeData = availableKodeData[kodeRotatorIndex];
+            kodeRotatorIndex++;
+
+            const processSuccess = () => {
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin!';
+                setTimeout(() => { isCuttingKode = false; updateKodeButtonState(); }, 1000);
+            };
+            doCopy(kodeData.kode, processSuccess, () => { isCuttingKode = false; updateKodeButtonState(); });
+        } else {
+            const kodeData = availableKodeData[0];
+            const processSuccess = () => {
+                db.ref('kodeshopee/' + kodeData.key).remove().then(() => {
+                    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tercut!';
+                    setTimeout(() => { isCuttingKode = false; updateKodeButtonState(); }, 1000);
+                }).catch(err => {
+                    showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
+                    isCuttingKode = false; updateKodeButtonState();
+                });
+            };
+            doCopy(kodeData.kode, processSuccess, () => { isCuttingKode = false; updateKodeButtonState(); });
+        }
+    }
+
+
+
+    // --- FUNGSI COPY LINK (Cut/Rotator) - Copy ke clipboard ---
+    function copyLink(btnElement) {
+        if(availableShopeeLinks.length === 0 || isCuttingLink) return;
+        
+        isCuttingLink = true;
+        btnElement.disabled = true;
+
+        if (currentLinkMode === 'rotator') {
+            if (linkRotatorIndex >= availableShopeeLinks.length) linkRotatorIndex = 0;
+            const linkData = availableShopeeLinks[linkRotatorIndex];
+            linkRotatorIndex++;
+
+            const processSuccess = () => {
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin!';
+                setTimeout(() => { isCuttingLink = false; updateLinkButtonState(); }, 1000);
+            };
+            doCopy(linkData.url, processSuccess, () => { isCuttingLink = false; updateLinkButtonState(); });
+        } else {
+            const linkData = availableShopeeLinks[0];
+            const processSuccess = () => {
+                db.ref('linkshopee/' + linkData.key).remove().then(() => {
+                    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Tercut!';
+                    setTimeout(() => { isCuttingLink = false; updateLinkButtonState(); }, 1000);
+                }).catch(err => {
+                    showModal("Gagal Cut", "Akses Ditolak. Pastikan Rules Write Firebase = true", "alert");
+                    isCuttingLink = false; updateLinkButtonState();
+                });
+            };
+            doCopy(linkData.url, processSuccess, () => { isCuttingLink = false; updateLinkButtonState(); });
+        }
+    }
+
+    // --- HELPER: Copy ke clipboard dengan fallback ---
+    function doCopy(text, onSuccess, onError) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(() => onSuccess())
+                .catch(() => fallbackCopyTextToClipboard(text, onSuccess, onError));
+        } else {
+            fallbackCopyTextToClipboard(text, onSuccess, onError);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text, onSuccess, onError) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";  
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            onSuccess();
+        } catch (err) {
+            console.error('Fallback Copy Error:', err);
+            if (onError) onError();
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // ================= TOOLS GENERATOR =================
+    let listFN = [], listLN = [];
+    let csvData = [];
+    
+    fetch('https://cdn.jsdelivr.net/gh/muzans/muzans.github.io@main/base.json')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.json();
+        })
+        .then(d => { 
+            listFN = d.FirstNames || []; 
+            listLN = d.LastNames || listFN; 
+        })
+        .catch(e => console.log("Gagal memuat base.json", e));
+    
+    fetch('https://cdn.jsdelivr.net/gh/santridroid/santridroid.github.io@main/pos.csv')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.text();
+        })
+        .then(t => {
+            const lines = t.split('\n');
+            const allowedProvinces = [
+                'JAWA TIMUR',
+                'JAWA TENGAH',
+                'JAWA BARAT',
+                'BANTEN',
+                'BALI',
+                'DAERAH KHUSUS IBUKOTA JAKARTA',
+                'DAERAH ISTIMEWA YOGYAKARTA'
+            ];
+            for(let i=1; i<lines.length; i++) {
+                if(lines[i].trim() !== '') {
+                    const cols = lines[i].split(',');
+                    const prov = cols[9] ? cols[9].trim().toUpperCase() : '';
+                    if(allowedProvinces.includes(prov)) {
+                        csvData.push(cols);
+                    }
+                }
+            }
+            
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) {
+                btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
+            }
+        })
+        .catch(e => {
+            console.log("Gagal memuat pos.csv", e);
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
+        });
+    
+    function generateDataAcak(btnElement) {
+        if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
+        
+        const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        
+        let nohp = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) nohp += Math.floor(Math.random() * 10);
+        
+        const randomRow = csvData[Math.floor(Math.random() * csvData.length)];
+        
+        const provinsi = randomRow[9] ? randomRow[9].trim() : '';
+        const kota = randomRow[8] ? randomRow[8].trim() : '';
+        const kecamatan = randomRow[7] ? randomRow[7].trim() : '';
+        const kodepos = randomRow[5] ? randomRow[5].trim() : '';
+        
+        const streetPrefix = ["Jl", "Jalan"][Math.floor(Math.random() * 2)];
+        const streetName = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        const noPrefix = ["No.", "No", "Nomor"][Math.floor(Math.random() * 3)];
+        const noValue = Math.floor(Math.random() * 300) + 1;
+        
+        // Logical for RT with padded zero if less than 10
+        let rtValue = Math.floor(Math.random() * 20) + 1;
+        let rtDisplay = rtValue < 10 ? '0' + rtValue : String(rtValue);
+        
+        const addressDetail = `${streetPrefix} ${streetName}, ${noPrefix} ${noValue} - RT.${rtDisplay}`;
+        
+        const fullData = `${nama}, ${nohp}, ${provinsi}, ${kota}, ${kecamatan}, ${kodepos}, ${addressDetail}`;
+        
+        navigator.clipboard.writeText(fullData).then(() => { 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Acak'); 
+        });
+    }
+
+    function generateDataAsli(btnElement) {
+        if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
+        
+        const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        
+        let nohp = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) nohp += Math.floor(Math.random() * 10);
+        
+        const desaList = ["Ds Kemlagi Kendal", "Ds Kendalkemlagi", "Desa Pucangtelu", "Ds, Dandang", "Desa Kemlagi", "Desa Kendal", "Desa Kemlagi-dandang"];
+        const desa = desaList[Math.floor(Math.random() * desaList.length)];
+        
+        const perumList = ["perum", "perumahan", "cluster"];
+        const perum = perumList[Math.floor(Math.random() * perumList.length)];
+        
+        const ksmList = ["KSM", "K-SM", "KS-M", "Ka-Es-M", "K-Es-M", "KS-Em", "K-S-M"];
+        const ksm = ksmList[Math.floor(Math.random() * ksmList.length)];
+        
+        const centerList = ["Center", "Senter", "Semter", "Sentre", "Centre", "Dandang", "Kemlagi"];
+        const center = centerList[Math.floor(Math.random() * centerList.length)];
+        
+        const gangList = ["Gang", "Gg", "jalan", "Jl", "Jln."];
+        const gangWord = gangList[Math.floor(Math.random() * gangList.length)];
+        
+        const wordList = [
+            "Abadi", "Agung", "Alam", "Aman", "Amerta", "Anggrek", "Angkasa", "Anila", "Antariksa", "Apsari",
+            "Arga", "Arjuna", "Aruna", "Asih", "Asoka", "Asri", "Awan", "Bagus", "Bahagia", "Bahar",
+            "Bakau", "Bakti", "Bambu", "Bangsa", "Barat", "Baru", "Baswara", "Bata", "Batik", "Batu",
+            "Bayu", "Bejo", "Belimbing", "Benua", "Beringin", "Besar", "Bintang", "Biru", "Bismo", "Budi",
+            "Bulan", "Bumi", "Cahaya", "Candi", "Cantik", "Cempaka", "Cendana", "Cendrawasih", "Cengkeh", "Cerah",
+            "Cinta", "Citra", "Dahlia", "Damai", "Danau", "Darma", "Daun", "Dewa", "Dewi", "Dian",
+            "Dirgantara", "Elang", "Emas", "Elok", "Endah", "Fajar", "Fitri", "Flamboyan", "Gagah", "Gajah",
+            "Garuda", "Gede", "Gelora", "Gemilang", "Gempa", "Guntur", "Gunung", "Halimun", "Harapan", "Harum",
+            "Hijau", "Indah", "Intan", "Jambu", "Jasmine", "Jati", "Jaya", "Jelita", "Jember", "Joko",
+            "Juara", "Kabut", "Kancil", "Kancana", "Kartika", "Kasih", "Kencana", "Kenanga", "Kenari", "Kertajaya",
+            "Kijang", "Kila", "Kilat", "Kresna", "Kuning", "Kusuma", "Laksmana", "Lancar", "Langit", "Laut",
+            "Lembah", "Lestari", "Limau", "Lintang", "Logam", "Luhur", "Madya", "Madu", "Mahadewa", "Mahajaya",
+            "Mahardika", "Mahkota", "Majestic", "Makmur", "Malang", "Mandiri", "Mangga", "Manggala", "Manis", "Mapan",
+            "Melati", "Merapi", "Merbabu", "Merdeka", "Merak", "Merah", "Mulia", "Murni", "Mutiara", "Naga",
+            "Nakula", "Nusa", "Nusantara", "Ombak", "Outfit", "Padi", "Pahlawan", "Paku", "Palapa", "Pandan",
+            "Panglima", "Pantai", "Patria", "Pelangi", "Permata", "Pertiwi", "Perwira", "Pilar", "Pinang", "Pinus",
+            "Pratama", "Pribadi", "Priya", "Puji", "Putera", "Puteri", "Putih", "Rama", "Rakyat", "Raya",
+            "Riana", "Rimba", "Rindang", "Roda", "Rosela", "Sadewa", "Sagara", "Sakti", "Salak", "Saman",
+            "Samudra", "Santosa", "Sari", "Satria", "Satu", "Sawo", "Sederhana", "Sejahtera", "Selatan", "Semeru",
+            "Sempurna", "Senja", "Sentosa", "Setya", "Sinar", "Sindu", "Siregar", "Slamet", "Srikandi", "Suci",
+            "Sudirman", "Sugeng", "Sujatmiko", "Suko", "Sulung", "Sumatra", "Sumber", "Surya", "Suryo", "Taman",
+            "Tanah", "Tanjung", "Tapan", "Teguh", "Teja", "Telaga", "Tenggara", "Terang", "Teratai", "Timur",
+            "Toba", "Trisula", "Tulus", "Tunas", "Utama", "Utara", "Wahyu", "Wibawa", "Widodo", "Wijaya",
+            "Wira", "Wirya", "Wisma", "Wulan", "Yuda", "Yustisia"
+        ];
+        const pandanWord = wordList[Math.floor(Math.random() * wordList.length)];
+        
+        const noValue = String(Math.floor(Math.random() * 300) + 1).padStart(3, '0');
+        
+        const fullData = `${nama}, ${nohp}, Jawa Timur, Lamongan, Karanggeneng, 62254, ${desa}, ${perum} ${ksm} ${center}, ${gangWord} ${pandanWord} No. ${noValue}\n(W_O8S-648.7.5675-8)`;
+        
+        navigator.clipboard.writeText(fullData).then(() => { 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Asli'); 
+        });
+    }
+
+    function decrementEmail() {
+        const input = document.getElementById('genEmailInput');
+        let email = input.value.trim(); 
+        if (!email) return;
+        
+        const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
+        if (match) {
+            let num = parseInt(match[2], 10);
+            if (num > 0) {
+                input.value = `${match[1]}${num - 1}${match[3]}`;
+                localStorage.setItem('shorif_saved_email', input.value);
+            } else if (num === 0) {
+                input.value = `${match[1]}${match[3]}`;
+                localStorage.setItem('shorif_saved_email', input.value);
+            }
+        }
+    }
+    
+    function copyAndIncrementEmail() {
+        const input = document.getElementById('genEmailInput'); const btn = document.getElementById('btn-copy-email');
+        let email = input.value.trim(); if (!email) return;
+        navigator.clipboard.writeText(email).then(() => {
+            showTempNotif(btn, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Email');
+            const match = email.match(/(.*?)(\d+)(@[^@]+)$/);
+            if (match) input.value = `${match[1]}${parseInt(match[2], 10) + 1}${match[3]}`;
+            else { const atIdx = email.lastIndexOf('@'); if (atIdx !== -1) input.value = `${email.substring(0, atIdx)}1${email.substring(atIdx)}`; }
+            localStorage.setItem('shorif_saved_email', input.value);
+        });
+    }
+
+    function copyPassword(btnElement) {
+        navigator.clipboard.writeText("santridroid").then(() => {
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-key"></i> Copy Password');
+        });
+    }
+
+    // ================= LOGIKA SMS =================
+    async function fetchWorker(path, options = {}) {
+        const provider = document.getElementById('provider-selector').value || "smscode";
+        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser, "X-Provider": provider } });
+    }
+
+    function refreshSms() {
+        document.getElementById('sms-active-orders').innerHTML = ''; 
+        if(!globalUser) {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
+            document.getElementById('sms-balance').innerText = `Rp 0`;
+            return;
+        }
+        if(!isWorkerLocked) {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Anda harus login terlebih dahulu untuk dapat menggunakan layanan SMS ini atau hubungi Admin untuk informasi lebih lanjut.</div>';
+            document.getElementById('sms-balance').innerText = `Rp 0`;
+            return;
+        }
+        document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
+        updateSmsBal(); loadSmsPrices(); pollSms();
+    }
+
+    async function updateSmsBal() {
+        if(!globalUser || !isWorkerLocked) return;
+        try {
+            const provider = document.getElementById('provider-selector').value;
+            const res = await fetchWorker(`/get-balance`); 
+            const json = await res.json();
+            
+            if (json.success) {
+                let currencyPrefix = "Rp ";
+                if (provider === 'herosms' || provider === 'herosms2' || provider === 'smspool' || provider === '5sim') currencyPrefix = "$ ";
+                
+                let balanceDisplay = json.data.balance;
+                if (provider === 'smscode' || provider.startsWith('otpcepat')) {
+                    balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
+                }
+                
+                document.getElementById('sms-balance').innerText = `${currencyPrefix}${balanceDisplay}`;
+            } else { 
+                document.getElementById('sms-balance').innerText = `Rp 0`; 
+            }
+        } catch(e) {}
+    }
+
+    async function loadSmsPrices() {
+        if(!globalUser || !isWorkerLocked) return;
+        try {
+            const provider = document.getElementById('provider-selector').value;
+            let currencyStr = "Rp ";
+            if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim") currencyStr = "$ ";
+
+            const res = await fetchWorker(`/get-prices`); 
+            const json = await res.json();
+            const box = document.getElementById('sms-prices');
+            
+            if (json.success && json.data && json.data.length > 0) {
+                box.innerHTML = json.data.map(i => `
+                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${i.name}')">
+                        <span class="item-name">${i.name}</span>
+                        <span class="item-price">${currencyStr}${i.price}</span>
+                        <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
+                    </div>`).join('');
+            } else {
+                box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                    ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
+                </div>`;
+            }
+        } catch (e) { document.getElementById('sms-prices').innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`; }
+    }
+
+    async function buySms(pid, price, name) {
+        if(!globalUser) return showModal("Peringatan", "Anda harus login terlebih dahulu untuk menggunakan layanan SMS.", "alert");
+        if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
+        const provider = document.getElementById('provider-selector').value;
+        let priceTxt = `Rp ${price}`;
+        if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim") priceTxt = `${price}`;
+
+        if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
+        try {
+            const res = await fetchWorker(`/create-order`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ product_id: pid }) });
+            const j = await res.json();
+            if(j.success) {
+                const o = j.data.orders[0]; 
+                // Di sini penyimpanan key localStorage akan menggunakan NAMA USER yang sedang dipilih, contoh: YANTO_phone_123
+                localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
+                localStorage.setItem(`${currentUser}_price_${o.id}`, price);
+                localStorage.setItem(`${currentUser}_provider_${o.id}`, provider); 
+                pollSms(); updateSmsBal();
+            } else showModal("Gagal", j.error?.message || "Gagal order", "alert");
+        } catch(e){}
+    }
+
+    async function pollSms() { 
+        if(!globalUser || !isWorkerLocked) return;
+        try { 
+            let idsHero = [];
+            let idsHero2 = [];
+            let idsSmsCode = [];
+            let idsOtpCepat1 = []; 
+            let idsOtpCepat2 = []; 
+            let idsSmsPool = []; 
+            let ids5sim = []; 
+            
+            const prefix = `${currentUser}_phone_`;
+            
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                // Hanya mendeteksi/memanggil id order milik User yang saat ini aktif di selector (isolasi data)
+                if(key.startsWith(prefix)) {
+                    let id = key.replace(prefix, '');
+                    let prov = localStorage.getItem(`${currentUser}_provider_${id}`) || 'smscode';
+                    
+                    if (prov === 'herosms') idsHero.push(id);
+                    else if (prov === 'herosms2') idsHero2.push(id);
+                    else if (prov === 'otpcepat1') idsOtpCepat1.push(id);
+                    else if (prov === 'otpcepat2') idsOtpCepat2.push(id);
+                    else if (prov === 'otpcepat') idsOtpCepat1.push(id); // Menangkap old data jika ada
+                    else if (prov === 'smspool') idsSmsPool.push(id);
+                    else if (prov === '5sim') ids5sim.push(id);
+                    else idsSmsCode.push(id);
+                }
+            }
+            
+            let allOrders = [];
+
+            const fetchOrders = async (provider, ids) => {
+                if (ids.length === 0) return;
+                const res = await fetch(`${WORKER_URL}/get-active`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-User-Name": currentUser, "X-Provider": provider },
+                    body: JSON.stringify({ active_ids: ids })
+                });
+                const j = await res.json();
+                if (j.success && j.data) {
+                    j.data.forEach(o => o._provider = provider);
+                    allOrders = allOrders.concat(j.data);
+                }
+            };
+
+            await Promise.all([
+                fetchOrders('herosms', idsHero),
+                fetchOrders('herosms2', idsHero2),
+                fetchOrders('smscode', idsSmsCode),
+                fetchOrders('otpcepat1', idsOtpCepat1),
+                fetchOrders('otpcepat2', idsOtpCepat2),
+                fetchOrders('smspool', idsSmsPool),
+                fetchOrders('5sim', ids5sim)
+            ]);
+            
+            renderSmsOrders(allOrders); 
+        } catch(e) {} 
+    }
+
+    function copyPhoneNumber(txt, el) {
+        if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function copyOTP(txt, el) {
+        if(!txt) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function renderSmsOrders(orders) {
+        const container = document.getElementById('sms-active-orders'); 
+        const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+        
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        
+        if(!orders || !orders.length) return;
+
+        orders.forEach(o => {
+            const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
+            
+            let currStr = "Rp ";
+            if (orderProv === "herosms" || orderProv === "herosms2" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
+            
+            let cardClass = "card-smscode";
+            if (orderProv === "herosms" || orderProv === "herosms2") cardClass = "card-herosms";
+            else if (orderProv === "otpcepat" || orderProv === "otpcepat1" || orderProv === "otpcepat2") cardClass = "card-otpcepat";
+            else if (orderProv === "smspool") cardClass = "card-smspool";
+            else if (orderProv === "5sim") cardClass = "card-5sim";
+
+            const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
+            if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
+            
+            const serverPrice = o.price || o.cost || localStorage.getItem(`${currentUser}_price_${o.id}`);
+            if(serverPrice) localStorage.setItem(`${currentUser}_price_${o.id}`, serverPrice);
+            
+            let expireTime = localStorage.getItem(`${currentUser}_timer_${o.id}`);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`${currentUser}_timer_${o.id}`, expireTime); }
+            let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
+
+            // Block status check
+            const blockTime = localStorage.getItem(`${currentUser}_block_timer_${o.id}`);
+            const isBlocked = blockTime && (parseInt(blockTime) - Date.now() > 0);
+
+            if (blockTime && !isBlocked) {
+                // Block timer expired, trigger cancel immediately
+                localStorage.removeItem(`${currentUser}_block_timer_${o.id}`);
+                autoCancelSms(o.id);
+                return;
+            }
+
+            if (isBlocked) {
+                const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
+                const blockedHtml = `
+                    <div class="blocked-status-bar">
+                        <span>Cancel: <span class="block-countdown" data-id="${o.id}">${diff}s</span></span>
+                        <span>${currStr}${serverPrice||'...'}</span>
+                    </div>
+                `;
+                const existing = document.getElementById('order-' + o.id);
+                if (existing) {
+                    existing.className = `order-card order-blocked`;
+                    existing.innerHTML = blockedHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card order-blocked" id="order-${o.id}">
+                        ${blockedHtml}
+                    </div>`);
+                }
+                return;
+            }
+
+            if (o.otp_code && !localStorage.getItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`)) {
+                showOtpToast(o.otp_code); localStorage.setItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`, 'true');
+            }
+
+            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            
+            const existing = document.getElementById('order-' + o.id);
+            if (existing) {
+                existing.className = `order-card ${cardClass}`;
+                existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
+                existing.querySelector('.order-phone').innerText = phone;
+                existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                if(o.otp_code) {
+                    existing.querySelector('.btn-resend').disabled = false;
+                    let salinBtn = existing.querySelector('.btn-salin');
+                    if(salinBtn) {
+                        salinBtn.disabled = false;
+                        salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
+                    }
+                }
+                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; }
+            } else {
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="order-card ${cardClass}" id="order-${o.id}">
+                    <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                    <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
+                    <div class="order-otp">${otpDisplay}</div>
+                    <div class="btn-grid">
+                        <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
+                        <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                        <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
+                        <button class="btn-sm btn-block" onclick="blockSms('${o.id}')">BLOCK</button>
+                    </div>
+                </div>`);
+            }
+        });
+        updateSmsTimers();
+    }
+
+    function updateSmsTimers() {
+        document.querySelectorAll('.sms-timer').forEach(el => {
+            const expireTime = localStorage.getItem(`${currentUser}_timer_${el.dataset.id}`);
+            if(!expireTime) return; 
+            
+            const diff = Math.max(0, Math.floor((parseInt(expireTime) - Date.now())/1000));
+            el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+            el.style.color = diff < 600 ? "#e74c3c" : "#555";
+            if (diff <= 1080) {
+                const card = document.getElementById('order-' + el.dataset.id);
+                if(card) { 
+                    const btnCancel = card.querySelector('.btn-cancel');
+                    if(btnCancel) btnCancel.disabled = false;
+                    const btnReplace = card.querySelector('.btn-replace');
+                    if(btnReplace) btnReplace.disabled = false;
+                }
+            }
+        });
+
+        document.querySelectorAll('.block-countdown').forEach(el => {
+            const id = el.dataset.id;
+            const blockTime = localStorage.getItem(`${currentUser}_block_timer_${id}`);
+            if(!blockTime) return;
+
+            const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
+            el.innerText = `${diff}s`;
+
+            if(diff <= 0) {
+                localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+                autoCancelSms(id);
+            }
+        });
+    }
+
+    async function actSms(action, id) {
+        if(!globalUser) return showModal("Peringatan", "Anda harus login terlebih dahulu.", "alert");
+        if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
+        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        try {
+            const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
+
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": orderProvider }, 
+                body: JSON.stringify({id, action}) 
+            });
+
+            if((await res.json()).success) {
+                if(action !== 'resend') { 
+                    localStorage.removeItem(`${currentUser}_phone_${id}`); 
+                    localStorage.removeItem(`${currentUser}_timer_${id}`); 
+                    localStorage.removeItem(`${currentUser}_price_${id}`); 
+                    localStorage.removeItem(`${currentUser}_provider_${id}`); 
+                    Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
+                }
+                pollSms(); updateSmsBal();
+            }
+        } catch(e){}
+    }
+
+    async function autoCancelSms(id) {
+        try {
+            const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": orderProvider }, 
+                body: JSON.stringify({id, action: 'cancel'}) 
+            });
+            await res.json();
+        } catch(e){}
+        
+        localStorage.removeItem(`${currentUser}_phone_${id}`); 
+        localStorage.removeItem(`${currentUser}_timer_${id}`); 
+        localStorage.removeItem(`${currentUser}_price_${id}`); 
+        localStorage.removeItem(`${currentUser}_provider_${id}`); 
+        localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+        Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
+        
+        pollSms();
+        updateSmsBal();
+    }
+
+    function blockSms(id) {
+        let expireTime = localStorage.getItem(`${currentUser}_timer_${id}`);
+        if (!expireTime) {
+            expireTime = Date.now() + (20 * 60000);
+            localStorage.setItem(`${currentUser}_timer_${id}`, expireTime);
+        }
+
+        const remainingSecs = Math.floor((parseInt(expireTime) - Date.now()) / 1000);
+        const passed2Mins = (remainingSecs <= 1080);
+
+        if (passed2Mins) {
+            // Sudah lewat 2 menit (sisa waktu <= 18 menit), langsung cancel sekarang
+            autoCancelSms(id);
+        } else {
+            // Belum 2 menit, hitung sisa waktu tunggu sampai mencapai batas 18 menit (1080s)
+            const blockEndTime = parseInt(expireTime) - (1080 * 1000);
+            localStorage.setItem(`${currentUser}_block_timer_${id}`, blockEndTime);
+            
+            const card = document.getElementById('order-' + id);
+            if (card) {
+                const serverPrice = localStorage.getItem(`${currentUser}_price_${id}`) || '...';
+                const orderProvider = localStorage.getItem(`${currentUser}_provider_${id}`) || document.getElementById('provider-selector').value;
+                let currStr = "Rp ";
+                if (orderProvider === "herosms" || orderProvider === "herosms2" || orderProvider === "smspool" || orderProvider === "5sim") currStr = "$";
+
+                const initialDiff = Math.max(0, Math.floor((blockEndTime - Date.now()) / 1000));
+
+                card.className = `order-card order-blocked`;
+                card.innerHTML = `
+                    <div class="blocked-status-bar">
+                        <span>Cancel: <span class="block-countdown" data-id="${id}">${initialDiff}s</span></span>
+                        <span>${currStr}${serverPrice}</span>
+                    </div>
+                `;
+            }
+            updateSmsTimers();
+        }
+    }
+</script>
+
+<script>
+// ================= NOTES APP (from catatan.html, converted to compat SDK) =================
+(function() {
+            
+        
+        
+
+        
+
+        
+        const fsDb = firebase.firestore();
+        // auth already initialized globally
+
+        let globalSettings = { fontSize: 'medium', defaultColor: 'yellow', autoBackup: true };
+        try { 
+            if(localStorage.getItem('ntSettings')) {
+                let parsed = JSON.parse(localStorage.getItem('ntSettings'));
+                if (parsed.autoBackup === undefined) parsed.autoBackup = true;
+                globalSettings = parsed;
+            }
+        } catch(e){}
+        
+        window.saveGlobalSettings = function() {
+            globalSettings.autoBackup = document.getElementById('autoBackupCheckbox').checked;
+            localStorage.setItem('ntSettings', JSON.stringify(globalSettings));
+        }
+
+        window.saveFontSize = function(size) {
+            globalSettings.fontSize = size;
+            saveGlobalSettings(); 
+            applyGlobalSettingsText(); 
+            toggleModal('fontSizeModal'); 
+            renderNotes();
+        }
+
+        function applyGlobalSettingsText() {
+            document.getElementById('autoBackupCheckbox').checked = globalSettings.autoBackup;
+            document.getElementById('fontLabel').innerText = globalSettings.fontSize === 'small' ? 'Kecil' : (globalSettings.fontSize === 'large' ? 'Besar' : 'Sedang');
+            document.getElementById('textEditorBody').className = `w-full min-h-full p-4 outline-none bg-transparent lined-paper resize-none hidden ${globalSettings.fontSize === 'small' ? 'text-sm' : (globalSettings.fontSize === 'large' ? 'text-2xl' : 'text-lg')}`;
+        }
+        setTimeout(() => applyGlobalSettingsText(), 500);
+
+        window.isSettingDefaultColor = false;
+        window.selectDefaultColor = function() { toggleModal('multiColorModal'); window.isSettingDefaultColor = true; }
+
+        let searchTerm = '';
+        window.toggleSearch = function(open=null) {
+            const sb = document.getElementById('searchBar');
+            if(open === null) sb.classList.toggle('hidden');
+            else if(open) sb.classList.remove('hidden');
+            else sb.classList.add('hidden');
+            
+            if(!sb.classList.contains('hidden')) document.getElementById('searchInput').focus();
+            else { document.getElementById('searchInput').value = ''; searchTerm = ''; renderNotes(); }
+        }
+        window.applySearch = function() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            renderNotes();
+        }
+
+        let noteAuthUser = null; let isAdmin = false;
+        
+        // Tab system variables
+        window.currentAdminTab = 'pribadi'; // 'pribadi', 'kiriman', 'semua'
+        window.extraAdminData = []; 
+
+        window.switchAdminTab = async function(tabId) {
+            window.currentAdminTab = tabId;
+            document.getElementById('tabAdminNotes').className = "flex-1 py-3 transition-colors " + (tabId==='pribadi' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+            document.getElementById('tabAllNotes').className = "flex-1 py-3 transition-colors " + (tabId==='umum' ? "text-teal-600 border-b-2 border-teal-600" : "text-gray-500 hover:text-teal-600 border-b-2 border-transparent");
+
+
+            if(tabId === 'pribadi') {
+                 renderNotes();
+            } else if (tabId === 'umum') {
+                 document.getElementById('notesContainer').innerHTML = '<p class="text-center text-gray-500 mt-10 font-medium">Memuat catatan umum...</p>';
+                 try {
+                     const qSnap = await fsDb.collection("public_notes").get();
+                     window.extraAdminData = [];
+                     qSnap.docs.forEach(d => { let obj = d.data(); obj.id = d.id; obj.fullPath = d.ref.path; window.extraAdminData.push(obj); allNotesData[d.id] = obj; });
+                 } catch(e) { showToast("Gagal memuat catatan umum."); window.extraAdminData = []; }
+                 renderNotes();
+            }
+        }
+
+        let activeSessionListener = null;
+
+        window.logoutOtherDevices = function() {
+            if(!noteAuthUser) return;
+            if(!confirm("Keluarkan akun Anda dari SEMUA perangkat lain?")) return;
+            const newSession = Date.now().toString() + Math.random();
+            localStorage.setItem('my_session_id', newSession);
+            localStorage.setItem('session_synced', 'true');
+            fsDb.collection("users").doc(noteAuthUser.uid).set({ currentSessionId: newSession }, { merge: true })
+                .then(() => showToast("Berhasil mengeluarkan perangkat lain."));
+        };
+
+        window.syncNotes2Way = async function(uid, devId) {
+            const devRef = fsDb.collection("devices").doc(devId).collection("notes");
+            const usrRef = fsDb.collection("users").doc(uid).collection("notes");
+            try {
+                const devDocs = await devRef.get();
+                const usrDocs = await usrRef.get();
+                let batch = fsDb.batch();
+                let count = 0;
+                
+                devDocs.forEach(doc => {
+                    if (!usrDocs.docs.some(u => u.id === doc.id)) {
+                        batch.set(usrRef.doc(doc.id), doc.data());
+                        count++;
+                    }
+                });
+                
+                usrDocs.forEach(doc => {
+                    if (!devDocs.docs.some(d => d.id === doc.id)) {
+                        batch.set(devRef.doc(doc.id), doc.data());
+                        count++;
+                    }
+                });
+                
+                if (count > 0) {
+                    await batch.commit();
+                    showToast(`Selesai menyinkronkan ${count} catatan lintas perangkat.`);
+                }
+            } catch (err) { console.error("Gagal sinkronisasi 2-arah:", err); }
+        };
+
+        auth.onAuthStateChanged((user) => {
+            noteAuthUser = user;
+            if(activeSessionListener) { activeSessionListener(); activeSessionListener = null; }
+
+            if(user) {
+                isAdmin = (user.email === 'santridroid@gmail.com');
+                document.getElementById('loggedInContainer').classList.remove('hidden');
+                document.getElementById('loginFormContainer').classList.add('hidden');
+                document.getElementById('loggedInUserText').innerText = user.email || user.displayName || 'Pengguna';
+                document.getElementById('loggedInRoleText').innerText = isAdmin ? 'Admin Utama' : 'Akun Pengguna';
+                document.getElementById('topLoginBtn').classList.add('text-teal-600');
+                if(isAdmin) { 
+                    document.getElementById('editAboutBtn').classList.remove('hidden'); 
+                    document.getElementById('adminTabsContainer').classList.remove('hidden');
+                } else document.getElementById('editAboutBtn').classList.add('hidden');
+
+                if(!localStorage.getItem('my_session_id')) localStorage.setItem('my_session_id', Date.now().toString() + Math.random());
+                const mySession = localStorage.getItem('my_session_id');
+                
+                activeSessionListener = fsDb.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if(doc.exists) {
+                        const data = doc.data();
+                        if(data.currentSessionId) {
+                            if(!localStorage.getItem('session_synced')) {
+                                localStorage.setItem('my_session_id', data.currentSessionId);
+                                localStorage.setItem('session_synced', 'true');
+                            } else {
+                                if(localStorage.getItem('my_session_id') !== data.currentSessionId) {
+                                    auth.signOut().then(() => {
+                                        localStorage.removeItem('session_synced');
+                                        showToast("Sesi berakhir karena Anda logout dari perangkat lain.");
+                                    });
+                                }
+                            }
+                        }
+                    } else {
+                        fsDb.collection("users").doc(user.uid).set({ currentSessionId: mySession }, { merge: true });
+                        localStorage.setItem('session_synced', 'true');
+                    }
+                });
+
+                if(typeof syncNotes2Way === 'function' && typeof deviceId !== 'undefined') syncNotes2Way(user.uid, deviceId);
+            } else {
+                isAdmin = false;
+                document.getElementById('loggedInContainer').classList.add('hidden');
+                document.getElementById('loginFormContainer').classList.remove('hidden');
+                document.getElementById('topLoginBtn').classList.remove('text-teal-600');
+                document.getElementById('editAboutBtn').classList.add('hidden');
+                document.getElementById('adminTabsContainer').classList.add('hidden');
+                window.currentAdminTab = 'pribadi';
+            }
+            if(typeof attachNotesListener === 'function') attachNotesListener();
+        });
+
+        // FUNGSI AUTH & LOGIN
+        window.isRegisterMode = false;
+        
+        window.toggleAuthMode = function() {
+            window.isRegisterMode = !window.isRegisterMode;
+            if(window.isRegisterMode) {
+                document.getElementById('authPasswordConfirm').classList.remove('hidden');
+                document.getElementById('authLoginBtn').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Sudah punya akun? Login disini";
+                document.getElementById('loginTitle').innerHTML = 'Daftar Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            } else {
+                document.getElementById('authPasswordConfirm').classList.add('hidden');
+                document.getElementById('authRegisterBtn').classList.add('hidden');
+                document.getElementById('authLoginBtn').classList.remove('hidden');
+                document.getElementById('authModeToggleText').innerText = "Belum punya akun? Daftar disini";
+                document.getElementById('loginTitle').innerHTML = 'Login Akun <button onclick="toggleModal(\'loginModal\')"><i class="fas fa-times text-gray-500"></i></button>';
+            }
+        }
+
+        window.submitAuth = async function(mode) {
+            const eml = document.getElementById('authEmail').value.trim();
+            const pwd = document.getElementById('authPassword').value;
+            const rmbInfo = document.getElementById('rememberMeCheckbox').checked;
+
+            if(!eml || !pwd) return showToast("Mohon lengkapi data!");
+            
+            try {
+                const persistenceType = rmbInfo ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+                await auth.setPersistence(persistenceType);
+
+                if (rmbInfo) {
+                    localStorage.setItem('ntSaveLogin', 'true');
+                    localStorage.setItem('ntEmail', eml);
+                    localStorage.setItem('ntPassword', pwd);
+                } else {
+                    localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+                }
+
+                if(mode === 'register') {
+                    const pwdConfirm = document.getElementById('authPasswordConfirm').value;
+                    if(pwd !== pwdConfirm) return showToast("Konfirmasi sandi tidak sama!");
+                    await auth.createUserWithEmailAndPassword(eml, pwd);
+                    showToast("Pendaftaran berhasil!");
+                } else {
+                    localStorage.removeItem('session_synced');
+                    await auth.signInWithEmailAndPassword(eml, pwd);
+                    showToast("Login berhasil!");
+                }
+                toggleModal('loginModal');
+            } catch(e) {
+                if(e.code === 'auth/invalid-credential') showToast("Email atau sandi salah!");
+                else if(e.code === 'auth/email-already-in-use') showToast("Email ini sudah terdaftar!");
+                else showToast("Gagal memproses otentikasi: " + e.message);
+            }
+        }
+
+        setTimeout(() => {
+            if(localStorage.getItem('ntSaveLogin')) {
+                document.getElementById('rememberMeCheckbox').checked = true;
+                document.getElementById('authEmail').value = localStorage.getItem('ntEmail') || '';
+                document.getElementById('authPassword').value = localStorage.getItem('ntPassword') || '';
+            }
+        }, 800);
+
+        window.logout = function() { 
+            auth.signOut().then(()=>showToast("Telah Logout")); 
+            localStorage.removeItem('ntSaveLogin'); localStorage.removeItem('ntEmail'); localStorage.removeItem('ntPassword');
+            document.getElementById('authEmail').value = ''; document.getElementById('authPassword').value = '';
+            toggleModal('loginModal'); 
+        }
+
+        window.syncNotes = async function() {
+            if(!noteAuthUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk menyinkronkan"); }
+            showToast("Menyinkronkan dari perangkat ke akun...");
+            try {
+                const localSnap = await fsDb.collection("devices").doc(deviceId).collection("notes").get();
+                const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+                let count = 0;
+                for(let dSnap of localSnap.docs) {
+                     await userNotesRef.doc(dSnap.id).set(dSnap.data());
+                     count++;
+                }
+                showToast(`Sinkronisasi Selesai! ${count} catatan tersalin ke akun.`);
+            } catch(e){ showToast("Gagal menyinkronkan"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.backupNotes = async function() {
+            if(!noteAuthUser) { toggleModal('appMenuModal'); toggleModal('loginModal'); return showToast("Silakan login untuk mencadangkan"); }
+            showToast("Mencadangkan ke awan...");
+            const userNotesRef = fsDb.collection("users").doc(noteAuthUser.uid).collection("notes");
+            try {
+                for(let id in allNotesData) { await userNotesRef.doc(id).set(allNotesData[id]); }
+                showToast("Backup Selesai!");
+            } catch(e){ showToast("Gagal membackup"); }
+            toggleModal('appMenuModal');
+        }
+
+        window.openAbout = async function() {
+            toggleModal('appMenuModal', true); toggleModal('aboutModal', true);
+            document.getElementById('aboutContentDisplay').innerText = "Memuat...";
+            try {
+                const aboutDoc = await fsDb.collection("app_settings").get();
+                let abt = "Aplikasi Catatan Web-Note Santridroid.\n\nSelamat menyusun ide dan tugas Anda!";
+                aboutDoc.forEach(d => { if(d.id === 'about') abt = d.data().content; });
+                document.getElementById('aboutContentDisplay').innerText = abt;
+                document.getElementById('aboutContentEdit').value = abt;
+            } catch(e) { document.getElementById('aboutContentDisplay').innerText = "Gagal memuat tentang aplikasi."; }
+        }
+
+        window.toggleEditAbout = function() {
+            document.getElementById('aboutContentDisplay').classList.toggle('hidden');
+            document.getElementById('aboutContentEdit').classList.toggle('hidden');
+            document.getElementById('aboutEditActions').classList.toggle('hidden');
+            document.getElementById('editAboutBtn').classList.toggle('hidden');
+            document.getElementById('closeAboutBtn').classList.toggle('hidden');
+        }
+
+        window.saveAbout = async function() {
+            const text = document.getElementById('aboutContentEdit').value;
+            await fsDb.collection("app_settings").doc("about").set({ content: text });
+            document.getElementById('aboutContentDisplay').innerText = text;
+            toggleEditAbout(); showToast("Disimpan!");
+        }
+
+        if ("Notification" in window) { Notification.requestPermission(); }
+        let currentCalDate = new Date(); let selectedCalDate = new Date();
+        window.openCalendar = function() { toggleSearch(false); toggleModal('calendarModal', true); renderCalendar(); }
+        window.changeMonth = function(dir) { currentCalDate.setMonth(currentCalDate.getMonth() + dir); renderCalendar(); }
+        
+        function renderCalendar() {
+            const y = currentCalDate.getFullYear(); const m = currentCalDate.getMonth();
+            document.getElementById('calendarMonthYear').innerText = new Date(y, m).toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+            const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m+1, 0).getDate();
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += '<div></div>';
+            const today = new Date();
+            for(let i=1; i<=daysInMonth; i++) {
+                let isToday = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear());
+                let isSel = (i === selectedCalDate.getDate() && m === selectedCalDate.getMonth() && y === selectedCalDate.getFullYear());
+                let cls = `cursor-pointer py-1.5 rounded-full transition-colors ${isToday ? 'bg-teal-100 text-teal-800' : (isSel ? 'border border-teal-600 bg-gray-50' : 'hover:bg-gray-100')}`;
+                html += `<div class="${cls}" onclick="selectDate(${y}, ${m}, ${i})">${i}</div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+            loadReminders();
+        }
+
+        window.selectDate = function(y, m, d) { selectedCalDate = new Date(y, m, d); renderCalendar(); }
+        
+        let reminders = [];
+        try { if(localStorage.getItem('ntReminders')) reminders = JSON.parse(localStorage.getItem('ntReminders')); } catch(e){}
+
+        function saveRemindersLocal() { localStorage.setItem('ntReminders', JSON.stringify(reminders)); }
+
+        function loadReminders() {
+            document.getElementById('selectedDateText').innerText = selectedCalDate.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+            const selY = selectedCalDate.getFullYear(); const selM = selectedCalDate.getMonth(); const selD = selectedCalDate.getDate();
+            const list = document.getElementById('remindersList'); list.innerHTML = '';
+            let found = false;
+            reminders.forEach((r, idx) => {
+                let rDate = new Date(r.timestamp);
+                if(rDate.getFullYear() === selY && rDate.getMonth() === selM && rDate.getDate() === selD) {
+                    found = true;
+                    list.innerHTML += `<div class="flex justify-between items-center bg-white p-2 border rounded-md mb-1"><div class="flex flex-col"><span class="font-semibold text-gray-800">${r.text}</span><span class="text-xs text-gray-500"><i class="far fa-clock"></i> ${rDate.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.',':')}</span></div><button onclick="delReminder(${idx})" class="text-red-400 hover:text-red-600 px-2"><i class="fas fa-trash"></i></button></div>`;
+                }
+            });
+            if(!found) list.innerHTML = '<p class="text-xs text-gray-400 italic">Tidak ada pengingat.</p>';
+        }
+
+        window.openAddReminder = function() { toggleModal('addReminderModal'); document.getElementById('reminderText').value = ''; document.getElementById('reminderTime').value = ''; }
+
+        window.saveReminder = function() {
+            let txt = document.getElementById('reminderText').value;
+            let timeStr = document.getElementById('reminderTime').value;
+            if(!txt || !timeStr) return showToast("Isi judul dan waktu!");
+            let [h, m] = timeStr.split(':');
+            let d = new Date(selectedCalDate.getFullYear(), selectedCalDate.getMonth(), selectedCalDate.getDate(), parseInt(h), parseInt(m), 0);
+            if(d.getTime() < Date.now()) return showToast("Waktu tidak boleh di masa lalu!");
+            reminders.push({ text: txt, timestamp: d.getTime(), notified: false });
+            saveRemindersLocal(); loadReminders(); toggleModal('addReminderModal'); showToast("Pengingat diset!");
+        }
+
+        window.delReminder = function(idx) { reminders.splice(idx, 1); saveRemindersLocal(); loadReminders(); }
+
+        setInterval(() => {
+            const now = Date.now();
+            let changed = false;
+            reminders.forEach(r => {
+                if(!r.notified && r.timestamp <= now) {
+                    r.notified = true; changed = true;
+                    if(Notification.permission === "granted") new Notification("Pengingat Web-Note", { body: r.text }); 
+                    else showToast("ALARM: " + r.text);
+                }
+            });
+            if(changed) saveRemindersLocal();
+        }, 10000);
+
+        let deviceId = localStorage.getItem('santridroid_device_id');
+        if (!deviceId) { deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(); localStorage.setItem('santridroid_device_id', deviceId); }
+
+        let rawNotesData = []; 
+        let allNotesData = {}; 
+        
+        let currentFilter = 'all';
+        let currentSort = 'updatedAt';
+        let currentView = 'list'; 
+
+        let currentEditingId = null;
+        let currentEditingType = 'text';
+        let currentEditingColor = 'yellow';
+        let undoStack = []; let redoStack = []; let historyTimeout;
+        window.shareTarget = 'single';
+
+        window.isMultiSelectMode = false;
+        window.selectedNotes = new Set();
+        let pressTimer; let isLongPress = false;
+
+        window.showToast = function(message) {
+            let container = document.getElementById('toastContainer');
+            if(!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none items-center w-full px-4';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg text-sm bg-opacity-90 transition-all duration-300 transform translate-y-4 opacity-0 max-w-[90%] text-center font-medium';
+            toast.innerText = message;
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        let notesCollectionRef;
+        let activeNotesListener = null;
+
+        window.attachNotesListener = function() {
+            if(activeNotesListener) {
+                activeNotesListener(); // unsubscribe
+                activeNotesListener = null;
+            }
+            
+            if (isAdmin) {
+                notesCollectionRef = fsDb.collection("private_notes");
+                document.getElementById('syncStatus').innerText = "Online (Admin)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs font-semibold text-white bg-teal-500 px-2 rounded";
+            } else {
+                notesCollectionRef = fsDb.collection("public_notes");
+                document.getElementById('syncStatus').innerText = "Online (Publik)";
+                document.getElementById('syncStatus').className = "ml-auto text-xs font-semibold text-white bg-green-500 px-2 rounded";
+            }
+
+            activeNotesListener = notesCollectionRef.onSnapshot( (snapshot) => {
+                rawNotesData = [];
+                const now = Date.now();
+                snapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    data.id = docSnap.id;
+                    
+                    // AUTO CLEANUP 30 DAYS
+                    if (data.deletedAt && data.deletedAt.toMillis) {
+                        const ageMs = now - data.deletedAt.toMillis();
+                        if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+                            docSnap.ref.delete().catch(()=>{});
+                            return;
+                        }
+                    }
+                    
+                    rawNotesData.push(data);
+                    allNotesData[docSnap.id] = data;
+                });
+                
+                // Only trigger re-render if we are actually viewing the tab that uses this snapshot data
+                if (!isAdmin || window.currentAdminTab === 'pribadi') {
+                    renderNotes();
+                    if(!document.getElementById('trashModal').classList.contains('hidden')) window.renderTrash && window.renderTrash();
+                }
+            });
+        };
+
+        // FUNGSI RENDER
+        function renderNotes() {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = ''; 
+
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            let filteredDocs = baseData.filter(n => !n.deletedAt);
+
+            if (currentFilter !== 'all') {
+                filteredDocs = filteredDocs.filter(n => (n.color || 'yellow') === currentFilter);
+            }
+            if (searchTerm) {
+                filteredDocs = filteredDocs.filter(n => 
+                    (n.title && n.title.toLowerCase().includes(searchTerm)) || 
+                    (n.content && n.content.toLowerCase().includes(searchTerm)) || 
+                    (n.items && n.items.some(i => i.text.toLowerCase().includes(searchTerm)))
+                );
+            }
+
+            filteredDocs.sort((a, b) => {
+                if(currentSort === 'updatedAt') return (b.updatedAt?.toMillis() || Date.now()) - (a.updatedAt?.toMillis() || Date.now());
+                else if(currentSort === 'createdAt') return (b.createdAt?.toMillis() || Date.now()) - (a.createdAt?.toMillis() || Date.now());
+                else if(currentSort === 'alphabet') return (a.title || '').localeCompare(b.title || '');
+                else if(currentSort === 'color') return (a.color || 'yellow').localeCompare(b.color || 'yellow');
+            });
+
+            // Layout Kontainer
+            if (currentView === 'grid-small') container.className = "grid grid-cols-3 gap-2";
+            else if (currentView === 'grid-large') container.className = "grid grid-cols-2 gap-2";
+            else container.className = "flex flex-col gap-0";
+
+            if (filteredDocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10 col-span-3">Belum ada catatan.</p>';
+                return;
+            }
+
+            filteredDocs.forEach((note) => {
+                const dateObj = note.updatedAt ? note.updatedAt.toDate() : new Date();
+                const now = new Date();
+                let timeString;
+                if (dateObj.toDateString() === now.toDateString()) {
+                    timeString = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+                } else {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    timeString = `${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
+                }
+                
+                const colorClass = `color-${note.color || 'yellow'}`;
+                const noteTitle = note.title || (note.type==='checklist' ? 'Daftar Baru' : 'Catatan Kosong');
+                const lockIcon = note.locked ? `<i class="fas fa-lock text-[10px] opacity-70 ml-1"></i>` : '';
+                
+                let previewContent = '';
+                if(note.type === 'checklist') {
+                    const total = note.items ? note.items.length : 0;
+                    const checked = note.items ? note.items.filter(i => i.checked).length : 0;
+                    previewContent = `<i class="far fa-check-square mr-1 opacity-70"></i> ${checked}/${total} barang`;
+                } else {
+                    previewContent = note.content || '';
+                }
+
+                const isSelected = window.selectedNotes.has(note.id);
+                const noteEl = document.createElement('div');
+                let heightClass = '';
+                let cardHTML = '';
+                const colorBox = `<div onclick="event.stopPropagation(); window.toggleSelectNote('${note.id}')" class="w-[18px] h-[18px] rounded-sm inline-block mr-2 border border-black border-opacity-50 flex-shrink-0 cursor-pointer flex items-center justify-center text-[11px]" style="background-color: ${pastelColorMap[note.color || 'yellow']};">
+                    ${isSelected ? '<i class="fas fa-check text-black opacity-70"></i>' : ''}
+                </div>`;
+                if (currentView === 'list') {
+                    heightClass = 'h-[50px]';
+                    cardHTML = `
+                        <div class="flex justify-between items-center w-full h-full relative">
+                            <div class="w-1.5 h-full absolute left-0 top-0 bottom-0 theme-bg-header flex items-center justify-center">
+                                ${isSelected ? '<i class="fas fa-check text-black opacity-70 text-[10px] absolute ml-2"></i>' : ''}
+                            </div>
+                            <div class="flex items-center flex-1 pr-2 overflow-hidden text-inherit h-full">
+                                <h3 class="text-lg truncate font-medium ml-4 text-black opacity-90">${noteTitle}</h3>
+                            </div>
+                            <span class="text-xs opacity-60 whitespace-nowrap flex items-center gap-1 flex-shrink-0 mr-3 text-black">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'detail') {
+                    heightClass = 'min-h-[70px]';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-lg truncate font-medium">${noteTitle}</h3>
+                            </div>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-small') {
+                    heightClass = 'h-24';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-sm truncate font-medium">${noteTitle}</h3>
+                            </div>
+                            <p class="text-[10px] opacity-80 break-words whitespace-normal line-clamp-2">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[9px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                } else if (currentView === 'grid-large') {
+                    heightClass = 'h-36';
+                    cardHTML = `
+                        <div class="truncate w-full flex-1 pointer-events-none overflow-hidden text-inherit">
+                            <div class="flex items-center mb-1">
+                                ${colorBox}
+                                <h3 class="text-base truncate font-medium">${noteTitle}</h3>
+                            </div>
+                            <p class="text-xs opacity-80 break-words whitespace-normal line-clamp-4">${previewContent}</p>
+                        </div>
+                        <div class="w-full text-right mt-1">
+                            <span class="text-[10px] font-mono pointer-events-none opacity-70 flex justify-end items-center gap-1">${timeString} ${lockIcon}</span>
+                        </div>
+                    `;
+                }
+                
+                if (currentView === 'list') {
+                    noteEl.className = `note-card flex flex-col justify-center items-start theme-bg-body overflow-hidden border-b border-black border-opacity-[0.03] ${isSelected ? 'selected-note' : ''} ${colorClass} ${heightClass}`;
+                } else {
+                    noteEl.className = `note-card p-3 rounded shadow-sm border border-black border-opacity-10 flex flex-col justify-between items-start theme-bg-body ${isSelected ? 'selected-note' : ''} ${colorClass} ${heightClass}`;
+                }
+                noteEl.innerHTML = cardHTML;
+                
+                let pressTimer;
+                let justLongPressed = false;
+                const startPress = (e) => {
+                    if (e.type === 'mousedown' && e.button !== 0) return; // Only left click
+                    justLongPressed = false;
+                    pressTimer = setTimeout(() => {
+                        justLongPressed = true;
+                        if (!window.isMultiSelectMode) {
+                            if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+                            window.toggleSelectNote(note.id);
+                        }
+                    }, 500);
+                };
+                const cancelPress = () => { if (pressTimer) clearTimeout(pressTimer); };
+
+                noteEl.addEventListener('touchstart', startPress, {passive: true});
+                noteEl.addEventListener('touchend', cancelPress);
+                noteEl.addEventListener('touchmove', cancelPress);
+                noteEl.addEventListener('mousedown', startPress);
+                noteEl.addEventListener('mouseup', cancelPress);
+                noteEl.addEventListener('mouseleave', cancelPress);
+                noteEl.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (!window.isMultiSelectMode) window.toggleSelectNote(note.id);
+                });
+                
+                noteEl.addEventListener('click', (e) => {
+                    if (justLongPressed) { justLongPressed = false; return; }
+                    handleNoteClick(e, note.id);
+                });
+                
+                container.appendChild(noteEl);
+            });
+            updateFilterBorders();
+        }
+
+        // PENGATURAN TAMPILAN
+        window.openSettingsTab = function(tabName) {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            ['warna', 'urutkan', 'lihat'].forEach(name => {
+                document.getElementById('content-' + name).classList.add('hidden');
+                document.getElementById('tab-' + name).classList.replace('tab-active', 'tab-inactive');
+            });
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.replace('tab-inactive', 'tab-active');
+        }
+
+        window.closeSettingsModal = function() { document.getElementById('settingsModal').classList.add('hidden'); }
+        
+        window.applyFilter = function(color) { 
+            if (currentFilter === color) currentFilter = 'all'; else currentFilter = color;
+            closeSettingsModal(); renderNotes(); 
+        }
+
+        function updateFilterBorders() {
+            const colorDivs = document.querySelectorAll('#content-warna .grid > div');
+            colorDivs.forEach(div => {
+                const onclickStr = div.getAttribute('onclick');
+                if(onclickStr.includes(`applyFilter('${currentFilter}')`)) div.classList.add('border-4', 'border-gray-500');
+                else div.classList.remove('border-4', 'border-gray-500');
+            });
+        }
+
+        window.applySort = function(type) { currentSort = type; closeSettingsModal(); renderNotes(); }
+        window.applyView = function(viewType) { currentView = viewType; closeSettingsModal(); renderNotes(); }
+
+        window.toggleSelectNote = function(noteId) {
+            if(!window.isMultiSelectMode) {
+                 window.isMultiSelectMode = true;
+                 document.getElementById('mainHeader').classList.add('hidden');
+                 document.getElementById('multiSelectHeader').classList.remove('hidden');
+            }
+            if (window.selectedNotes.has(noteId)) {
+                 window.selectedNotes.delete(noteId);
+                 if (window.selectedNotes.size === 0) cancelMultiSelect();
+            } else window.selectedNotes.add(noteId);
+            
+            updateMultiSelectHeader(); renderNotes();
+        }
+
+        function handleNoteClick(e, noteId) {
+            if (window.isMultiSelectMode) {
+                window.toggleSelectNote(noteId);
+            } else { openEditor(noteId); }
+        }
+
+        window.activateMultiSelect = function(firstNoteId) {
+            window.isMultiSelectMode = true; window.selectedNotes.clear(); window.selectedNotes.add(firstNoteId);
+            document.getElementById('mainHeader').classList.add('hidden'); document.getElementById('multiSelectHeader').classList.remove('hidden');
+            updateMultiSelectHeader(); renderNotes();
+        }
+
+        window.cancelMultiSelect = function() {
+            window.isMultiSelectMode = false; window.selectedNotes.clear();
+            document.getElementById('mainHeader').classList.remove('hidden'); document.getElementById('multiSelectHeader').classList.add('hidden');
+            renderNotes();
+        }
+
+        function updateMultiSelectHeader() { document.getElementById('selectCount').innerText = `${window.selectedNotes.size} dipilih`; }
+
+        window.deleteSelectedNotes = async function() {
+
+            let hasLocked = false;
+            const idsToDelete = [];
+            window.selectedNotes.forEach(id => {
+                if(allNotesData[id] && allNotesData[id].locked) hasLocked = true;
+                else idsToDelete.push(id);
+            });
+
+            if(hasLocked) showToast("Beberapa catatan terkunci dan tidak akan dihapus. Buka kunci terlebih dahulu jika ingin menghapus.");
+            if(idsToDelete.length === 0) { cancelMultiSelect(); return; }
+            if(!confirm(`Pindah ${idsToDelete.length} catatan ke Tong Sampah?`)) return;
+            
+            cancelMultiSelect();
+            const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            let successCount = 0;
+            let failCount = 0;
+            for(const id of idsToDelete) { 
+                const noteObj = allNotesData[id];
+                try {
+                    if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).update(payload);
+                    else if (isAdmin && window.currentAdminTab === 'umum') {
+                         const path = noteObj.fullPath;
+                         if(path) await fsDb.doc(path).update(payload);
+                    }
+                    else {
+                        await notesCollectionRef.doc(id).update(payload);
+                        mirrorDeviceNote(id, payload, false);
+                    }
+                    
+                    // Optimistic UI
+                    if(noteObj) noteObj.deletedAt = new Date();
+                    successCount++;
+                } catch(e) {
+                    console.error("Gagal Hapus:", e);
+                    failCount++;
+                }
+            }
+            renderNotes();
+            if (failCount > 0) {
+                showModal("Gagal Menghapus", `Berhasil: ${successCount}\nGagal: ${failCount}\n\nPenyebab: Firebase Firestore menolak akses hapus. Harap pastikan Rules Anda persis sama dengan kode yang saya berikan.`, "alert");
+            } else {
+                showToast(`${successCount} catatan dipindah ke Tong Sampah.`);
+            }
+        }
+
+        window.copySelectedNotes = async function() {
+            let texts = [];
+            window.selectedNotes.forEach(id => {
+                let note = allNotesData[id];
+                if(note) texts.push(getNoteText(note));
+            });
+            try {
+                await navigator.clipboard.writeText(texts.join("\n\n---\n\n"));
+                showToast(window.selectedNotes.size + " catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin catatan."); }
+            cancelMultiSelect();
+        }
+
+        window.changeSelectedNotesColor = async function(color) {
+            toggleModal('multiColorModal');
+            if(window.isSettingDefaultColor) {
+                 window.isSettingDefaultColor = false;
+                 globalSettings.defaultColor = color; saveGlobalSettings();
+                 showToast("Warna default catatan diubah."); return;
+            }
+
+            const idsToChange = Array.from(window.selectedNotes); 
+            if(idsToChange.length === 0) return;
+            cancelMultiSelect();
+            
+            for(const id of idsToChange) {
+                const noteObj = allNotesData[id];
+                if (!noteObj) continue;
+
+                noteObj.color = color; // optimistic update
+                if (window.extraAdminData) {
+                    let ex = window.extraAdminData.find(n => n.id === id);
+                    if (ex) ex.color = color;
+                }
+
+                if (isAdmin && window.currentAdminTab === 'pribadi') {
+                    await fsDb.collection("private_notes").doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else if (isAdmin && window.currentAdminTab === 'umum') {
+                    const path = noteObj.fullPath;
+                    if(path) await fsDb.doc(path).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else {
+                    await notesCollectionRef.doc(id).update({ color: color, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }
+            }
+            if (window.currentAdminTab !== 'pribadi') renderNotes(); // refresh UI manually since no live listener
+        }
+
+        // FUNGSI BAGIKAN & TERIMA
+        window.openShareModal = function(target) {
+            window.shareTarget = target;
+            toggleModal('shareMethodModal');
+            if(target === 'single' && !document.getElementById('editorMenuModal').classList.contains('hidden')) {
+                toggleModal('editorMenuModal');
+            }
+        }
+
+        window.executeCopyFromShare = function() {
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'single') executeCopySingle();
+            else copySelectedNotes(); 
+        }
+
+        window.openSendWithCode = function() {
+            toggleModal('shareMethodModal');
+            toggleModal('sendWithCodeModal');
+            document.getElementById('shareCodeInput').value = '';
+        }
+
+        window.sendToAdmin = async function() {
+            let notesToSend = [];
+            if(window.shareTarget === 'single') {
+                notesToSend.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToSend.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+            const adminRef = fsDb.collection("admin_notes");
+            try {
+                for(let note of notesToSend) {
+                    await adminRef.add({ ...note, senderDeviceId: deviceId, sentAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }
+                showToast("Catatan berhasil dikirim ke Admin!");
+            } catch(e) { showToast("Gagal mengirim ke Admin."); }
+            toggleModal('shareMethodModal');
+            if(window.shareTarget === 'multi') cancelMultiSelect();
+        }
+
+        window.submitShareCode = async function() {
+            const code = document.getElementById('shareCodeInput').value.trim();
+            const duration = document.getElementById('shareDurationSelect').value;
+            if(!code) return showToast("Kode tidak boleh kosong!");
+
+            const sharedRef = fsDb.collection("shared_notes");
+            const q = sharedRef.where("code", "==", code);
+            const querySnapshot = await q.get();
+            
+            let existsAndActive = false;
+            querySnapshot.forEach(doc => { if(doc.data().expiresAt > Date.now()) existsAndActive = true; });
+
+            if(existsAndActive) return showToast("Kode sudah digunakan, silahkan masukkan kode lain!");
+
+            let ms = 0;
+            if(duration === '1h') ms = 3600000;
+            else if(duration === '12h') ms = 43200000;
+            else if(duration === '1d') ms = 86400000;
+            else if(duration === '1w') ms = 604800000;
+            else if(duration === '1m') ms = 2592000000;
+
+            let notesToShare = [];
+            if(window.shareTarget === 'single') {
+                notesToShare.push(getCurrentEditorData());
+            } else {
+                window.selectedNotes.forEach(id => {
+                    let n = allNotesData[id];
+                    if(n) notesToShare.push({title: n.title || '', type: n.type || 'text', color: n.color || 'yellow', content: n.content || '', items: n.items || []});
+                });
+            }
+
+            try {
+                await sharedRef.add({ code: code, notes: notesToShare, expiresAt: Date.now() + ms, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast("Catatan berhasil dibagikan dengan kode: " + code);
+                toggleModal('sendWithCodeModal');
+                if(window.shareTarget === 'multi') cancelMultiSelect();
+            } catch(e) { showToast("Gagal membagikan catatan."); }
+        }
+
+        window.submitImportCode = async function() {
+            const code = document.getElementById('importCodeInput').value.trim();
+            if(!code) return showToast("Silahkan masukkan kode!");
+
+            const sharedRef = fsDb.collection("shared_notes");
+            const q = sharedRef.where("code", "==", code);
+            const querySnapshot = await q.get();
+
+            let imported = false;
+            for (const docSnap of querySnapshot.docs) {
+                let data = docSnap.data();
+                if(data.expiresAt > Date.now()) {
+                    for(let noteData of data.notes) {
+                        let importedTitle = noteData.title || '';
+                        if (!importedTitle.toLowerCase().startsWith('salinan')) {
+                            importedTitle = "Salinan - " + importedTitle;
+                        }
+                        const payload = {
+                            title: importedTitle, type: noteData.type || 'text', color: noteData.color || 'yellow',
+                            content: noteData.content || '', items: noteData.items || [], locked: false,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        let added = await notesCollectionRef.add(payload);
+                        if (typeof mirrorDeviceNote === 'function') mirrorDeviceNote(added.id, payload, false);
+                    }
+                    imported = true;
+                }
+            }
+
+            if(imported) {
+                showToast("Catatan berhasil diimport!");
+                toggleModal('importCodeModal');
+                document.getElementById('importCodeInput').value = '';
+            } else {
+                showToast("Kode tidak valid atau sudah kadaluarsa!");
+            }
+        }
+
+        // FUNGSI COPY SINGLE NOTE
+        function getNoteText(noteData) {
+            let txt = (noteData.title || "Tanpa Judul") + "\n\n";
+            if(noteData.type === 'text') txt += noteData.content || "";
+            else if(noteData.items) noteData.items.forEach(i => { txt += (i.checked ? "[v] " : "[ ] ") + i.text + "\n"; });
+            return txt;
+        }
+
+        function getCurrentEditorData() {
+            return {
+                title: document.getElementById('editorTitle').value.trim(),
+                type: currentEditingType,
+                color: currentEditingColor,
+                content: currentEditingType === 'text' ? document.getElementById('textEditorBody').value.trim() : '',
+                items: currentEditingType === 'checklist' ? extractChecklistData() : []
+            };
+        }
+
+        window.executeCopySingle = async function() {
+            let noteData = getCurrentEditorData();
+            try {
+                await navigator.clipboard.writeText(getNoteText(noteData));
+                showToast("Catatan disalin ke clipboard!");
+            } catch(e) { showToast("Gagal menyalin."); }
+            toggleModal('editorMenuModal');
+        }
+
+        // FUNGSI KUNCI
+        window.openEditorMenu = function() {
+            const isLocked = currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked;
+            document.getElementById('lockMenuText').innerText = isLocked ? "Buka Kunci" : "Kunci";
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockSingle = async function() {
+            if(!currentEditingId) return showToast("Simpan catatan terlebih dahulu untuk dapat menguncinya.");
+            let note = allNotesData[currentEditingId];
+            if(note) {
+                let newLockStatus = !note.locked;
+                await fsDb.collection("devices").doc(deviceId).collection("notes").doc(currentEditingId).update({ locked: newLockStatus });
+                showToast(newLockStatus ? "Catatan dikunci" : "Kunci dibuka");
+            }
+            toggleModal('editorMenuModal');
+        }
+
+        window.toggleLockMulti = async function() {
+            const idsToLock = Array.from(window.selectedNotes);
+            cancelMultiSelect();
+            for(const id of idsToLock) {
+                let note = allNotesData[id];
+                if(note) await fsDb.collection("devices").doc(deviceId).collection("notes").doc(id).update({ locked: !note.locked });
+            }
+            showToast("Status kunci catatan yang dipilih berhasil diubah.");
+        }
+
+        // LOGIKA EDITOR & THEME
+        window.executeColorChange = function(color) {
+            currentEditingColor = color; applyEditorTheme(); toggleModal('editorColorModal');
+        }
+
+        const pastelColorMap = {
+            'red': '#ef5350', 'orange': '#ff9800', 'yellow': '#ffca28', 
+            'green': '#8bc34a', 'blue': '#42a5f5', 'purple': '#ab47bc', 
+            'black': '#424242', 'gray': '#9e9e9e', 'white': '#e0e0e0'
+        };
+
+        function applyEditorTheme() {
+            const page = document.getElementById('editorPage');
+            page.className = page.className.replace(/\bcolor-\S+/g, '');
+            page.classList.add(`color-${currentEditingColor}`);
+            document.getElementById('editorColorIndicator').style.backgroundColor = pastelColorMap[currentEditingColor];
+        }
+
+        window.recordHistory = function() {
+            clearTimeout(historyTimeout);
+            historyTimeout = setTimeout(() => {
+                const state = { title: document.getElementById('editorTitle').value, content: document.getElementById('textEditorBody').value, checklist: extractChecklistData() };
+                if (undoStack.length === 0 || JSON.stringify(undoStack[undoStack.length-1]) !== JSON.stringify(state)) { undoStack.push(state); redoStack = []; }
+            }, 400);
+        }
+        window.performUndo = function() {
+            if (undoStack.length > 1) {
+                const currentState = undoStack.pop(); redoStack.push(currentState);
+                restoreState(undoStack[undoStack.length - 1]);
+            }
+        }
+        window.performRedo = function() {
+            if (redoStack.length > 0) { const state = redoStack.pop(); undoStack.push(state); restoreState(state); }
+        }
+        function restoreState(state) {
+            document.getElementById('editorTitle').value = state.title;
+            if (currentEditingType === 'text') document.getElementById('textEditorBody').value = state.content;
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                state.checklist.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+        }
+
+        window.createNewNote = function(type) {
+            document.getElementById('fabMenuModal').classList.add('hidden');
+            
+            currentEditingId = null; currentEditingType = type; currentEditingColor = globalSettings.defaultColor || 'yellow';
+            
+            if (isAdmin) {
+                document.getElementById('adminSaveOptions').classList.remove('hidden');
+                document.getElementById('editorSaveDest').disabled = false;
+                document.getElementById('editorSaveDest').value = window.currentAdminTab === 'umum' ? 'umum' : 'pribadi';
+            } else {
+                document.getElementById('adminSaveOptions').classList.add('hidden');
+            }
+
+            document.getElementById('editorTitle').value = ''; document.getElementById('textEditorBody').value = '';
+            
+            // Reset read-only states in case they were locked by admin view
+            document.getElementById('editorTitle').readOnly = false;
+            document.getElementById('textEditorBody').readOnly = false;
+
+            document.getElementById('checklistItemsContainer').innerHTML = ''; 
+            let dt = new Date();
+            document.getElementById('editorTimestamp').innerText = dt.toLocaleDateString('id-ID', { year: '2-digit', month: '2-digit', day: '2-digit' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+            if(type === 'checklist') addChecklistItemDOM('', false, false);
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(type);
+        }
+
+        window.openEditor = function(noteId) {
+            const note = allNotesData[noteId]; if(!note) return;
+            currentEditingId = noteId; currentEditingType = note.type || 'text'; currentEditingColor = note.color || 'yellow';
+            
+            if (isAdmin) {
+                document.getElementById('adminSaveOptions').classList.remove('hidden');
+                document.getElementById('editorSaveDest').disabled = true;
+                if (note.fullPath && note.fullPath.includes('public_notes')) {
+                     document.getElementById('editorSaveDest').value = 'umum';
+                } else if (window.currentAdminTab === 'umum') {
+                     document.getElementById('editorSaveDest').value = 'umum';
+                } else {
+                     document.getElementById('editorSaveDest').value = 'pribadi';
+                }
+            } else {
+                document.getElementById('adminSaveOptions').classList.add('hidden');
+            }
+            
+            // Store original state for smart edit tracking
+            window.originalNoteState = JSON.stringify({
+                title: note.title || '',
+                color: currentEditingColor,
+                content: note.content || '',
+                items: note.items || []
+            });
+            document.getElementById('editorTitle').value = note.title || '';
+            let dt = note.updatedAt && note.updatedAt.toDate ? note.updatedAt.toDate() : new Date();
+            document.getElementById('editorTimestamp').innerText = dt.toLocaleDateString('id-ID', { year: '2-digit', month: '2-digit', day: '2-digit' }) + ' ' + dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+            if(currentEditingType === 'text') document.getElementById('textEditorBody').value = note.content || '';
+            else {
+                const container = document.getElementById('checklistItemsContainer'); container.innerHTML = '';
+                if(note.items) note.items.forEach(item => addChecklistItemDOM(item.text, item.checked, false));
+            }
+            
+            // Admins can freely edit
+            if(isAdmin) {
+                 document.getElementById('editorTitle').readOnly = false;
+                 document.getElementById('textEditorBody').readOnly = false;
+            }
+
+            undoStack = []; redoStack = []; recordHistory(); applyEditorTheme(); showEditorUI(currentEditingType);
+        }
+
+        function showEditorUI(type) {
+            document.getElementById('editorPage').classList.remove('hidden');
+            if(type === 'text') { document.getElementById('textEditorBody').classList.remove('hidden'); document.getElementById('checklistEditorBody').classList.add('hidden'); }
+            else { document.getElementById('textEditorBody').classList.add('hidden'); document.getElementById('checklistEditorBody').classList.remove('hidden'); }
+        }
+
+        window.deleteCurrentNote = async function() {
+            if(currentEditingId && allNotesData[currentEditingId] && allNotesData[currentEditingId].locked) {
+                showToast("Catatan ini terkunci. Buka kunci terlebih dahulu untuk menghapusnya.");
+                toggleModal('editorMenuModal');
+                return;
+            }
+            if(confirm('Pindah catatan ini ke Tong Sampah?')) {
+                if(currentEditingId) {
+                    try {
+                        const payload = { deletedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                        if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(currentEditingId).update(payload);
+                        else if (isAdmin && window.currentAdminTab === 'umum') {
+                            const path = allNotesData[currentEditingId].fullPath;
+                            if(path) {
+                                await fsDb.doc(path).update(payload);
+                                showToast("Dipindah ke Tong Sampah publik.");
+                            } else {
+                                showToast("Error: Jalur data tidak ditemukan!"); return;
+                            }
+                        }
+                        else {
+                            await notesCollectionRef.doc(currentEditingId).update(payload);
+                            mirrorDeviceNote(currentEditingId, payload, false);
+                        }
+
+                        // Optimistic UI update
+                        if(allNotesData[currentEditingId]) allNotesData[currentEditingId].deletedAt = new Date();
+                    } catch(e) {
+                        showModal("Gagal Membuang", "Firebase Firestore menolak akses hapus.\n\nHarap pastikan Rules Anda persis sama dengan kode yang saya berikan.", "alert");
+                        return; // don't close editor if delete failed
+                    }
+                }
+                toggleModal('editorMenuModal'); document.getElementById('editorPage').classList.add('hidden'); currentEditingId = null;
+                renderNotes(); // refresh UI quickly
+            }
+        }
+
+        // ================= TONG SAMPAH (TRASH) =================
+        window.openTrash = function() {
+            document.getElementById('appMenuModal').classList.add('hidden');
+            document.getElementById('fabMenuModal').classList.add('hidden');
+            document.getElementById('trashModal').classList.remove('hidden');
+            renderTrash();
+        }
+
+        window.renderTrash = async function() {
+            const container = document.getElementById('trashContainer');
+            container.innerHTML = '';
+            
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if (!isAdmin || window.currentAdminTab === undefined) baseData = rawNotesData;
+
+            if(!baseData) baseData = [];
+            let trashDocs = baseData.filter(n => n.deletedAt);
+            
+            // Auto cleanup 30 days
+            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            let hasCleanedUp = false;
+            
+            for (let i = trashDocs.length - 1; i >= 0; i--) {
+                const note = trashDocs[i];
+                if (note.deletedAt) {
+                    const delTime = note.deletedAt.toMillis ? note.deletedAt.toMillis() : Date.now();
+                    if (now - delTime > thirtyDaysMs) {
+                        try {
+                            if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(note.id).delete();
+                            else if (window.currentAdminTab === 'umum') await fsDb.collection("public_notes").doc(note.id).delete();
+                            else await notesCollectionRef.doc(note.id).delete();
+                            
+                            delete allNotesData[note.id];
+                            trashDocs.splice(i, 1);
+                            hasCleanedUp = true;
+                        } catch(e) { console.error("Auto delete failed", e); }
+                    }
+                }
+            }
+            if (hasCleanedUp) {
+                if (window.currentAdminTab === 'pribadi' || !isAdmin) rawNotesData = rawNotesData.filter(n => !n.deletedAt || (now - (n.deletedAt.toMillis?n.deletedAt.toMillis():now) <= thirtyDaysMs));
+                if (window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => !n.deletedAt || (now - (n.deletedAt.toMillis?n.deletedAt.toMillis():now) <= thirtyDaysMs));
+            }
+            
+            if(trashDocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10">Tong Sampah kosong.</p>';
+                return;
+            }
+
+            trashDocs.sort((a, b) => (b.deletedAt?.toMillis ? b.deletedAt.toMillis() : Date.now()) - (a.deletedAt?.toMillis ? a.deletedAt.toMillis() : 0));
+
+            trashDocs.forEach(note => {
+                const el = document.createElement('div');
+                el.className = 'bg-white p-3 rounded shadow-sm border border-gray-200 flex justify-between items-center';
+                const title = note.title || (note.type==='checklist' ? 'Daftar' : 'Catatan Tanpa Judul');
+                let delDate = 'Tidak diketahui';
+                if(note.deletedAt && note.deletedAt.toDate) {
+                    delDate = note.deletedAt.toDate().toLocaleDateString('id-ID');
+                }
+                el.innerHTML = `
+                    <div class="overflow-hidden flex-1 pr-2">
+                        <h3 class="text-md font-bold truncate opacity-60 line-through">${title}</h3>
+                        <p class="text-xs text-red-500 mt-1">Dihapus pada: ${delDate}</p>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="restoreNote('${note.id}')" class="w-8 h-8 rounded bg-teal-100 text-teal-700 flex items-center justify-center hover:bg-teal-200" title="Pulihkan"><i class="fas fa-undo"></i></button>
+                        <button onclick="permanentDeleteNote('${note.id}')" class="w-8 h-8 rounded bg-red-100 text-red-700 flex items-center justify-center hover:bg-red-200" title="Hapus Permanen"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        window.restoreNote = async function(id) {
+            const noteObj = allNotesData[id];
+            if(!noteObj) return;
+
+            const payload = { deletedAt: firebase.firestore.FieldValue.delete() };
+            if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).update(payload);
+            else if (isAdmin && window.currentAdminTab === 'umum') {
+                 if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).update(payload);
+            }
+            else {
+                await notesCollectionRef.doc(id).update(payload);
+                mirrorDeviceNote(id, payload, false);
+            }
+            
+            noteObj.deletedAt = null;
+            renderTrash(); renderNotes();
+            showToast("Catatan dipulihkan.");
+        }
+
+        window.permanentDeleteNote = async function(id) {
+            if(!confirm("Hapus permanen catatan ini? Tidak dapat dikembalikan!")) return;
+            const noteObj = allNotesData[id];
+            
+            try {
+                if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(id).delete();
+                else if (isAdmin && window.currentAdminTab === 'umum') {
+                     if(noteObj && noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                }
+                else {
+                    await notesCollectionRef.doc(id).delete();
+                    mirrorDeviceNote(id, null, true);
+                }
+            } catch(e) {
+                console.error("Gagal hapus permanen:", e);
+                return showToast("Gagal menghapus: Akses ditolak oleh Firebase Rules. Pastikan Admin memiliki akses Hapus.");
+            }
+            
+            delete allNotesData[id];
+            if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => n.id !== id);
+            if(window.currentAdminTab === 'pribadi') rawNotesData = rawNotesData.filter(n => n.id !== id);
+
+            renderTrash();
+            showToast("Dihapus permanen.");
+        }
+
+        window.emptyTrash = async function() {
+            let baseData = window.currentAdminTab === 'pribadi' ? rawNotesData : window.extraAdminData;
+            if (!isAdmin || window.currentAdminTab === undefined) baseData = rawNotesData;
+            if(!baseData) baseData = [];
+            let trashDocs = baseData.filter(n => n.deletedAt);
+            if(trashDocs.length === 0) return;
+            if(!confirm(`Hapus permanen ${trashDocs.length} catatan dari tong sampah?`)) return;
+
+            let successCount = 0;
+            let failCount = 0;
+            for(const noteObj of trashDocs) {
+                try {
+                    if (isAdmin && window.currentAdminTab === 'pribadi') await fsDb.collection("private_notes").doc(noteObj.id).delete();
+                    else if (isAdmin && window.currentAdminTab === 'umum') {
+                         if(noteObj.fullPath) await fsDb.doc(noteObj.fullPath).delete();
+                    }
+                    else {
+                        await notesCollectionRef.doc(noteObj.id).delete();
+                        mirrorDeviceNote(noteObj.id, null, true);
+                    }
+                    delete allNotesData[noteObj.id];
+                    successCount++;
+                } catch(e) {
+                    console.error("Gagal kosongkan:", e);
+                    failCount++;
+                }
+            }
+            
+            if(window.currentAdminTab === 'pribadi') rawNotesData = rawNotesData.filter(n => !n.deletedAt);
+            if(window.extraAdminData) window.extraAdminData = window.extraAdminData.filter(n => !n.deletedAt);
+            
+            renderTrash();
+            if (failCount > 0) {
+                showModal("Gagal Kosongkan", `Berhasil: ${successCount}\nGagal: ${failCount}\n\nPenyebab: Firebase Firestore menolak akses hapus. Harap pastikan Rules Anda persis sama dengan kode yang saya berikan.`, "alert");
+            } else {
+                showToast("Tong sampah dikosongkan.");
+            }
+        }
+
+        window.saveEditorData = async function() {
+            if(currentEditingId === null && document.getElementById('editorPage').classList.contains('hidden')) return;
+
+            const title = document.getElementById('editorTitle').value.trim();
+            
+            let content = ''; let items = [];
+            if(currentEditingType === 'text') {
+                content = document.getElementById('textEditorBody').value.trim();
+            } else {
+                items = extractChecklistData();
+            }
+            
+            const color = currentEditingColor;
+
+            // Smart Edit Detection: Don't save if nothing actually changed
+            if (currentEditingId && window.originalNoteState) {
+                const currentStateStr = JSON.stringify({
+                    title: title,
+                    color: color,
+                    content: content,
+                    items: items
+                });
+                if (currentStateStr === window.originalNoteState) {
+                    return true; // Exit silently without saving or updating timestamp, but allow modal to close
+                }
+            }
+
+            if(currentEditingType === 'text') {
+                if(title === '' && content === '') return true;
+            } else {
+                if(title === '' && items.length === 0) return true;
+            }
+
+            const noteData = { title: title, type: currentEditingType, color: currentEditingColor, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if(currentEditingType === 'text') noteData.content = content; else noteData.items = items;
+            
+            // Jaga state locked
+            if(currentEditingId && allNotesData[currentEditingId]) noteData.locked = allNotesData[currentEditingId].locked || false;
+            else noteData.locked = false;
+
+            try {
+                if (currentEditingId) {
+                    if (isAdmin) {
+                        const dest = document.getElementById('editorSaveDest').value;
+                        if (dest === 'pribadi') await fsDb.collection("private_notes").doc(currentEditingId).update(noteData);
+                        else {
+                            const path = allNotesData[currentEditingId] ? allNotesData[currentEditingId].fullPath : null;
+                            if(path) await fsDb.doc(path).update(noteData);
+                            else await fsDb.collection("public_notes").doc(currentEditingId).update(noteData);
+                        }
+                    }
+                    else {
+                        await notesCollectionRef.doc(currentEditingId).update(noteData);
+                        mirrorDeviceNote(currentEditingId, noteData, false);
+                    }
+                }
+                else { 
+                    noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+                    let added;
+                    if (isAdmin) {
+                        const dest = document.getElementById('editorSaveDest').value;
+                        if (dest === 'pribadi') added = await fsDb.collection("private_notes").add(noteData);
+                        else {
+                            added = await fsDb.collection("public_notes").add(noteData);
+                            mirrorDeviceNote(added.id, noteData, false);
+                        }
+                    }
+                    else {
+                        added = await notesCollectionRef.add(noteData);
+                        mirrorDeviceNote(added.id, noteData, false);
+                    }
+                    currentEditingId = added.id; 
+                }
+            } catch (error) { console.error("Gagal menyimpan:", error); }
+        };
+
+        window.saveAndCloseEditor = async function() {
+            const res = await window.saveEditorData();
+            if (res !== false) {
+                document.getElementById('editorPage').classList.add('hidden');
+            }
+        }
+
+        window.addChecklistItemDOM = function(text, isChecked, recordHist = true) {
+            const container = document.getElementById('checklistItemsContainer');
+            const itemDiv = document.createElement('div'); itemDiv.className = "flex items-center mb-1 bg-black bg-opacity-0 hover:bg-opacity-10 p-1 rounded transition-colors";
+            const checkbox = document.createElement('input'); checkbox.type = "checkbox"; checkbox.className = "checklist-cb mr-3"; checkbox.checked = isChecked;
+            const input = document.createElement('input'); input.type = "text"; input.value = text;
+            input.className = `flex-1 bg-transparent border-b border-black border-opacity-30 outline-none p-2 text-lg text-inherit ${isChecked ? 'checklist-done' : ''}`;
+            const delBtn = document.createElement('button'); delBtn.className = "ml-2 p-2 text-inherit opacity-60 hover:opacity-100 hover:text-red-600"; delBtn.innerHTML = '<i class="fas fa-times"></i>';
+            checkbox.addEventListener('change', (e) => { if(e.target.checked) input.classList.add('checklist-done'); else input.classList.remove('checklist-done'); recordHistory(); });
+            input.addEventListener('input', recordHistory);
+            delBtn.addEventListener('click', () => { container.removeChild(itemDiv); recordHistory(); });
+            itemDiv.appendChild(checkbox); itemDiv.appendChild(input); itemDiv.appendChild(delBtn); container.appendChild(itemDiv);
+            if(text === '') input.focus(); if(recordHist) recordHistory();
+        }
+
+        function extractChecklistData() {
+            const container = document.getElementById('checklistItemsContainer'); const items = [];
+            container.querySelectorAll('.flex.items-center.mb-1').forEach(row => {
+                const isChecked = row.querySelector('input[type="checkbox"]').checked;
+                const text = row.querySelector('input[type="text"]').value.trim();
+                if(text !== '') items.push({ text: text, checked: isChecked });
+            });
+            return items;
+        }
+
+        window.toggleModal = function(modalId, forceCloseOther = false) { 
+            if(forceCloseOther) document.querySelectorAll('.fixed.inset-0.z-\\[60\\], .fixed.inset-0.z-\\[80\\], .fixed.inset-0.z-\\[90\\]').forEach(el => { if(!el.classList.contains('hidden') && el.id !== modalId) el.classList.add('hidden'); });
+            document.getElementById(modalId)?.classList.toggle('hidden'); 
+        }
+})();
+</script>
+</body>
+</html>
