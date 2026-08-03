@@ -57,6 +57,8 @@
         .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
         .card-smscode { background-color: #ebf5fb; border-left: 4px solid #3498db; }
         .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+        .card-smsvirtual { background-color: #f3e5f5; border-left: 4px solid #9c27b0; }
+        .card-otpinstan { background-color: #e8eaf6; border-left: 4px solid #3f51b5; }
         .card-otpcepat { background-color: #f5eef8; border-left: 4px solid #9b59b6; }
         .card-smspool { background-color: #fdf2e9; border-left: 4px solid #e67e22; }
         .card-5sim { background-color: #f0f3f4; border-left: 4px solid #34495e; }
@@ -128,6 +130,9 @@
                     <option value="otpcepat2">OTP Cepat 2</option>
                     <option value="smspool">SMS Pool</option>
                     <option value="5sim">5SIM</option>
+                    <option value="smsvirtual">SMS Virtual</option>
+                    <option value="otpinstan1">OTP Instan 1</option>
+                    <option value="otpinstan2">OTP Instan 2</option>
                 </select>
                 <select id="user-selector" onchange="changeGlobalUser()"></select>
             </div>
@@ -1647,10 +1652,10 @@
             
             if (json.success) {
                 let currencyPrefix = "Rp ";
-                if (provider === 'herosms' || provider === 'herosms2' || provider === 'smspool' || provider === '5sim') currencyPrefix = "$ ";
+                if (provider === 'herosms' || provider === 'herosms2' || provider === 'smspool' || provider === '5sim' || provider === 'smsvirtual') currencyPrefix = "$ ";
                 
                 let balanceDisplay = json.data.balance;
-                if (provider === 'smscode' || provider.startsWith('otpcepat')) {
+                if (provider === 'smscode' || provider.startsWith('otpcepat') || provider.startsWith('otpinstan')) {
                     balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
                 }
                 
@@ -1666,7 +1671,7 @@
         try {
             const provider = document.getElementById('provider-selector').value;
             let currencyStr = "Rp ";
-            if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim") currencyStr = "$ ";
+            if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim" || provider === "smsvirtual") currencyStr = "$ ";
 
             const res = await fetchWorker(`/get-prices`); 
             const json = await res.json();
@@ -1692,7 +1697,7 @@
         if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
         const provider = document.getElementById('provider-selector').value;
         let priceTxt = `Rp ${price}`;
-        if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim") priceTxt = `${price}`;
+        if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim" || provider === "smsvirtual") priceTxt = `${price}`;
 
         if(!await showModal("Pesan", `Beli ${name} seharga ${priceTxt}?`)) return;
         try {
@@ -1718,7 +1723,10 @@
             let idsOtpCepat1 = []; 
             let idsOtpCepat2 = []; 
             let idsSmsPool = []; 
-            let ids5sim = []; 
+            let ids5sim = [];
+            let idsSmsVirtual = [];
+            let idsOtpInstan1 = [];
+            let idsOtpInstan2 = []; 
             
             const prefix = `${currentUser}_phone_`;
             
@@ -1736,6 +1744,9 @@
                     else if (prov === 'otpcepat') idsOtpCepat1.push(id); // Menangkap old data jika ada
                     else if (prov === 'smspool') idsSmsPool.push(id);
                     else if (prov === '5sim') ids5sim.push(id);
+                    else if (prov === 'smsvirtual') idsSmsVirtual.push(id);
+                    else if (prov === 'otpinstan1') idsOtpInstan1.push(id);
+                    else if (prov === 'otpinstan2') idsOtpInstan2.push(id);
                     else idsSmsCode.push(id);
                 }
             }
@@ -1763,7 +1774,10 @@
                 fetchOrders('otpcepat1', idsOtpCepat1),
                 fetchOrders('otpcepat2', idsOtpCepat2),
                 fetchOrders('smspool', idsSmsPool),
-                fetchOrders('5sim', ids5sim)
+                fetchOrders('5sim', ids5sim),
+                fetchOrders('smsvirtual', idsSmsVirtual),
+                fetchOrders('otpinstan1', idsOtpInstan1),
+                fetchOrders('otpinstan2', idsOtpInstan2)
             ]);
             
             renderSmsOrders(allOrders); 
@@ -1792,13 +1806,15 @@
             const orderProv = o._provider || localStorage.getItem(`${currentUser}_provider_${o.id}`) || 'smscode';
             
             let currStr = "Rp ";
-            if (orderProv === "herosms" || orderProv === "herosms2" || orderProv === "smspool" || orderProv === "5sim") currStr = "$";
+            if (orderProv === "herosms" || orderProv === "herosms2" || orderProv === "smspool" || orderProv === "5sim" || orderProv === "smsvirtual") currStr = "$";
             
             let cardClass = "card-smscode";
             if (orderProv === "herosms" || orderProv === "herosms2") cardClass = "card-herosms";
             else if (orderProv === "otpcepat" || orderProv === "otpcepat1" || orderProv === "otpcepat2") cardClass = "card-otpcepat";
             else if (orderProv === "smspool") cardClass = "card-smspool";
             else if (orderProv === "5sim") cardClass = "card-5sim";
+            else if (orderProv === "smsvirtual") cardClass = "card-smsvirtual";
+            else if (orderProv && orderProv.startsWith("otpinstan")) cardClass = "card-otpinstan";
 
             const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
             if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
