@@ -131,8 +131,7 @@
                     <option value="smspool">SMS Pool</option>
                     <option value="5sim">5SIM</option>
                     <option value="smsvirtual">SMS Virtual</option>
-                    <option value="otpinstan1">OTP Instan 1</option>
-                    <option value="otpinstan2">OTP Instan 2</option>
+                    <option value="otpinstan">OTP Instan</option>
                 </select>
                 <select id="user-selector" onchange="changeGlobalUser()"></select>
             </div>
@@ -1725,8 +1724,7 @@
             let idsSmsPool = []; 
             let ids5sim = [];
             let idsSmsVirtual = [];
-            let idsOtpInstan1 = [];
-            let idsOtpInstan2 = []; 
+            let idsOtpInstan = []; 
             
             const prefix = `${currentUser}_phone_`;
             
@@ -1745,8 +1743,7 @@
                     else if (prov === 'smspool') idsSmsPool.push(id);
                     else if (prov === '5sim') ids5sim.push(id);
                     else if (prov === 'smsvirtual') idsSmsVirtual.push(id);
-                    else if (prov === 'otpinstan1') idsOtpInstan1.push(id);
-                    else if (prov === 'otpinstan2') idsOtpInstan2.push(id);
+                    else if (prov === 'otpinstan') idsOtpInstan.push(id);
                     else idsSmsCode.push(id);
                 }
             }
@@ -1776,8 +1773,7 @@
                 fetchOrders('smspool', idsSmsPool),
                 fetchOrders('5sim', ids5sim),
                 fetchOrders('smsvirtual', idsSmsVirtual),
-                fetchOrders('otpinstan1', idsOtpInstan1),
-                fetchOrders('otpinstan2', idsOtpInstan2)
+                fetchOrders('otpinstan', idsOtpInstan)
             ]);
             
             renderSmsOrders(allOrders); 
@@ -1814,7 +1810,7 @@
             else if (orderProv === "smspool") cardClass = "card-smspool";
             else if (orderProv === "5sim") cardClass = "card-5sim";
             else if (orderProv === "smsvirtual") cardClass = "card-smsvirtual";
-            else if (orderProv && orderProv.startsWith("otpinstan")) cardClass = "card-otpinstan";
+            else if (orderProv === "otpinstan") cardClass = "card-otpinstan";
 
             const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
             if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
