@@ -1789,6 +1789,26 @@
         const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
     }
 
+    function cleanUpOrderStorage(id) {
+        localStorage.removeItem(`${currentUser}_phone_${id}`); 
+        localStorage.removeItem(`${currentUser}_timer_${id}`); 
+        localStorage.removeItem(`${currentUser}_price_${id}`); 
+        localStorage.removeItem(`${currentUser}_provider_${id}`); 
+        localStorage.removeItem(`${currentUser}_hide_${id}`);
+        localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+        Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
+    }
+
+    function toggleHideSms(id) {
+        const key = `${currentUser}_hide_${id}`;
+        if (localStorage.getItem(key) === 'true') {
+            localStorage.removeItem(key);
+        } else {
+            localStorage.setItem(key, 'true');
+        }
+        pollSms();
+    }
+
     function renderSmsOrders(orders) {
         const container = document.getElementById('sms-active-orders'); 
         const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
@@ -1819,7 +1839,17 @@
             
             let expireTime = localStorage.getItem(`${currentUser}_timer_${o.id}`);
             if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`${currentUser}_timer_${o.id}`, expireTime); }
-            let passed2Mins = (Math.floor((parseInt(expireTime) - Date.now()) / 1000) <= 1080);
+            
+            const now = Date.now();
+            // Jika durasi 20 menit sudah berakhir (0:00) + 5 detik, sembunyikan/hapus dari layar
+            if (now >= parseInt(expireTime) + 5000) {
+                const card = document.getElementById('order-' + o.id);
+                if (card) card.remove();
+                cleanUpOrderStorage(o.id);
+                return;
+            }
+
+            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1080);
 
             // Block status check
             const blockTime = localStorage.getItem(`${currentUser}_block_timer_${o.id}`);
@@ -1857,36 +1887,65 @@
                 showOtpToast(o.otp_code); localStorage.setItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`, 'true');
             }
 
+            const isHidden = localStorage.getItem(`${currentUser}_hide_${o.id}`) === 'true';
+            const unhideBtnHtml = `<button class="btn btn-blue btn-unhide" style="background-color: #38bdf8; color: white; width: 100%; padding: 8px 10px; font-weight: bold; border-radius: 5px; cursor: pointer;" onclick="toggleHideSms('${o.id}')">UNHIDE</button>`;
+
+            if (isHidden) {
+                const existing = document.getElementById('order-' + o.id);
+                if (existing) {
+                    existing.className = `order-card ${cardClass}`;
+                    existing.innerHTML = unhideBtnHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card ${cardClass}" id="order-${o.id}">
+                        ${unhideBtnHtml}
+                    </div>`);
+                }
+                return;
+            }
+
             let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
-            
+            const fullCardHtml = `
+                <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
+                <div class="order-otp">${otpDisplay}</div>
+                <div class="btn-grid">
+                    <button class="btn-sm btn-hide" style="background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
+                    <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
+                    <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" onclick="blockSms('${o.id}')">BLOCK</button>
+                </div>
+            `;
+
             const existing = document.getElementById('order-' + o.id);
             if (existing) {
                 existing.className = `order-card ${cardClass}`;
-                existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
-                existing.querySelector('.order-phone').innerText = phone;
-                existing.querySelector('.order-otp').innerHTML = otpDisplay;
-                if(o.otp_code) {
-                    existing.querySelector('.btn-resend').disabled = false;
-                    let salinBtn = existing.querySelector('.btn-salin');
-                    if(salinBtn) {
-                        salinBtn.disabled = false;
-                        salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
+                if (!existing.querySelector('.order-phone')) {
+                    existing.innerHTML = fullCardHtml;
+                } else {
+                    existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
+                    existing.querySelector('.order-phone').innerText = phone;
+                    existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                    if(o.otp_code) {
+                        let resendBtn = existing.querySelector('.btn-resend');
+                        if(resendBtn) resendBtn.disabled = false;
+                        let salinBtn = existing.querySelector('.btn-salin');
+                        if(salinBtn) {
+                            salinBtn.disabled = false;
+                            salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
+                        }
+                    }
+                    if(passed2Mins) { 
+                        let cancelBtn = existing.querySelector('.btn-cancel');
+                        if(cancelBtn) cancelBtn.disabled = false; 
                     }
                 }
-                if(passed2Mins) { existing.querySelector('.btn-cancel').disabled = false; }
             } else {
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="order-${o.id}">
-                    <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
-                    <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
-                    <div class="order-otp">${otpDisplay}</div>
-                    <div class="btn-grid">
-                        <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
-                        <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
-                        <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                        <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
-                        <button class="btn-sm btn-block" onclick="blockSms('${o.id}')">BLOCK</button>
-                    </div>
+                    ${fullCardHtml}
                 </div>`);
             }
         });
@@ -1894,23 +1953,45 @@
     }
 
     function updateSmsTimers() {
-        document.querySelectorAll('.sms-timer').forEach(el => {
-            const expireTime = localStorage.getItem(`${currentUser}_timer_${el.dataset.id}`);
-            if(!expireTime) return; 
-            
-            const diff = Math.max(0, Math.floor((parseInt(expireTime) - Date.now())/1000));
-            el.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
-            el.style.color = diff < 600 ? "#e74c3c" : "#555";
-            if (diff <= 1080) {
-                const card = document.getElementById('order-' + el.dataset.id);
-                if(card) { 
-                    const btnCancel = card.querySelector('.btn-cancel');
-                    if(btnCancel) btnCancel.disabled = false;
-                    const btnReplace = card.querySelector('.btn-replace');
-                    if(btnReplace) btnReplace.disabled = false;
+        const now = Date.now();
+        const prefix = `${currentUser}_timer_`;
+
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                const id = key.replace(prefix, '');
+                const expireTimeStr = localStorage.getItem(key);
+                if (!expireTimeStr) continue;
+
+                const expireTime = parseInt(expireTimeStr);
+                const diffSec = Math.floor((expireTime - now) / 1000);
+
+                // Cek jika 5 detik setelah durasi 20m habis (0:00)
+                if (now >= expireTime + 5000) {
+                    const card = document.getElementById('order-' + id);
+                    if (card) card.remove();
+                    cleanUpOrderStorage(id);
+                    continue;
+                }
+
+                const timerEl = document.querySelector(`.sms-timer[data-id="${id}"]`);
+                if (timerEl) {
+                    const displayDiff = Math.max(0, diffSec);
+                    timerEl.innerText = `${Math.floor(displayDiff / 60)}:${(displayDiff % 60).toString().padStart(2, '0')}`;
+                    timerEl.style.color = displayDiff < 600 ? "#e74c3c" : "#555";
+                }
+
+                if (diffSec <= 1080) {
+                    const card = document.getElementById('order-' + id);
+                    if (card) {
+                        const btnCancel = card.querySelector('.btn-cancel');
+                        if (btnCancel) btnCancel.disabled = false;
+                        const btnReplace = card.querySelector('.btn-replace');
+                        if (btnReplace) btnReplace.disabled = false;
+                    }
                 }
             }
-        });
+        }
 
         document.querySelectorAll('.block-countdown').forEach(el => {
             const id = el.dataset.id;
@@ -1942,11 +2023,7 @@
 
             if((await res.json()).success) {
                 if(action !== 'resend') { 
-                    localStorage.removeItem(`${currentUser}_phone_${id}`); 
-                    localStorage.removeItem(`${currentUser}_timer_${id}`); 
-                    localStorage.removeItem(`${currentUser}_price_${id}`); 
-                    localStorage.removeItem(`${currentUser}_provider_${id}`); 
-                    Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
+                    cleanUpOrderStorage(id);
                 }
                 pollSms(); updateSmsBal();
             }
@@ -1964,13 +2041,7 @@
             await res.json();
         } catch(e){}
         
-        localStorage.removeItem(`${currentUser}_phone_${id}`); 
-        localStorage.removeItem(`${currentUser}_timer_${id}`); 
-        localStorage.removeItem(`${currentUser}_price_${id}`); 
-        localStorage.removeItem(`${currentUser}_provider_${id}`); 
-        localStorage.removeItem(`${currentUser}_block_timer_${id}`);
-        Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
-        
+        cleanUpOrderStorage(id);
         pollSms();
         updateSmsBal();
     }
