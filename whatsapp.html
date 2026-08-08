@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp - SANTRIDROID TOOLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        /* === SMS VIEW STYLES === */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
+        input, select, button, textarea { outline: none; }
+        .hidden { display: none !important; }
+        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 8px; padding-top: 10px; }
+        .header { background-color: white; padding: 15px 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
+        .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
+        .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
+        .header-title { font-weight: bold; font-size: 15px; color: #27ae60; display: flex; align-items: center; gap: 6px; }
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
+        .saldo-text { font-weight: bold; background-color: #e0f2f1; padding: 4px 8px; border-radius: 15px; font-size: 13px; color: #000; }
+        .lock-icon { color: #666; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+        .admin-popup { display: none; position: absolute; top: 60px; left: 0; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 260px; border: 1px solid #ddd; z-index: 1001; max-height: 80vh; overflow-y: auto; }
+        .admin-popup.active { display: block; }
+        .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center;}
+        #main-menu { padding: 10px; width: 230px; }
+        .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
+        .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
+        .menu-item:last-child { border-bottom: none; }
+        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
+        .btn { width: 100%; padding: 8px 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-lg { padding: 11px 8px; font-size: 14px; min-height: 45px; }
+        .btn-orange { background-color: #f39c12; }
+        .btn-blue { background-color: #2e86de; }
+        .btn-green { background-color: #27ae60; }
+        .btn-purple { background-color: #8e44ad; }
+        .btn-red { background-color: #e74c3c; }
+        .btn-teal { background-color: #16a085; }
+        .btn-pink { background-color: #e84393; }
+        .btn-row { display: flex; gap: 10px; }
+        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
+        .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
+        .list-item:hover { background-color: #f9f9f9; }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-weight: bold; }
+        .item-price { color: #e74c3c; font-weight: bold; margin-left: auto; margin-right: 15px; }
+        .item-stock { color: #7f8c8d; font-size: 12px; }
+        .order-card { border-radius: 8px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 10px; transition: all 0.3s; }
+        .card-herosms { background-color: #eafaf1; border-left: 4px solid #2ecc71; }
+        .order-blocked { background-color: #e74c3c !important; border-left: 4px solid #c0392b !important; padding: 10px 15px !important; }
+        .blocked-status-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: white; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
+        .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
+        .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
+        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
+        .btn-sm { flex: 1; padding: 6px 5px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
+        .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
+        .loader-bars span:nth-child(1) { animation-delay: -0.24s; }
+        .loader-bars span:nth-child(2) { animation-delay: -0.12s; }
+        @keyframes bounceBar { 0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.5; } 20% { transform: scaleY(1); opacity: 1; background-color: #2980b9; } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center;}
+        .fab-quick-note { width: 50px; height: 50px; border-radius: 50%; background-color: #f1c40f; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; transition: 0.2s; position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .fab-quick-note:hover { background-color: #f39c12; transform: scale(1.05); }
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .otp-toast { background: #27ae60; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: bold; font-size: 14px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* === NOTES VIEW STYLES === */
+        #notes-view { display: none; }
+        #notes-view ::-webkit-scrollbar { display: none; }
+        :root {
+            --theme-header: #ffca28;
+            --theme-body: #fff9c4;
+            --theme-line: rgba(0,0,0,0.1);
+            --theme-text: #333333;
+        }
+        .color-red { --theme-header: #ef5350; --theme-body: #ffebee; --theme-line: #ffcdd2; --theme-text: #333; }
+        .color-orange { --theme-header: #ff9800; --theme-body: #fff3e0; --theme-line: #ffe0b2; --theme-text: #333; }
+        .color-yellow { --theme-header: #ffca28; --theme-body: #fff9c4; --theme-line: #fff59d; --theme-text: #333; }
+        .color-green { --theme-header: #8bc34a; --theme-body: #e8f5e9; --theme-line: #c8e6c9; --theme-text: #333; }
+        .color-blue { --theme-header: #42a5f5; --theme-body: #e3f2fd; --theme-line: #bbdefb; --theme-text: #333; }
+        .color-purple { --theme-header: #ab47bc; --theme-body: #f3e5f5; --theme-line: #e1bee7; --theme-text: #333; }
+        .color-black { --theme-header: #424242; --theme-body: #f5f5f5; --theme-line: #e0e0e0; --theme-text: #333; }
+        .color-gray { --theme-header: #9e9e9e; --theme-body: #fafafa; --theme-line: #eeeeee; --theme-text: #333; }
+        .color-white { --theme-header: #e0e0e0; --theme-body: #ffffff; --theme-line: #f5f5f5; --theme-text: #333; }
+        
+        .theme-bg-body { background-color: var(--theme-body); color: var(--theme-text) !important; }
+        .theme-bg-header { background-color: var(--theme-header); color: var(--theme-text) !important; }
+        .note-card { transition: transform 0.1s; }
+        .note-card:active { transform: scale(0.98); }
+        .selected-note { border: 3px solid #009688 !important; opacity: 0.8; }
+        .lined-paper { background-image: repeating-linear-gradient(transparent, transparent 31px, var(--theme-line) 31px, var(--theme-line) 32px); line-height: 32px; background-attachment: local; padding-top: 6px; }
+        input[type="checkbox"].checklist-cb { width: 1.25rem; height: 1.25rem; accent-color: #666; cursor: pointer; }
+        .checklist-done { text-decoration: line-through; color: #888; }
+    </style>
+</head>
+<body>
+<!-- ==================== SMS VIEW ==================== -->
+<div id="sms-view">
+<div class="app-container">
+    <div class="sticky-header-wrapper">
+        <header class="header">
+            <div class="menu-icon" onclick="toggleMainMenu()"><i class="fas fa-bars"></i></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <select id="hero-service-selector" onchange="changeHeroService()" style="padding: 5px 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; cursor: pointer;">
+                    <option value="wa">WhatsApp</option>
+                    <option value="ka">Shopee</option>
+                </select>
+                <div class="header-title" id="header-service-title" style="white-space: nowrap;">
+                    <i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i> WhatsApp
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="saldo-text" id="sms-balance">$ 0</span>
+                <i class="fas fa-unlock lock-icon" id="user-lock-icon" onclick="toggleUserLock()"></i>
+            </div>
+        </header>
+        <div id="main-menu" class="admin-popup">
+            <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="window.location.href='index.html'"><i class="fas fa-comment-sms" style="color: #2e86de; font-size: 22px;"></i> Layanan SMS</div>
+            <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
+        </div>
+        <div id="admin-menu" class="admin-popup">
+            <div id="login-form">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+                <input type="email" id="global-email" class="form-input" placeholder="Email Admin">
+                <input type="password" id="global-pass" class="form-input" placeholder="Password Admin">
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
+                    <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;">
+                    <label for="remember-me" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+                </div>
+                <button class="btn btn-blue" onclick="globalLogin()">Masuk</button>
+            </div>
+            <div id="logout-form" class="hidden">
+                <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Koneksi Worker (Sistem SMS):</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="btn-worker-lock" class="btn btn-green" onclick="setWorkerLock(true)"><i class="fas fa-lock"></i> Lock</button>
+                    <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <button class="btn btn-red" onclick="globalLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPPER CARD WITH BUTTONS & CATATAN TEXTBOX -->
+    <div class="card">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <button id="btn-copy-link" class="btn btn-orange btn-lg" onclick="copyLink(this)">
+                <i class="fas fa-link"></i> Copy Link (0)
+            </button>
+            <button id="btn-edit-link" class="btn btn-blue btn-lg" onclick="openEditLinkModal()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)">
+                <i class="fas fa-key"></i> Password (0)
+            </button>
+            <button id="btn-edit-password" class="btn btn-teal btn-lg" onclick="openEditPasswordModal()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-copy-code" class="btn btn-green btn-lg" onclick="copyCode(this)">
+                <i class="fas fa-code"></i> Copy Code (0)
+            </button>
+            <button id="btn-edit-code" class="btn btn-pink btn-lg" onclick="openEditCodeModal()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-data-acak" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)">
+                <i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...
+            </button>
+            <button id="btn-data-asli" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)">
+                <i class="fas fa-id-card"></i> Data Asli
+            </button>
+        </div>
+
+        <!-- COLUMN CATATAN (WITH HIGHLIGHT BACKDROP & GUTTER LINE NUMBERS, HEIGHT = 90px) -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="user-catatan-input" style="font-size: 12px; font-weight: bold; color: #555;">
+                    <i class="fas fa-sticky-note" style="color: #f39c12;"></i> CATATAN:
+                </label>
+                <button id="btn-copy-notes" class="btn btn-teal" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotes(this)">
+                    <i class="far fa-copy"></i> Copy Catatan
+                </button>
+            </div>
+            
+            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #ccc; border-radius: 5px; background: #fff; height: 90px; overflow: hidden; position: relative;">
+                <!-- Line Numbers Gutter -->
+                <div id="notes-line-numbers" 
+                    style="width: 36px; background-color: #e2e8f0; border-right: 1px solid #cbd5e1; font-size: 13px; font-family: monospace; font-weight: bold; user-select: none; -webkit-user-select: none; overflow: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
+                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #64748b;">1</div>
+                </div>
+                
+                <!-- Text Content Area (Backdrop + Textarea) -->
+                <div style="flex: 1; position: relative; overflow: hidden;">
+                    <!-- Backdrop for colored line backgrounds & bold black text -->
+                    <div id="notes-backdrop" 
+                        style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; font-size: 13px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: hidden; pointer-events: none; padding: 8px; box-sizing: border-box;">
+                    </div>
+
+                    <!-- Notes Textarea -->
+                    <textarea id="user-catatan-input" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: transparent; caret-color: #000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
+                        placeholder="Tulis catatan di sini..." 
+                        oninput="updateNotesLineNumbers(); saveUserNotes(this.value);"
+                        onscroll="syncNotesScroll()"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVE ORDERS CONTAINER -->
+    <div id="sms-active-orders"></div>
+
+    <!-- OPERATORS & PRICES LIST FOR WHATSAPP -->
+    <div class="list-header">PESAN NOMOR BARU</div>
+    <div class="list-group" id="sms-prices">
+        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- UNIVERSAL MODAL -->
+<div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
+    <div class="modal-box">
+        <h3 id="u-modal-title" style="margin-bottom:10px; color:#333;">Konfirmasi</h3>
+        <p id="u-modal-msg" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
+        <div id="u-modal-actions" style="display:flex; justify-content:center; gap:10px;"></div>
+    </div>
+</div>
+
+<!-- SERVER MODAL -->
+<div id="server-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-bottom:15px; color:#333;">Pilih Server Worker</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn btn-blue server-btn" style="position: relative;" data-url="https://sms-virtual.santridroid.workers.dev" onclick="setServer('https://sms-virtual.santridroid.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 1 (santridroid)
+            </button>
+            <button class="btn btn-green server-btn" style="position: relative;" data-url="https://sms.laivia-agassy.workers.dev" onclick="setServer('https://sms.laivia-agassy.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 2 (laivia-agassy)
+            </button>
+            <button class="btn btn-purple server-btn" style="position: relative;" data-url="https://sms.aureliajasmine717.workers.dev" onclick="setServer('https://sms.aureliajasmine717.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 3 (aureliajasmine717)
+            </button>
+            <button class="btn btn-purple server-btn" style="position: relative; background-color: #f39c12; color: white;" data-url="https://sms.ayambalon78.workers.dev" onclick="setServer('https://sms.ayambalon78.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 4 (ayambalon78)
+            </button>
+            <button class="btn btn-purple server-btn" style="position: relative; background-color: #16a085; color: white;" data-url="https://sms.nafidan03.workers.dev" onclick="setServer('https://sms.nafidan03.workers.dev')">
+                <i class="fas fa-check server-check-icon" style="position: absolute; left: 15px; display: none;"></i> Server 5 (nafidan03)
+            </button>
+            <button class="btn" style="background:#bdc3c7; color:#333; margin-top:10px;" onclick="closeServerModal()">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT LINK MODAL -->
+<div id="edit-link-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-link"></i> Pengaturan & Edit Link</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Link:</div>
+        <select id="edit-link-mode-select" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Link (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-shopee-textarea" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan link di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditLinkModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllLinks()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedLinks()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT PASSWORD MODAL -->
+<div id="edit-password-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-key"></i> Pengaturan & Edit Password</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Password:</div>
+        <select id="edit-password-mode-select" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Password (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-password-textarea" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan password di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditPasswordModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllPasswords()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedPasswords()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT CODE MODAL -->
+<div id="edit-code-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-code"></i> Pengaturan & Edit Code</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Code:</div>
+        <select id="edit-code-mode-select" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Code (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-kode-textarea" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan code di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditCodeModal()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllKode()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedKode()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<button class="fab-quick-note" onclick="switchToNotesView()">
+    <i class="fas fa-pencil-alt"></i>
+</button>
+</div>
+
+<!-- ==================== NOTES VIEW ==================== -->
+<div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
+    <header id="mainHeader" class="bg-gray-100 shadow-md p-4 pt-8 flex justify-between items-center z-10 transition-all">
+        <button onclick="notesInternalBack()" class="text-gray-600 text-xl mr-3 hover:text-teal-600" title="Kembali"><i class="fas fa-arrow-left"></i></button>
+        <h1 class="text-xl font-normal text-gray-800 border-b-2 border-red-500 inline-block pb-1">
+            <span class="font-light text-gray-500">Santridroid</span>Note
+        </h1>
+        <div class="flex space-x-4 text-gray-600 text-lg">
+            <button onclick="toggleModal('importCodeModal')" title="Terima/Import Catatan"><i class="fas fa-file-import"></i></button>
+            <button onclick="toggleModal('settingsModal'); setTimeout(() => openSettingsTab('warna'), 50);" title="Alat"><i class="fas fa-wrench"></i></button>
+            <button id="topLoginBtn" onclick="toggleModal('loginModal', true)" title="Login / Akun"><i class="fas fa-user-circle"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-2 relative" id="mainContent">
+        <div id="notesContainer" class="flex flex-col gap-2">
+            <p class="text-center text-gray-500 mt-10">Catatan Santridroid...</p>
+        </div>
+    </main>
+    
+    <button onclick="switchToSmsView()" class="fixed bottom-20 left-6 bg-blue-500 text-white w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center hover:bg-blue-600 z-[60]" title="Kembali ke SMS">
+        <i class="fas fa-comment-sms"></i>
+    </button>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+    // --- FIREBASE CONFIG ---
+    const configMaster = {
+        apiKey: "AIzaSyAh4xT6V2pL" + "6zT5Z0c4s3S7p9W8n" + "dzE",
+        authDomain: "santridroid-link.firebaseapp.com",
+        databaseURL: "https://santridroid-link-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "santridroid-link"
+    };
+    firebase.initializeApp(configMaster);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    const fsDb = firebase.firestore();
+
+    let lastRefreshSignal = null;
+    db.ref("app_state/refreshSignal").on("value", (snap) => {
+        const val = snap.val();
+        if(val) {
+            if(lastRefreshSignal === null) {
+                lastRefreshSignal = val;
+            } else if (val !== lastRefreshSignal) {
+                document.getElementById('u-modal-title').innerText = "PERHATIAN";
+                document.getElementById('u-modal-msg').innerText = "Data telah diperbarui oleh admin, mohon untuk segera menutup dan membuka ulang aplikasi.\n\nTerima kasih.";
+                document.getElementById('u-modal-actions').innerHTML = '';
+                document.getElementById('universal-modal').classList.add('active');
+                const block = document.createElement('div');
+                block.style.position = 'fixed'; block.style.inset = '0'; block.style.zIndex = '9999';
+                document.body.appendChild(block);
+            }
+        }
+    });
+
+    // ================= VIEW NAVIGATION =================
+    function switchToNotesView() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('sms-view').style.display = 'none';
+        document.getElementById('notes-view').style.display = 'flex';
+        document.body.style.padding = '0';
+        document.body.style.display = 'block';
+        document.body.style.backgroundColor = '#f0f0f0';
+    }
+    function switchToSmsView() {
+        document.getElementById('notes-view').style.display = 'none';
+        document.getElementById('sms-view').style.display = 'block';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.backgroundColor = '#eef2f6';
+    }
+    function notesInternalBack() {
+        switchToSmsView();
+    }
+
+    // ================= INITIAL SETUP =================
+    const PROVIDER = "herosms"; // STRICTLY HERO SMS ONLY
+    let WORKER_URL = localStorage.getItem('xurel_worker_url') || "https://sms.laivia-agassy.workers.dev"; 
+    let currentUser = "UMAM"; 
+    let isUserLocked = false;
+    let audioCtx;
+    let isWorkerLocked = true;
+
+    let currentHeroService = localStorage.getItem('wa_hero_service') || 'wa';
+
+    const HERO_SERVICES = {
+        wa: {
+            code: "wa",
+            name: "WhatsApp",
+            color: "#25D366",
+            icon: '<i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i>',
+            operators: [
+                { code: "indosat", name: "Indosat (Promo)", price: 0.1575 },
+                { code: "indosat", name: "INDOSAT", price: 0.1644 },
+                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.1575 },
+                { code: "telkomsel", name: "TELKOMSEL", price: 0.1644 },
+                { code: "three", name: "Three (Promo)", price: 0.1575 },
+                { code: "three", name: "THREE", price: 0.1644 },
+                { code: "xl", name: "XL (Promo)", price: 0.1575 },
+                { code: "xl", name: "XL", price: 0.1644 },
+                { code: "axis", name: "AXIS (Promo)", price: 0.1575 },
+                { code: "axis", name: "AXIS", price: 0.1644 },
+                { code: "smartfren", name: "Smartfren (Promo)", price: 0.1575 },
+                { code: "smartfren", name: "SMARTFREN", price: 0.1644 },
+                { code: "any", name: "Semua Operator", price: 0.1644 }
+            ]
+        },
+        ka: {
+            code: "ka",
+            name: "Shopee",
+            color: "#ee4d2d",
+            icon: '<i class="fas fa-shopping-bag" style="font-size: 18px; color: #ee4d2d;"></i>',
+            operators: [
+                { code: "indosat", name: "Indosat (Promo)", price: 0.063 },
+                { code: "indosat", name: "INDOSAT", price: 0.07 },
+                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.063 },
+                { code: "telkomsel", name: "TELKOMSEL", price: 0.07 },
+                { code: "three", name: "Three (Promo)", price: 0.063 },
+                { code: "three", name: "THREE", price: 0.07 },
+                { code: "xl", name: "XL (Promo)", price: 0.063 },
+                { code: "xl", name: "XL", price: 0.07 },
+                { code: "axis", name: "AXIS (Promo)", price: 0.063 },
+                { code: "axis", name: "AXIS", price: 0.07 },
+                { code: "smartfren", name: "Smartfren (Promo)", price: 0.063 },
+                { code: "smartfren", name: "SMARTFREN", price: 0.07 },
+                { code: "any", name: "Semua Operator", price: 0.07 }
+            ]
+        }
+    };
+
+    function changeHeroService() {
+        const select = document.getElementById('hero-service-selector');
+        if (select) {
+            currentHeroService = select.value;
+            localStorage.setItem('wa_hero_service', currentHeroService);
+        }
+        updateServiceHeaderUI();
+        loadSmsPrices();
+    }
+
+    function updateServiceHeaderUI() {
+        const select = document.getElementById('hero-service-selector');
+        if (select) select.value = currentHeroService;
+
+        const serviceInfo = HERO_SERVICES[currentHeroService] || HERO_SERVICES.wa;
+        const titleEl = document.getElementById('header-service-title');
+        if (titleEl) {
+            titleEl.style.color = serviceInfo.color;
+            titleEl.innerHTML = `${serviceInfo.icon} ${serviceInfo.name}`;
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedAdminEmail = localStorage.getItem('xurel_admin_email');
+        const savedAdminPass = localStorage.getItem('xurel_admin_pass');
+        if (savedAdminEmail && savedAdminPass) {
+            document.getElementById('global-email').value = savedAdminEmail;
+            document.getElementById('global-pass').value = savedAdminPass;
+            document.getElementById('remember-me').checked = true;
+        }
+
+        updateServiceHeaderUI();
+        loadInitialAppData();
+        
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+
+        refreshAllData();
+        setInterval(pollSms, 5000); 
+        setInterval(updateSmsTimers, 1000);
+    });
+
+    document.addEventListener('click', function(event) {
+        const mainMenu = document.getElementById('main-menu');
+        const adminMenu = document.getElementById('admin-menu');
+        const menuIcon = document.querySelector('.menu-icon');
+        if (mainMenu && adminMenu && menuIcon) {
+            if (!mainMenu.contains(event.target) && !adminMenu.contains(event.target) && !menuIcon.contains(event.target)) {
+                mainMenu.classList.remove('active');
+                adminMenu.classList.remove('active');
+            }
+        }
+    });
+
+    function toggleUserLock() { 
+        isUserLocked = !isUserLocked; 
+        localStorage.setItem('xurel_user_locked', isUserLocked); 
+        applyUserLockUI(); 
+    }
+
+    function applyUserLockUI() {
+        const icon = document.getElementById('user-lock-icon'); 
+        if(icon) {
+            if (isUserLocked) { icon.className = 'fas fa-lock lock-icon'; icon.style.color = '#e74c3c'; } 
+            else { icon.className = 'fas fa-unlock lock-icon'; icon.style.color = '#666'; }
+        }
+    }
+
+    function refreshAllData() { refreshSms(); }
+
+    function showTempNotif(btnElement, notifText, originalHTML) {
+        btnElement.innerHTML = notifText;
+        setTimeout(() => { btnElement.innerHTML = originalHTML; }, 1000);
+    }
+
+    // ================= MODAL & AUDIO =================
+    function showModal(title, msg, type='confirm') {
+        return new Promise(resolve => {
+            const ov = document.getElementById('universal-modal');
+            document.getElementById('u-modal-title').innerText = title;
+            document.getElementById('u-modal-msg').innerText = msg;
+            const actions = document.getElementById('u-modal-actions');
+            actions.innerHTML = '';
+            if (type === 'confirm') {
+                actions.innerHTML = `
+                    <button class="btn" style="background:#bdc3c7; color:#333;" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(false)">Batal</button>
+                    <button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>
+                `;
+            } else {
+                actions.innerHTML = `<button class="btn btn-blue" onclick="document.getElementById('universal-modal').classList.remove('active'); window.modalResolve(true)">Oke</button>`;
+            }
+            window.modalResolve = resolve;
+            ov.classList.add('active');
+        });
+    }
+
+    function playNotifSound() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 1.5);
+        } catch(e) {}
+    }
+
+    function showOtpToast(otpCode) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'otp-toast';
+        toast.innerHTML = `<i class="fa-solid fa-bell"></i> OTP WhatsApp: <span>${otpCode}</span>`;
+        container.appendChild(toast);
+        playNotifSound();
+        setTimeout(() => { toast.remove(); }, 5000);
+    }
+
+    // ================= DATA MANAGEMENT (LINK, PASSWORD, CODE, CATATAN) =================
+    let linkList = [];
+    let linkMode = 'cut';
+    let passwordList = ["santridroid"];
+    let passwordMode = 'copy';
+    let codeList = [];
+    let codeMode = 'cut';
+
+    function loadInitialAppData() {
+        // Load Link
+        const savedLinks = localStorage.getItem('wa_links_data');
+        if (savedLinks) {
+            try { linkList = JSON.parse(savedLinks); } catch(e) { linkList = savedLinks.split('\n').filter(l => l.trim() !== ''); }
+        }
+        linkMode = localStorage.getItem('wa_links_mode') || 'cut';
+
+        // Load Password
+        const savedPass = localStorage.getItem('wa_passwords_data');
+        if (savedPass) {
+            try { passwordList = JSON.parse(savedPass); } catch(e) { passwordList = savedPass.split('\n').filter(l => l.trim() !== ''); }
+        }
+        passwordMode = localStorage.getItem('wa_passwords_mode') || 'copy';
+
+        // Load Code
+        const savedCodes = localStorage.getItem('wa_codes_data');
+        if (savedCodes) {
+            try { codeList = JSON.parse(savedCodes); } catch(e) { codeList = savedCodes.split('\n').filter(l => l.trim() !== ''); }
+        }
+        codeMode = localStorage.getItem('wa_codes_mode') || 'cut';
+
+        // Load Notes
+        const savedNotes = localStorage.getItem('wa_user_notes') || '';
+        const notesInput = document.getElementById('user-catatan-input');
+        if (notesInput) {
+            notesInput.value = savedNotes;
+            updateNotesLineNumbers();
+        }
+
+        // Firebase Sync Listeners
+        db.ref('wa_settings/link_mode').on('value', snap => { if(snap.val()) linkMode = snap.val(); updateLinkBtnUI(); });
+        db.ref('wa_settings/pass_mode').on('value', snap => { if(snap.val()) passwordMode = snap.val(); updatePasswordBtnUI(); });
+        db.ref('wa_settings/code_mode').on('value', snap => { if(snap.val()) codeMode = snap.val(); updateCodeBtnUI(); });
+
+        db.ref('wa_links').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { linkList = arr; localStorage.setItem('wa_links_data', JSON.stringify(linkList)); }
+            }
+            updateLinkBtnUI();
+        });
+
+        db.ref('wa_passwords').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { passwordList = arr; localStorage.setItem('wa_passwords_data', JSON.stringify(passwordList)); }
+            }
+            updatePasswordBtnUI();
+        });
+
+        db.ref('wa_codes').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { codeList = arr; localStorage.setItem('wa_codes_data', JSON.stringify(codeList)); }
+            }
+            updateCodeBtnUI();
+        });
+
+        updateLinkBtnUI();
+        updatePasswordBtnUI();
+        updateCodeBtnUI();
+    }
+
+    function escapeHtml(str) {
+        if (str === undefined || str === null || str === '') return '&nbsp;';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function updateNotesLineNumbers() {
+        const textarea = document.getElementById('user-catatan-input');
+        const gutter = document.getElementById('notes-line-numbers');
+        const backdrop = document.getElementById('notes-backdrop');
+        if (!textarea || !gutter || !backdrop) return;
+
+        const val = textarea.value;
+        const lines = val.split('\n');
+        const lineCount = Math.max(1, lines.length);
+
+        let gutterHtml = '';
+        let backdropHtml = '';
+
+        for (let i = 1; i <= lineCount; i++) {
+            const isMultipleOf6 = (i % 6 === 0);
+            const isMultipleOf7 = (i % 7 === 0);
+            const rawText = lines[i - 1];
+            const lineText = (rawText !== undefined && rawText !== '') ? escapeHtml(rawText) : '&nbsp;';
+
+            if (isMultipleOf6) {
+                // Line 6 atau Kelipatannya -> Background Merah (#ff4d4d), Teks Hitam Tebal (#000)
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #ff4d4d; color: #000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #ff4d4d; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+            } else if (isMultipleOf7) {
+                // Line 7 atau Kelipatannya -> Background Hijau (#2ecc71), Teks Hitam Tebal (#000)
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #2ecc71; color: #000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #2ecc71; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+            } else {
+                // Baris Normal -> Background Transparan/Abu-abu, Teks Normal
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #e2e8f0; color: #64748b; font-weight: bold;">${i}</div>`;
+                if (val === '') {
+                    backdropHtml += ``;
+                } else {
+                    backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: transparent; color: #333; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+                }
+            }
+        }
+
+        gutter.innerHTML = gutterHtml;
+        backdrop.innerHTML = backdropHtml;
+        syncNotesScroll();
+    }
+
+    function syncNotesScroll() {
+        const textarea = document.getElementById('user-catatan-input');
+        const gutter = document.getElementById('notes-line-numbers');
+        const backdrop = document.getElementById('notes-backdrop');
+        if (textarea) {
+            if (gutter) gutter.scrollTop = textarea.scrollTop;
+            if (backdrop) {
+                backdrop.scrollTop = textarea.scrollTop;
+                backdrop.scrollLeft = textarea.scrollLeft;
+            }
+        }
+    }
+
+    function saveLinksLocal(list, mode) {
+        linkList = list;
+        linkMode = mode;
+        localStorage.setItem('wa_links_data', JSON.stringify(linkList));
+        localStorage.setItem('wa_links_mode', linkMode);
+        db.ref('wa_settings/link_mode').set(linkMode).catch(() => {});
+        db.ref('wa_links').set(linkList).catch(() => {});
+        updateLinkBtnUI();
+    }
+
+    function savePasswordsLocal(list, mode) {
+        passwordList = list;
+        passwordMode = mode;
+        localStorage.setItem('wa_passwords_data', JSON.stringify(passwordList));
+        localStorage.setItem('wa_passwords_mode', passwordMode);
+        db.ref('wa_settings/pass_mode').set(passwordMode).catch(() => {});
+        db.ref('wa_passwords').set(passwordList).catch(() => {});
+        updatePasswordBtnUI();
+    }
+
+    function saveCodesLocal(list, mode) {
+        codeList = list;
+        codeMode = mode;
+        localStorage.setItem('wa_codes_data', JSON.stringify(codeList));
+        localStorage.setItem('wa_codes_mode', codeMode);
+        db.ref('wa_settings/code_mode').set(codeMode).catch(() => {});
+        db.ref('wa_codes').set(codeList).catch(() => {});
+        updateCodeBtnUI();
+    }
+
+    function saveUserNotes(val) {
+        localStorage.setItem('wa_user_notes', val);
+    }
+
+    function copyNotes(btnElement) {
+        const val = document.getElementById('user-catatan-input').value;
+        if (!val || !val.trim()) return showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Kosong', '<i class="far fa-copy"></i> Copy Catatan');
+        doCopy(val, () => {
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="far fa-copy"></i> Copy Catatan');
+        }, () => {
+            showModal("Gagal", "Gagal menyalin catatan ke clipboard", "alert");
+        });
+    }
+
+    function updateLinkBtnUI() {
+        const btn = document.getElementById('btn-copy-link');
+        if (!btn) return;
+        const count = linkList.length;
+        if (count > 0) {
+            btn.className = "btn btn-orange btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-link"></i> Copy Link (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-link"></i> Link Kosong`;
+        }
+    }
+
+    function updatePasswordBtnUI() {
+        const btn = document.getElementById('btn-copy-password');
+        if (!btn) return;
+        const count = passwordList.length;
+        if (count > 0) {
+            btn.className = "btn btn-purple btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-key"></i> Password (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-key"></i> Password Kosong`;
+        }
+    }
+
+    function updateCodeBtnUI() {
+        const btn = document.getElementById('btn-copy-code');
+        if (!btn) return;
+        const count = codeList.length;
+        if (count > 0) {
+            btn.className = "btn btn-green btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-code"></i> Copy Code (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-code"></i> Code Kosong`;
+        }
+    }
+
+    function copyLink(btnElement) {
+        if (linkList.length === 0) return;
+        const item = linkList[0];
+        const originalText = btnElement.innerHTML;
+        doCopy(item, () => {
+            if (linkMode === 'cut') {
+                linkList.shift();
+                saveLinksLocal(linkList, linkMode);
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tercut!', originalText);
+            } else {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', originalText);
+            }
+        }, () => {
+            showModal("Gagal", "Gagal menyalin link", "alert");
+        });
+    }
+
+    function copyPassword(btnElement) {
+        if (passwordList.length === 0) return;
+        const item = passwordList[0];
+        const originalText = btnElement.innerHTML;
+        doCopy(item, () => {
+            if (passwordMode === 'cut') {
+                passwordList.shift();
+                savePasswordsLocal(passwordList, passwordMode);
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tercut!', originalText);
+            } else {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', originalText);
+            }
+        }, () => {
+            showModal("Gagal", "Gagal menyalin password", "alert");
+        });
+    }
+
+    function copyCode(btnElement) {
+        if (codeList.length === 0) return;
+        const item = codeList[0];
+        const originalText = btnElement.innerHTML;
+        doCopy(item, () => {
+            if (codeMode === 'cut') {
+                codeList.shift();
+                saveCodesLocal(codeList, codeMode);
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tercut!', originalText);
+            } else {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', originalText);
+            }
+        }, () => {
+            showModal("Gagal", "Gagal menyalin code", "alert");
+        });
+    }
+
+    // Modal Handlers
+    function openEditLinkModal() {
+        document.getElementById('edit-link-mode-select').value = linkMode;
+        document.getElementById('edit-shopee-textarea').value = linkList.join('\n');
+        document.getElementById('edit-link-modal').classList.add('active');
+    }
+    function closeEditLinkModal() {
+        document.getElementById('edit-link-modal').classList.remove('active');
+    }
+    function saveEditedLinks() {
+        const mode = document.getElementById('edit-link-mode-select').value;
+        const text = document.getElementById('edit-shopee-textarea').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        saveLinksLocal(lines, mode);
+        closeEditLinkModal();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} link (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllLinks() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar link?")) {
+            saveLinksLocal([], linkMode);
+            document.getElementById('edit-shopee-textarea').value = '';
+            closeEditLinkModal();
+            showModal("Sukses", "Semua link dihapus", "alert");
+        }
+    }
+
+    function openEditPasswordModal() {
+        document.getElementById('edit-password-mode-select').value = passwordMode;
+        document.getElementById('edit-password-textarea').value = passwordList.join('\n');
+        document.getElementById('edit-password-modal').classList.add('active');
+    }
+    function closeEditPasswordModal() {
+        document.getElementById('edit-password-modal').classList.remove('active');
+    }
+    function saveEditedPasswords() {
+        const mode = document.getElementById('edit-password-mode-select').value;
+        const text = document.getElementById('edit-password-textarea').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        savePasswordsLocal(lines, mode);
+        closeEditPasswordModal();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} password (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllPasswords() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar password?")) {
+            savePasswordsLocal([], passwordMode);
+            document.getElementById('edit-password-textarea').value = '';
+            closeEditPasswordModal();
+            showModal("Sukses", "Semua password dihapus", "alert");
+        }
+    }
+
+    function openEditCodeModal() {
+        document.getElementById('edit-code-mode-select').value = codeMode;
+        document.getElementById('edit-kode-textarea').value = codeList.join('\n');
+        document.getElementById('edit-code-modal').classList.add('active');
+    }
+    function closeEditCodeModal() {
+        document.getElementById('edit-code-modal').classList.remove('active');
+    }
+    function saveEditedKode() {
+        const mode = document.getElementById('edit-code-mode-select').value;
+        const text = document.getElementById('edit-kode-textarea').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        saveCodesLocal(lines, mode);
+        closeEditCodeModal();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} code (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllKode() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar code?")) {
+            saveCodesLocal([], codeMode);
+            document.getElementById('edit-kode-textarea').value = '';
+            closeEditCodeModal();
+            showModal("Sukses", "Semua code dihapus", "alert");
+        }
+    }
+
+    // --- HELPER COPY ---
+    function doCopy(text, onSuccess, onError) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(() => onSuccess())
+                .catch(() => fallbackCopyTextToClipboard(text, onSuccess, onError));
+        } else {
+            fallbackCopyTextToClipboard(text, onSuccess, onError);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text, onSuccess, onError) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";  
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            onSuccess();
+        } catch (err) {
+            console.error('Fallback Copy Error:', err);
+            if (onError) onError();
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // ================= TOOLS GENERATOR (DATA ACAK & DATA ASLI) =================
+    let listFN = [], listLN = [];
+    let csvData = [];
+    
+    fetch('https://cdn.jsdelivr.net/gh/muzans/muzans.github.io@main/base.json')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.json();
+        })
+        .then(d => { 
+            listFN = d.FirstNames || []; 
+            listLN = d.LastNames || listFN; 
+        })
+        .catch(e => console.log("Gagal memuat base.json", e));
+    
+    fetch('https://cdn.jsdelivr.net/gh/santridroid/santridroid.github.io@main/pos.csv')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+            return r.text();
+        })
+        .then(t => {
+            const lines = t.split('\n');
+            const allowedProvinces = [
+                'JAWA TIMUR',
+                'JAWA TENGAH',
+                'JAWA BARAT',
+                'BANTEN',
+                'DAERAH KHUSUS IBUKOTA JAKARTA',
+                'DAERAH ISTIMEWA YOGYAKARTA'
+            ];
+            for(let i=1; i<lines.length; i++) {
+                if(lines[i].trim() !== '') {
+                    const cols = lines[i].split(',');
+                    const prov = cols[9] ? cols[9].trim().toUpperCase() : '';
+                    if(allowedProvinces.includes(prov)) {
+                        csvData.push(cols);
+                    }
+                }
+            }
+            
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) {
+                btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
+            }
+        })
+        .catch(e => {
+            console.log("Gagal memuat pos.csv", e);
+            const btnData = document.getElementById('btn-data-acak');
+            if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
+        });
+    
+    function generateDataAcak(btnElement) {
+        if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
+        
+        const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        
+        let nohp = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) nohp += Math.floor(Math.random() * 10);
+        
+        const randomRow = csvData[Math.floor(Math.random() * csvData.length)];
+        
+        const provinsi = randomRow[9] ? randomRow[9].trim() : '';
+        const kota = randomRow[8] ? randomRow[8].trim() : '';
+        const kecamatan = randomRow[7] ? randomRow[7].trim() : '';
+        const kodepos = randomRow[5] ? randomRow[5].trim() : '';
+        
+        const streetPrefix = ["Jl", "Jalan"][Math.floor(Math.random() * 2)];
+        const streetName = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        const noPrefix = ["No.", "No", "Nomor"][Math.floor(Math.random() * 3)];
+        const noValue = Math.floor(Math.random() * 300) + 1;
+        
+        let rtValue = Math.floor(Math.random() * 20) + 1;
+        let rtDisplay = rtValue < 10 ? '0' + rtValue : String(rtValue);
+        
+        const addressDetail = `${streetPrefix} ${streetName}, ${noPrefix} ${noValue} - RT.${rtDisplay}`;
+        
+        const fullData = `${nama}, ${nohp}, ${provinsi}, ${kota}, ${kecamatan}, ${kodepos}, ${addressDetail}`;
+        
+        navigator.clipboard.writeText(fullData).then(() => { 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Acak'); 
+        });
+    }
+
+    function generateDataAsli(btnElement) {
+        if(!listFN.length || !csvData.length) return showTempNotif(btnElement, 'Data belum siap', '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...');
+        
+        const nama = `${listFN[Math.floor(Math.random() * listFN.length)]} ${listLN[Math.floor(Math.random() * listLN.length)]}`;
+        
+        let nohp = ["081", "082", "083", "085", "087", "088", "089"][Math.floor(Math.random() * 7)];
+        for(let i=0; i<9; i++) nohp += Math.floor(Math.random() * 10);
+        
+        const desaList = ["Ds Kemlagi Kendal", "Ds Kendalkemlagi", "Desa Pucangtelu", "Ds, Dandang", "Desa Kemlagi", "Desa Kendal", "Desa Kemlagi-dandang"];
+        const desa = desaList[Math.floor(Math.random() * desaList.length)];
+        
+        const perumList = ["perum", "perumahan", "cluster"];
+        const perum = perumList[Math.floor(Math.random() * perumList.length)];
+        
+        const ksmList = ["KSM", "K-SM", "KS-M", "Ka-Es-M", "K-Es-M", "KS-Em", "K-S-M"];
+        const ksm = ksmList[Math.floor(Math.random() * ksmList.length)];
+        
+        const centerList = ["Center", "Senter", "Semter", "Sentre", "Centre", "Dandang", "Kemlagi"];
+        const center = centerList[Math.floor(Math.random() * centerList.length)];
+        
+        const gangList = ["Gang", "Gg", "jalan", "Jl", "Jln."];
+        const gangWord = gangList[Math.floor(Math.random() * gangList.length)];
+        
+        const wordList = [
+            "Abadi", "Agung", "Alam", "Aman", "Amerta", "Anggrek", "Angkasa", "Anila", "Antariksa", "Apsari",
+            "Arga", "Arjuna", "Aruna", "Asih", "Asoka", "Asri", "Awan", "Bagus", "Bahagia", "Bahar",
+            "Bakau", "Bakti", "Bambu", "Bangsa", "Barat", "Baru", "Baswara", "Bata", "Batik", "Batu",
+            "Bayu", "Bejo", "Belimbing", "Benua", "Beringin", "Besar", "Bintang", "Biru", "Bismo", "Budi",
+            "Bulan", "Bumi", "Cahaya", "Candi", "Cantik", "Cempaka", "Cendana", "Cendrawasih", "Cengkeh", "Cerah",
+            "Cinta", "Citra", "Dahlia", "Damai", "Danau", "Darma", "Daun", "Dewa", "Dewi", "Dian",
+            "Dirgantara", "Elang", "Emas", "Elok", "Endah", "Fajar", "Fitri", "Flamboyan", "Gagah", "Gajah",
+            "Garuda", "Gede", "Gelora", "Gemilang", "Gempa", "Guntur", "Gunung", "Halimun", "Harapan", "Harum",
+            "Hijau", "Indah", "Intan", "Jambu", "Jasmine", "Jati", "Jaya", "Jelita", "Jember", "Joko",
+            "Juara", "Kabut", "Kancil", "Kancana", "Kartika", "Kasih", "Kencana", "Kenanga", "Kenari", "Kertajaya",
+            "Kijang", "Kila", "Kilat", "Kresna", "Kuning", "Kusuma", "Laksmana", "Lancar", "Langit", "Laut",
+            "Lembah", "Lestari", "Limau", "Lintang", "Logam", "Luhur", "Madya", "Madu", "Mahadewa", "Mahajaya",
+            "Mahardika", "Mahkota", "Majestic", "Makmur", "Malang", "Mandiri", "Mangga", "Manggala", "Manis", "Mapan",
+            "Melati", "Merapi", "Merbabu", "Merdeka", "Merak", "Merah", "Mulia", "Murni", "Mutiara", "Naga",
+            "Nakula", "Nusa", "Nusantara", "Ombak", "Outfit", "Padi", "Pahlawan", "Paku", "Palapa", "Pandan",
+            "Panglima", "Pantai", "Patria", "Pelangi", "Permata", "Pertiwi", "Perwira", "Pilar", "Pinang", "Pinus",
+            "Pratama", "Pribadi", "Priya", "Puji", "Putera", "Puteri", "Putih", "Rama", "Rakyat", "Raya",
+            "Riana", "Rimba", "Rindang", "Roda", "Rosela", "Sadewa", "Sagara", "Sakti", "Salak", "Saman",
+            "Samudra", "Santosa", "Sari", "Satria", "Satu", "Sawo", "Sederhana", "Sejahtera", "Selatan", "Semeru",
+            "Sempurna", "Senja", "Sentosa", "Setya", "Sinar", "Sindu", "Siregar", "Slamet", "Srikandi", "Suci",
+            "Sudirman", "Sugeng", "Sujatmiko", "Suko", "Sulung", "Sumatra", "Sumber", "Surya", "Suryo", "Taman",
+            "Tanah", "Tanjung", "Tapan", "Teguh", "Teja", "Telaga", "Tenggara", "Terang", "Teratai", "Timur",
+            "Toba", "Trisula", "Tulus", "Tunas", "Utama", "Utara", "Wahyu", "Wibawa", "Widodo", "Wijaya",
+            "Wira", "Wirya", "Wisma", "Wulan", "Yuda", "Yustisia"
+        ];
+        const pandanWord = wordList[Math.floor(Math.random() * wordList.length)];
+        
+        const noValue = String(Math.floor(Math.random() * 300) + 1).padStart(3, '0');
+        
+        const fullData = `${nama}, ${nohp}, Jawa Timur, Lamongan, Karanggeneng, 62254, ${desa}, ${perum} ${ksm} ${center}, ${gangWord} ${pandanWord} No. ${noValue}\n(W_O8S-648.7.5675-8)`;
+        
+        navigator.clipboard.writeText(fullData).then(() => { 
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', '<i class="fas fa-id-card"></i> Data Asli'); 
+        });
+    }
+
+    // ================= FIREBASE & ADMIN =================
+    let globalUser = null;
+    db.ref('worker_status/is_locked').on('value', snap => {
+        const val = snap.val();
+        isWorkerLocked = (val === null) ? true : val; 
+        updateWorkerLockUI();
+        if(!isWorkerLocked) {
+            const elPrices = document.getElementById('sms-prices');
+            if(elPrices) elPrices.innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker sedang terputus (Unlock).</div>';
+            const elBal = document.getElementById('sms-balance');
+            if(elBal) elBal.innerText = `$ 0`;
+        } else {
+            if(document.getElementById('sms-prices')) refreshSms(); 
+        }
+    }, error => {
+        isWorkerLocked = true; 
+        refreshSms();
+    });
+
+    function setWorkerLock(status) {
+        db.ref('worker_status/is_locked').set(status).catch(err => {
+            showModal("Error Database", "Gagal mengubah status: " + err.message, "alert");
+        });
+    }
+
+    function updateWorkerLockUI() {
+        const btnLock = document.getElementById('btn-worker-lock');
+        const btnUnlock = document.getElementById('btn-worker-unlock');
+        if(btnLock && btnUnlock) {
+            if(isWorkerLocked) {
+                btnLock.style.opacity = '1'; btnLock.style.border = '2px solid #2ecc71';
+                btnUnlock.style.opacity = '0.5'; btnUnlock.style.border = 'none';
+            } else {
+                btnLock.style.opacity = '0.5'; btnLock.style.border = 'none';
+                btnUnlock.style.opacity = '1'; btnUnlock.style.border = '2px solid #e74c3c';
+            }
+        }
+    }
+
+    function toggleMainMenu() { 
+        document.getElementById('main-menu').classList.toggle('active'); 
+        document.getElementById('admin-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.remove('active');
+    }
+    function openAdminMenu() { 
+        document.getElementById('main-menu').classList.remove('active'); 
+        document.getElementById('admin-menu').classList.add('active'); 
+    }
+    function openServerModal() {
+        document.getElementById('main-menu').classList.remove('active');
+        document.getElementById('server-modal').classList.add('active');
+        document.querySelectorAll('.server-btn').forEach(btn => {
+            const url = btn.getAttribute('data-url');
+            const icon = btn.querySelector('.server-check-icon');
+            if (url === WORKER_URL) icon.style.display = 'inline-block';
+            else icon.style.display = 'none';
+        });
+    }
+    function closeServerModal() { document.getElementById('server-modal').classList.remove('active'); }
+
+    function setServer(url) {
+        WORKER_URL = url;
+        localStorage.setItem('xurel_worker_url', url);
+        showModal("Sukses", "Server Worker berhasil diubah", "alert");
+        closeServerModal();
+        refreshAllData();
+    }
+
+    auth.onAuthStateChanged(user => {
+        globalUser = user; 
+        document.getElementById('login-form').classList.toggle('hidden', !!user);
+        document.getElementById('logout-form').classList.toggle('hidden', !user);
+        refreshSms();
+    });
+
+    function globalLogin() {
+        const e = document.getElementById('global-email').value; 
+        const p = document.getElementById('global-pass').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+        localStorage.removeItem('session_synced');
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            if (rememberMe) {
+                localStorage.setItem('xurel_admin_email', e);
+                localStorage.setItem('xurel_admin_pass', p);
+            } else {
+                localStorage.removeItem('xurel_admin_email');
+                localStorage.removeItem('xurel_admin_pass');
+            }
+            document.getElementById('admin-menu').classList.remove('active');
+        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
+    }
+    function globalLogout() { auth.signOut(); document.getElementById('admin-menu').classList.remove('active'); }
+
+    // ================= LOGIKA WORKER & SMS (HERO SMS WA) =================
+    async function fetchWorker(path, options = {}) {
+        return fetch(`${WORKER_URL}${path}`, { 
+            ...options, 
+            headers: { 
+                ...options.headers, 
+                "X-User-Name": currentUser, 
+                "X-Provider": PROVIDER // STRICTLY HERO SMS
+            } 
+        });
+    }
+
+    function refreshSms() {
+        document.getElementById('sms-active-orders').innerHTML = ''; 
+        if(!isWorkerLocked) {
+            document.getElementById('sms-prices').innerHTML = '<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold;">Worker sedang terputus (Unlock).</div>';
+            document.getElementById('sms-balance').innerText = `$ 0`;
+            return;
+        }
+        updateSmsBal(); loadSmsPrices(); pollSms();
+    }
+
+    async function updateSmsBal() {
+        if(!isWorkerLocked) return;
+        try {
+            const res = await fetchWorker(`/get-balance`); 
+            const json = await res.json();
+            if (json.success) {
+                document.getElementById('sms-balance').innerText = `$ ${json.data.balance}`;
+            } else { 
+                document.getElementById('sms-balance').innerText = `$ 0`; 
+            }
+        } catch(e) {}
+    }
+
+    function loadSmsPrices() {
+        if(!isWorkerLocked) return;
+        const box = document.getElementById('sms-prices');
+        const serviceInfo = HERO_SERVICES[currentHeroService] || HERO_SERVICES.wa;
+
+        box.innerHTML = serviceInfo.operators.map(op => `
+            <div class="list-item" onclick="buySms('6|${serviceInfo.code}|${op.code}', ${op.price}, '${op.name}')">
+                <span class="item-name">${op.name}</span>
+                <span class="item-price">$ ${op.price.toFixed(4)}</span>
+                <span class="item-stock">~ stok</span>
+            </div>
+        `).join('');
+    }
+
+    async function buySms(pid, price, name) {
+        if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
+        const serviceInfo = HERO_SERVICES[currentHeroService] || HERO_SERVICES.wa;
+        
+        if(!await showModal(`Pesan Nomor ${serviceInfo.name}`, `Beli ${name} (${serviceInfo.name}) seharga $ ${price}?`)) return;
+        try {
+            const res = await fetchWorker(`/create-order`, { 
+                method: "POST", 
+                headers: {"Content-Type": "application/json"}, 
+                body: JSON.stringify({ product_id: pid }) 
+            });
+            const j = await res.json();
+            if(j.success) {
+                const o = j.data.orders[0]; 
+                localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone_number); 
+                localStorage.setItem(`${currentUser}_price_${o.id}`, price);
+                localStorage.setItem(`${currentUser}_provider_${o.id}`, PROVIDER); 
+                pollSms(); updateSmsBal();
+            } else showModal("Gagal", j.error?.message || `Gagal order nomor ${serviceInfo.name}`, "alert");
+        } catch(e){
+            showModal("Gagal", "Gagal menghubungi server worker", "alert");
+        }
+    }
+
+    async function pollSms() { 
+        if(!isWorkerLocked) return;
+        try { 
+            let idsHero = [];
+            const prefix = `${currentUser}_phone_`;
+            
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key.startsWith(prefix)) {
+                    let id = key.replace(prefix, '');
+                    idsHero.push(id);
+                }
+            }
+            
+            if (idsHero.length === 0) {
+                renderSmsOrders([]);
+                return;
+            }
+
+            const res = await fetch(`${WORKER_URL}/get-active`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-User-Name": currentUser, "X-Provider": PROVIDER },
+                body: JSON.stringify({ active_ids: idsHero })
+            });
+            const j = await res.json();
+            if (j.success && j.data) {
+                j.data.forEach(o => o._provider = PROVIDER);
+                renderSmsOrders(j.data);
+            }
+        } catch(e) {} 
+    }
+
+    function copyPhoneNumber(txt, el) {
+        if(txt.includes('Mencari')) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function copyOTP(txt, el) {
+        if(!txt) return; navigator.clipboard.writeText(txt);
+        const ori = el.innerText; el.innerText = "Tersalin!"; setTimeout(() => { el.innerText = ori; }, 1000);
+    }
+
+    function cleanUpOrderStorage(id) {
+        localStorage.removeItem(`${currentUser}_phone_${id}`); 
+        localStorage.removeItem(`${currentUser}_timer_${id}`); 
+        localStorage.removeItem(`${currentUser}_price_${id}`); 
+        localStorage.removeItem(`${currentUser}_provider_${id}`); 
+        localStorage.removeItem(`${currentUser}_hide_${id}`);
+        localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+        Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
+    }
+
+    function toggleHideSms(id) {
+        const key = `${currentUser}_hide_${id}`;
+        if (localStorage.getItem(key) === 'true') {
+            localStorage.removeItem(key);
+        } else {
+            localStorage.setItem(key, 'true');
+        }
+        pollSms();
+    }
+
+    function renderSmsOrders(orders) {
+        const container = document.getElementById('sms-active-orders'); 
+        const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
+        
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        
+        if(!orders || !orders.length) return;
+
+        orders.forEach(o => {
+            const phone = o.phone || localStorage.getItem(`${currentUser}_phone_${o.id}`) || 'Mencari...';
+            if(o.phone) localStorage.setItem(`${currentUser}_phone_${o.id}`, o.phone);
+            
+            const serverPrice = o.price || o.cost || localStorage.getItem(`${currentUser}_price_${o.id}`) || '0.1575';
+            if(serverPrice) localStorage.setItem(`${currentUser}_price_${o.id}`, serverPrice);
+            
+            let expireTime = localStorage.getItem(`${currentUser}_timer_${o.id}`);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`${currentUser}_timer_${o.id}`, expireTime); }
+            
+            const now = Date.now();
+            if (now >= parseInt(expireTime) + 5000) {
+                const card = document.getElementById('order-' + o.id);
+                if (card) card.remove();
+                cleanUpOrderStorage(o.id);
+                return;
+            }
+
+            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1080);
+            const blockTime = localStorage.getItem(`${currentUser}_block_timer_${o.id}`);
+            const isBlocked = blockTime && (parseInt(blockTime) - Date.now() > 0);
+
+            if (blockTime && !isBlocked) {
+                localStorage.removeItem(`${currentUser}_block_timer_${o.id}`);
+                autoCancelSms(o.id);
+                return;
+            }
+
+            if (isBlocked) {
+                const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
+                const blockedHtml = `
+                    <div class="blocked-status-bar">
+                        <span>Cancel: <span class="block-countdown" data-id="${o.id}">${diff}s</span></span>
+                        <span>$ ${serverPrice||'0.1575'}</span>
+                    </div>
+                `;
+                const existing = document.getElementById('order-' + o.id);
+                if (existing) {
+                    existing.className = `order-card order-blocked`;
+                    existing.innerHTML = blockedHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card order-blocked" id="order-${o.id}">
+                        ${blockedHtml}
+                    </div>`);
+                }
+                return;
+            }
+
+            if (o.otp_code && !localStorage.getItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`)) {
+                showOtpToast(o.otp_code); localStorage.setItem(`${currentUser}_notif_otp_${o.id}_${o.otp_code}`, 'true');
+            }
+
+            const isHidden = localStorage.getItem(`${currentUser}_hide_${o.id}`) === 'true';
+            const unhideBtnHtml = `<button class="btn btn-blue btn-unhide" style="background-color: #38bdf8; color: white; width: 100%; padding: 8px 10px; font-weight: bold; border-radius: 5px; cursor: pointer;" onclick="toggleHideSms('${o.id}')">UNHIDE</button>`;
+
+            if (isHidden) {
+                const existing = document.getElementById('order-' + o.id);
+                if (existing) {
+                    existing.className = `order-card card-herosms`;
+                    existing.innerHTML = unhideBtnHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card card-herosms" id="order-${o.id}">
+                        ${unhideBtnHtml}
+                    </div>`);
+                }
+                return;
+            }
+
+            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            const fullCardHtml = `
+                <div class="order-header"><span>#${o.id} - $ ${serverPrice||'0.1575'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
+                <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
+                <div class="order-otp">${otpDisplay}</div>
+                <div class="btn-grid">
+                    <button class="btn-sm btn-hide" style="background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
+                    <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
+                    <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" onclick="blockSms('${o.id}')">BLOCK</button>
+                </div>
+            `;
+
+            const existing = document.getElementById('order-' + o.id);
+            if (existing) {
+                existing.className = `order-card card-herosms`;
+                if (!existing.querySelector('.order-phone')) {
+                    existing.innerHTML = fullCardHtml;
+                } else {
+                    existing.querySelector('.order-header span').innerText = `#${o.id} - $ ${serverPrice||'0.1575'}`;
+                    existing.querySelector('.order-phone').innerText = phone;
+                    existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                    if(o.otp_code) {
+                        let resendBtn = existing.querySelector('.btn-resend');
+                        if(resendBtn) resendBtn.disabled = false;
+                        let salinBtn = existing.querySelector('.btn-salin');
+                        if(salinBtn) {
+                            salinBtn.disabled = false;
+                            salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
+                        }
+                    }
+                    if(passed2Mins) { 
+                        let cancelBtn = existing.querySelector('.btn-cancel');
+                        if(cancelBtn) cancelBtn.disabled = false; 
+                    }
+                }
+            } else {
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="order-card card-herosms" id="order-${o.id}">
+                    ${fullCardHtml}
+                </div>`);
+            }
+        });
+        updateSmsTimers();
+    }
+
+    function updateSmsTimers() {
+        const now = Date.now();
+        const prefix = `${currentUser}_timer_`;
+
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                const id = key.replace(prefix, '');
+                const expireTimeStr = localStorage.getItem(key);
+                if (!expireTimeStr) continue;
+
+                const expireTime = parseInt(expireTimeStr);
+                const diffSec = Math.floor((expireTime - now) / 1000);
+
+                if (now >= expireTime + 5000) {
+                    const card = document.getElementById('order-' + id);
+                    if (card) card.remove();
+                    cleanUpOrderStorage(id);
+                    continue;
+                }
+
+                const timerEl = document.querySelector(`.sms-timer[data-id="${id}"]`);
+                if (timerEl) {
+                    const displayDiff = Math.max(0, diffSec);
+                    timerEl.innerText = `${Math.floor(displayDiff / 60)}:${(displayDiff % 60).toString().padStart(2, '0')}`;
+                    timerEl.style.color = displayDiff < 600 ? "#e74c3c" : "#555";
+                }
+
+                if (diffSec <= 1080) {
+                    const card = document.getElementById('order-' + id);
+                    if (card) {
+                        const btnCancel = card.querySelector('.btn-cancel');
+                        if (btnCancel) btnCancel.disabled = false;
+                    }
+                }
+            }
+        }
+
+        document.querySelectorAll('.block-countdown').forEach(el => {
+            const id = el.dataset.id;
+            const blockTime = localStorage.getItem(`${currentUser}_block_timer_${id}`);
+            if(!blockTime) return;
+
+            const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
+            el.innerText = `${diff}s`;
+
+            if(diff <= 0) {
+                localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+                autoCancelSms(id);
+            }
+        });
+    }
+
+    async function actSms(action, id) {
+        if(!isWorkerLocked) return showModal("Peringatan", "Worker sedang terputus (Unlock)", "alert");
+        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        try {
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": PROVIDER }, 
+                body: JSON.stringify({id, action}) 
+            });
+
+            if((await res.json()).success) {
+                if(action !== 'resend') { 
+                    cleanUpOrderStorage(id);
+                }
+                pollSms(); updateSmsBal();
+            }
+        } catch(e){}
+    }
+
+    async function autoCancelSms(id) {
+        try {
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
+                method:"POST", 
+                headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": PROVIDER }, 
+                body: JSON.stringify({id, action: 'cancel'}) 
+            });
+            await res.json();
+        } catch(e){}
+        
+        cleanUpOrderStorage(id);
+        pollSms();
+        updateSmsBal();
+    }
+
+    function blockSms(id) {
+        let expireTime = localStorage.getItem(`${currentUser}_timer_${id}`);
+        if (!expireTime) return;
+        const now = Date.now();
+        const diffSec = Math.floor((parseInt(expireTime) - now) / 1000);
+        
+        let lockTimeMs = 120000;
+        if (diffSec <= 1080) {
+            lockTimeMs = 0;
+        } else {
+            const passedSec = 1200 - diffSec;
+            const remainSec = 120 - passedSec;
+            if (remainSec > 0) lockTimeMs = remainSec * 1000;
+            else lockTimeMs = 0;
+        }
+
+        if (lockTimeMs === 0) {
+            autoCancelSms(id);
+        } else {
+            const blockUntil = Date.now() + lockTimeMs;
+            localStorage.setItem(`${currentUser}_block_timer_${id}`, blockUntil);
+            pollSms();
+        }
+    }
+</script>
+</body>
+</html>
