@@ -16,7 +16,7 @@
         body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
         input, select, button, textarea { outline: none; }
         .hidden { display: none !important; }
-        .app-container { width: 100%; max-width: 400px; background-color: #eef2f6; position: relative; padding: 8px; padding-top: 10px; }
+        .app-container { width: 98%; max-width: 500px; background-color: #eef2f6; position: relative; padding: 6px; padding-top: 10px; margin: 0 auto; }
         .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
         .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
@@ -142,7 +142,7 @@
         </header>
         <div id="main-menu" class="admin-popup">
             <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
-            <div class="menu-item" onclick="window.location.href='whatsapp.html'"><i class="fab fa-whatsapp" style="color: #25D366; font-size: 22px;"></i> WhatsApp</div>
+            <div class="menu-item" onclick="switchToWhatsappView()"><i class="fab fa-whatsapp" style="color: #25D366; font-size: 22px;"></i> WhatsApp</div>
             <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
             <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
@@ -285,6 +285,202 @@
     <i class="fas fa-pencil-alt"></i>
 </button>
 </div>
+
+<!-- ==================== WHATSAPP VIEW ==================== -->
+<div id="whatsapp-view" style="display: none;">
+<div class="app-container">
+    <div class="sticky-header-wrapper">
+        <header class="header">
+            <div class="menu-icon" onclick="toggleMainMenuWa()"><i class="fas fa-bars"></i></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <select id="hero-service-selector-wa" onchange="changeHeroServiceWa()" style="padding: 5px 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; cursor: pointer;">
+                    <option value="wa">WhatsApp</option>
+                    <option value="ka">Shopee</option>
+                </select>
+                <div class="header-title" id="header-service-title-wa" style="white-space: nowrap;">
+                    <i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i> WhatsApp
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="saldo-text" id="sms-balance-wa">$ 0</span>
+                <i class="fas fa-unlock lock-icon" id="user-lock-icon-wa" onclick="toggleUserLockWa()"></i>
+            </div>
+        </header>
+        <div id="main-menu-wa" class="admin-popup">
+            <div class="menu-item" onclick="openAdminMenuWa()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="switchToSmsView()"><i class="fas fa-comment-sms" style="color: #2e86de; font-size: 22px;"></i> Layanan SMS</div>
+            <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
+            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
+        </div>
+        <div id="admin-menu-wa" class="admin-popup">
+            <div id="login-form-wa">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
+                <input type="email" id="global-email-wa" class="form-input" placeholder="Email Admin">
+                <input type="password" id="global-pass-wa" class="form-input" placeholder="Password Admin">
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
+                    <input type="checkbox" id="remember-me-wa" style="cursor: pointer; width: 16px; height: 16px;">
+                    <label for="remember-me-wa" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
+                </div>
+                <button class="btn btn-blue" onclick="globalLoginWa()">Masuk</button>
+            </div>
+            <div id="logout-form-wa" class="hidden">
+                <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Koneksi Worker (Sistem SMS):</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="btn-worker-lock-wa" class="btn btn-green" onclick="setWorkerLockWa(true)"><i class="fas fa-lock"></i> Lock</button>
+                    <button id="btn-worker-unlock-wa" class="btn btn-red" onclick="setWorkerLockWa(false)"><i class="fas fa-unlock"></i> Unlock</button>
+                </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <button class="btn btn-red" onclick="globalLogoutWa()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPPER CARD WITH BUTTONS & CATATAN TEXTBOX -->
+    <div class="card">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <button id="btn-copy-link-wa" class="btn btn-orange btn-lg" onclick="copyLinkWa(this)">
+                <i class="fas fa-link"></i> Copy Link (0)
+            </button>
+            <button id="btn-edit-link-wa" class="btn btn-blue btn-lg" onclick="openEditLinkModalWa()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-copy-password-wa" class="btn btn-purple btn-lg" onclick="copyPasswordWa(this)">
+                <i class="fas fa-key"></i> Password (0)
+            </button>
+            <button id="btn-edit-password-wa" class="btn btn-teal btn-lg" onclick="openEditPasswordModalWa()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-copy-code-wa" class="btn btn-green btn-lg" onclick="copyCodeWa(this)">
+                <i class="fas fa-code"></i> Copy Code (0)
+            </button>
+            <button id="btn-edit-code-wa" class="btn btn-pink btn-lg" onclick="openEditCodeModalWa()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+
+            <button id="btn-data-acak-wa" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)">
+                <i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...
+            </button>
+            <button id="btn-data-asli-wa" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)">
+                <i class="fas fa-id-card"></i> Data Asli
+            </button>
+        </div>
+
+        <!-- COLUMN CATATAN (WITH HIGHLIGHT BACKDROP & GUTTER LINE NUMBERS, HEIGHT = 90px) -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="user-catatan-input-wa" style="font-size: 12px; font-weight: bold; color: #555;">
+                    <i class="fas fa-sticky-note" style="color: #f39c12;"></i> CATATAN:
+                </label>
+                <button id="btn-copy-notes-wa" class="btn btn-teal" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotesWa(this)">
+                    <i class="far fa-copy"></i> Copy Catatan
+                </button>
+            </div>
+            
+            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #ccc; border-radius: 5px; background: #fff; height: 90px; overflow: hidden; position: relative;">
+                <!-- Line Numbers Gutter -->
+                <div id="notes-line-numbers-wa" 
+                    style="width: 36px; background-color: #e2e8f0; border-right: 1px solid #cbd5e1; font-size: 13px; font-family: monospace; font-weight: bold; user-select: none; -webkit-user-select: none; overflow: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
+                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #64748b;">1</div>
+                </div>
+                
+                <!-- Text Content Area (Backdrop + Textarea) -->
+                <div style="flex: 1; position: relative; overflow: hidden;">
+                    <!-- Backdrop for colored line backgrounds & bold black text -->
+                    <div id="notes-backdrop-wa" 
+                        style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; font-size: 13px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: hidden; pointer-events: none; padding: 8px; box-sizing: border-box;">
+                    </div>
+
+                    <!-- Notes Textarea -->
+                    <textarea id="user-catatan-input-wa" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: transparent; caret-color: #000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
+                        placeholder="Tulis catatan di sini..." 
+                        oninput="updateNotesLineNumbersWa(); saveUserNotesWa(this.value);"
+                        onscroll="syncNotesScrollWa()"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVE ORDERS CONTAINER -->
+    <div id="sms-active-orders-wa"></div>
+
+    <!-- OPERATORS & PRICES LIST FOR WHATSAPP -->
+    <div class="list-header">PESAN NOMOR BARU</div>
+    <div class="list-group" id="sms-prices-wa">
+        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+    </div>
+</div>
+</div>
+
+<!-- EDIT LINK MODAL (WA) -->
+<div id="edit-link-modal-wa" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-link"></i> Pengaturan & Edit Link</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Link:</div>
+        <select id="edit-link-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Link (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-shopee-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan link di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditLinkModalWa()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllLinksWa()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedLinksWa()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT PASSWORD MODAL (WA) -->
+<div id="edit-password-modal-wa" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-key"></i> Pengaturan & Edit Password</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Password:</div>
+        <select id="edit-password-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Password (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-password-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan password di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditPasswordModalWa()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllPasswordsWa()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedPasswordsWa()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT CODE MODAL (WA) -->
+<div id="edit-code-modal-wa" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-code"></i> Pengaturan & Edit Code</h3>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Code:</div>
+        <select id="edit-code-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
+            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
+            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
+        </select>
+        
+        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Code (Bisa > 1, pisahkan dengan Enter):</div>
+        <textarea id="edit-kode-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan code di sini..."></textarea>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditCodeModalWa()">Batal</button>
+            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllKodeWa()">Hapus Semua</button>
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedKodeWa()">Simpan</button>
+        </div>
+    </div>
+</div>
+
 <!-- ==================== NOTES VIEW ==================== -->
 <div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
 
@@ -691,22 +887,51 @@
 
     // ================= VIEW NAVIGATION =================
     function switchToNotesView() {
-        document.getElementById('main-menu').classList.remove('active');
+        const mainMenu = document.getElementById('main-menu');
+        const mainMenuWa = document.getElementById('main-menu-wa');
+        if (mainMenu) mainMenu.classList.remove('active');
+        if (mainMenuWa) mainMenuWa.classList.remove('active');
+
         document.getElementById('sms-view').style.display = 'none';
+        if (document.getElementById('whatsapp-view')) document.getElementById('whatsapp-view').style.display = 'none';
         document.getElementById('notes-view').style.display = 'flex';
         document.body.style.padding = '0';
         document.body.style.display = 'block';
         document.body.style.backgroundColor = '#f0f0f0';
     }
     function switchToSmsView() {
+        const mainMenu = document.getElementById('main-menu');
+        const mainMenuWa = document.getElementById('main-menu-wa');
+        if (mainMenu) mainMenu.classList.remove('active');
+        if (mainMenuWa) mainMenuWa.classList.remove('active');
+
         if (!document.getElementById('editorPage').classList.contains('hidden')) {
              if (typeof window.saveEditorData === 'function') window.saveEditorData();
         }
         document.getElementById('notes-view').style.display = 'none';
+        if (document.getElementById('whatsapp-view')) document.getElementById('whatsapp-view').style.display = 'none';
         document.getElementById('sms-view').style.display = 'block';
         document.body.style.display = 'flex';
         document.body.style.justifyContent = 'center';
         document.body.style.backgroundColor = '#eef2f6';
+    }
+    function switchToWhatsappView() {
+        const mainMenu = document.getElementById('main-menu');
+        const mainMenuWa = document.getElementById('main-menu-wa');
+        if (mainMenu) mainMenu.classList.remove('active');
+        if (mainMenuWa) mainMenuWa.classList.remove('active');
+
+        document.getElementById('sms-view').style.display = 'none';
+        document.getElementById('notes-view').style.display = 'none';
+        if (document.getElementById('whatsapp-view')) document.getElementById('whatsapp-view').style.display = 'block';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.backgroundColor = '#eef2f6';
+
+        updateServiceHeaderUIWa();
+        loadSmsPricesWa();
+        updateSmsBalWa();
+        pollSmsWa();
     }
 
     function notesInternalBack() {
@@ -722,6 +947,523 @@
             switchToSmsView();
         }
     }
+
+    
+    // ================= WHATSAPP / SHOPEE VIEW LOGIC =================
+    let currentHeroServiceWa = localStorage.getItem('wa_hero_service') || 'wa';
+    let isUserLockedWa = false;
+
+    const HERO_SERVICES_WA = {
+        wa: {
+            code: "wa",
+            name: "WhatsApp",
+            color: "#25D366",
+            icon: '<i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i>',
+            operators: [
+                { code: "indosat", name: "Indosat (Promo)", price: 0.1575 },
+                { code: "indosat", name: "INDOSAT", price: 0.1644 },
+                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.1575 },
+                { code: "telkomsel", name: "TELKOMSEL", price: 0.1644 },
+                { code: "three", name: "Three (Promo)", price: 0.1575 },
+                { code: "three", name: "THREE", price: 0.1644 },
+                { code: "xl", name: "XL (Promo)", price: 0.1575 },
+                { code: "xl", name: "XL", price: 0.1644 },
+                { code: "axis", name: "AXIS (Promo)", price: 0.1575 },
+                { code: "axis", name: "AXIS", price: 0.1644 },
+                { code: "smartfren", name: "Smartfren (Promo)", price: 0.1575 },
+                { code: "smartfren", name: "SMARTFREN", price: 0.1644 },
+                { code: "any", name: "Semua Operator", price: 0.1644 }
+            ]
+        },
+        ka: {
+            code: "ka",
+            name: "Shopee",
+            color: "#ee4d2d",
+            icon: '<i class="fas fa-shopping-bag" style="font-size: 18px; color: #ee4d2d;"></i>',
+            operators: [
+                { code: "indosat", name: "Indosat (Promo)", price: 0.063 },
+                { code: "indosat", name: "INDOSAT", price: 0.07 },
+                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.063 },
+                { code: "telkomsel", name: "TELKOMSEL", price: 0.07 },
+                { code: "three", name: "Three (Promo)", price: 0.063 },
+                { code: "three", name: "THREE", price: 0.07 },
+                { code: "xl", name: "XL (Promo)", price: 0.063 },
+                { code: "xl", name: "XL", price: 0.07 },
+                { code: "axis", name: "AXIS (Promo)", price: 0.063 },
+                { code: "axis", name: "AXIS", price: 0.07 },
+                { code: "smartfren", name: "Smartfren (Promo)", price: 0.063 },
+                { code: "smartfren", name: "SMARTFREN", price: 0.07 },
+                { code: "any", name: "Semua Operator", price: 0.07 }
+            ]
+        }
+    };
+
+    function toggleMainMenuWa() {
+        const menu = document.getElementById('main-menu-wa');
+        const adminMenu = document.getElementById('admin-menu-wa');
+        if (adminMenu) adminMenu.classList.remove('active');
+        if (menu) menu.classList.toggle('active');
+    }
+
+    function openAdminMenuWa() {
+        const menu = document.getElementById('main-menu-wa');
+        const adminMenu = document.getElementById('admin-menu-wa');
+        if (menu) menu.classList.remove('active');
+        if (adminMenu) adminMenu.classList.add('active');
+    }
+
+    function toggleUserLockWa() {
+        isUserLockedWa = !isUserLockedWa;
+        const icon = document.getElementById('user-lock-icon-wa');
+        if (icon) {
+            if (isUserLockedWa) { icon.className = 'fas fa-lock lock-icon'; icon.style.color = '#e74c3c'; } 
+            else { icon.className = 'fas fa-unlock lock-icon'; icon.style.color = '#666'; }
+        }
+    }
+
+    function changeHeroServiceWa() {
+        const select = document.getElementById('hero-service-selector-wa');
+        if (select) {
+            currentHeroServiceWa = select.value;
+            localStorage.setItem('wa_hero_service', currentHeroServiceWa);
+        }
+        updateServiceHeaderUIWa();
+        loadSmsPricesWa();
+    }
+
+    function updateServiceHeaderUIWa() {
+        const select = document.getElementById('hero-service-selector-wa');
+        if (select) select.value = currentHeroServiceWa;
+
+        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
+        const titleEl = document.getElementById('header-service-title-wa');
+        if (titleEl) {
+            titleEl.style.color = serviceInfo.color;
+            titleEl.innerHTML = `${serviceInfo.icon} ${serviceInfo.name}`;
+        }
+    }
+
+    function loadSmsPricesWa() {
+        const box = document.getElementById('sms-prices-wa');
+        if (!box) return;
+        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
+
+        box.innerHTML = serviceInfo.operators.map(op => `
+            <div class="list-item" onclick="buySmsWa('6|${serviceInfo.code}|${op.code}', ${op.price}, '${op.name}')">
+                <span class="item-name">${op.name}</span>
+                <span class="item-price">$ ${op.price.toFixed(4)}</span>
+                <span class="item-stock">~ stok</span>
+            </div>
+        `).join('');
+    }
+
+    async function updateSmsBalWa() {
+        try {
+            const res = await fetchWorker(`/get-balance`, {
+                headers: { "X-User-Name": "UMAM", "X-Provider": "herosms" }
+            }); 
+            const json = await res.json();
+            if (json.success && document.getElementById('sms-balance-wa')) {
+                document.getElementById('sms-balance-wa').innerText = `$ ${json.data.balance}`;
+            }
+        } catch(e) {}
+    }
+
+    async function buySmsWa(pid, price, name) {
+        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
+        if(!await showModal(`Pesan Nomor ${serviceInfo.name}`, `Beli ${name} (${serviceInfo.name}) seharga $ ${price}?`)) return;
+        try {
+            const res = await fetchWorker(`/create-order`, { 
+                method: "POST", 
+                headers: {"Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms"}, 
+                body: JSON.stringify({ product_id: pid }) 
+            });
+            const j = await res.json();
+            if(j.success) {
+                const o = j.data.orders[0]; 
+                localStorage.setItem(`UMAM_phone_${o.id}`, o.phone_number); 
+                localStorage.setItem(`UMAM_price_${o.id}`, price);
+                localStorage.setItem(`UMAM_provider_${o.id}`, "herosms"); 
+                pollSmsWa(); updateSmsBalWa();
+            } else showModal("Gagal", j.error?.message || `Gagal order nomor ${serviceInfo.name}`, "alert");
+        } catch(e){
+            showModal("Gagal", "Gagal menghubungi server worker", "alert");
+        }
+    }
+
+    async function pollSmsWa() {
+        const box = document.getElementById('sms-active-orders-wa');
+        const waView = document.getElementById('whatsapp-view');
+        if(!box || !waView || waView.style.display === 'none') return;
+        try {
+            const res = await fetchWorker(`/get-active`, {
+                headers: { "X-User-Name": "UMAM", "X-Provider": "herosms" }
+            });
+            const j = await res.json();
+            if(j.success && j.data && j.data.orders) {
+                renderActiveOrdersWa(j.data.orders);
+            } else {
+                box.innerHTML = '';
+            }
+        } catch(e) {}
+    }
+
+    function renderActiveOrdersWa(orders) {
+        const box = document.getElementById('sms-active-orders-wa');
+        if(!box) return;
+        if(!orders || orders.length === 0) { box.innerHTML = ''; return; }
+        
+        box.innerHTML = orders.map(o => {
+            const phone = localStorage.getItem(`UMAM_phone_${o.id}`) || o.phone_number || 'Nomor...';
+            const price = localStorage.getItem(`UMAM_price_${o.id}`) || '0';
+            const smsObj = (o.sms && o.sms.length > 0) ? o.sms[0] : null;
+            const otpCode = smsObj ? (smsObj.code || smsObj.text) : 'Menunggu SMS...';
+
+            return `
+                <div class="order-card card-herosms">
+                    <div class="order-header">
+                        <span>HERO SMS (UMAM)</span>
+                        <span>$ ${price}</span>
+                    </div>
+                    <div class="order-phone" onclick="doCopyText('${phone}', 'Nomor tersalin')">${phone}</div>
+                    <div class="order-otp">${otpCode}</div>
+                    <div class="btn-grid">
+                        <button class="btn-sm" onclick="doCopyText('${phone}', 'Nomor tersalin')"><i class="far fa-copy"></i> No</button>
+                        <button class="btn-sm" ${smsObj ? '' : 'disabled'} onclick="doCopyText('${smsObj?.code || ''}', 'OTP tersalin')"><i class="far fa-copy"></i> OTP</button>
+                        <button class="btn-sm" style="background:#e74c3c; color:white;" onclick="cancelOrderWa('${o.id}')"><i class="fas fa-times"></i> Batal</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function cancelOrderWa(orderId) {
+        if(!await showModal("Konfirmasi Batal", "Batalkan pesanan nomor ini?")) return;
+        try {
+            const res = await fetchWorker(`/order-action`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" },
+                body: JSON.stringify({ action: "cancel", order_id: orderId })
+            });
+            const j = await res.json();
+            if(j.success) { pollSmsWa(); updateSmsBalWa(); }
+            else showModal("Gagal", j.error?.message || "Gagal membatalkan pesanan", "alert");
+        } catch(e) { showModal("Gagal", "Error membatalkan pesanan", "alert"); }
+    }
+
+    // --- LINK, PASSWORD, CODE & CATATAN LOGIC FOR WA VIEW ---
+    let linkListWa = [];
+    let linkModeWa = 'cut';
+    let passwordListWa = ["santridroid"];
+    let passwordModeWa = 'copy';
+    let codeListWa = [];
+    let codeModeWa = 'cut';
+
+    function loadInitialAppDataWa() {
+        const savedLinks = localStorage.getItem('wa_links_data');
+        if (savedLinks) {
+            try { linkListWa = JSON.parse(savedLinks); } catch(e) { linkListWa = savedLinks.split('\n').filter(l => l.trim() !== ''); }
+        }
+        linkModeWa = localStorage.getItem('wa_links_mode') || 'cut';
+
+        const savedPass = localStorage.getItem('wa_passwords_data');
+        if (savedPass) {
+            try { passwordListWa = JSON.parse(savedPass); } catch(e) { passwordListWa = savedPass.split('\n').filter(l => l.trim() !== ''); }
+        }
+        passwordModeWa = localStorage.getItem('wa_passwords_mode') || 'copy';
+
+        const savedCodes = localStorage.getItem('wa_codes_data');
+        if (savedCodes) {
+            try { codeListWa = JSON.parse(savedCodes); } catch(e) { codeListWa = savedCodes.split('\n').filter(l => l.trim() !== ''); }
+        }
+        codeModeWa = localStorage.getItem('wa_codes_mode') || 'cut';
+
+        const savedNotes = localStorage.getItem('wa_user_notes') || '';
+        const notesInput = document.getElementById('user-catatan-input-wa');
+        if (notesInput) {
+            notesInput.value = savedNotes;
+            updateNotesLineNumbersWa();
+        }
+
+        db.ref('wa_settings/link_mode').on('value', snap => { if(snap.val()) linkModeWa = snap.val(); updateLinkBtnUIWa(); });
+        db.ref('wa_settings/pass_mode').on('value', snap => { if(snap.val()) passwordModeWa = snap.val(); updatePasswordBtnUIWa(); });
+        db.ref('wa_settings/code_mode').on('value', snap => { if(snap.val()) codeModeWa = snap.val(); updateCodeBtnUIWa(); });
+
+        db.ref('wa_links').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { linkListWa = arr; localStorage.setItem('wa_links_data', JSON.stringify(linkListWa)); }
+            }
+            updateLinkBtnUIWa();
+        });
+
+        db.ref('wa_passwords').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { passwordListWa = arr; localStorage.setItem('wa_passwords_data', JSON.stringify(passwordListWa)); }
+            }
+            updatePasswordBtnUIWa();
+        });
+
+        db.ref('wa_codes').on('value', snap => {
+            if (snap.val()) {
+                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+                if (arr && arr.length > 0) { codeListWa = arr; localStorage.setItem('wa_codes_data', JSON.stringify(codeListWa)); }
+            }
+            updateCodeBtnUIWa();
+        });
+
+        updateLinkBtnUIWa();
+        updatePasswordBtnUIWa();
+        updateCodeBtnUIWa();
+    }
+
+    function updateNotesLineNumbersWa() {
+        const textarea = document.getElementById('user-catatan-input-wa');
+        const gutter = document.getElementById('notes-line-numbers-wa');
+        const backdrop = document.getElementById('notes-backdrop-wa');
+        if (!textarea || !gutter || !backdrop) return;
+
+        const val = textarea.value;
+        const lines = val.split('\n');
+        const lineCount = Math.max(1, lines.length);
+
+        let gutterHtml = '';
+        let backdropHtml = '';
+
+        for (let i = 1; i <= lineCount; i++) {
+            const isMultipleOf6 = (i % 6 === 0);
+            const isMultipleOf7 = (i % 7 === 0);
+            const rawText = lines[i - 1];
+            const lineText = (rawText !== undefined && rawText !== '') ? escapeHtml(rawText) : '&nbsp;';
+
+            if (isMultipleOf6) {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #ff4d4d; color: #000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #ff4d4d; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+            } else if (isMultipleOf7) {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #2ecc71; color: #000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #2ecc71; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+            } else {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #e2e8f0; color: #64748b; font-weight: bold;">${i}</div>`;
+                if (val === '') {
+                    backdropHtml += ``;
+                } else {
+                    backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: transparent; color: #333; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+                }
+            }
+        }
+
+        gutter.innerHTML = gutterHtml;
+        backdrop.innerHTML = backdropHtml;
+        syncNotesScrollWa();
+    }
+
+    function syncNotesScrollWa() {
+        const textarea = document.getElementById('user-catatan-input-wa');
+        const gutter = document.getElementById('notes-line-numbers-wa');
+        const backdrop = document.getElementById('notes-backdrop-wa');
+        if (textarea) {
+            if (gutter) gutter.scrollTop = textarea.scrollTop;
+            if (backdrop) {
+                backdrop.scrollTop = textarea.scrollTop;
+                backdrop.scrollLeft = textarea.scrollLeft;
+            }
+        }
+    }
+
+    function saveUserNotesWa(val) {
+        localStorage.setItem('wa_user_notes', val);
+    }
+
+    function copyNotesWa(btnElement) {
+        const val = document.getElementById('user-catatan-input-wa').value;
+        if (!val || !val.trim()) return showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Kosong', '<i class="far fa-copy"></i> Copy Catatan');
+        doCopyText(val, 'Catatan tersalin');
+    }
+
+    function updateLinkBtnUIWa() {
+        const btn = document.getElementById('btn-copy-link-wa');
+        if (!btn) return;
+        const count = linkListWa.length;
+        if (count > 0) {
+            btn.className = "btn btn-orange btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-link"></i> Copy Link (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-link"></i> Link Kosong`;
+        }
+    }
+
+    function updatePasswordBtnUIWa() {
+        const btn = document.getElementById('btn-copy-password-wa');
+        if (!btn) return;
+        const count = passwordListWa.length;
+        if (count > 0) {
+            btn.className = "btn btn-purple btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-key"></i> Password (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-key"></i> Password Kosong`;
+        }
+    }
+
+    function updateCodeBtnUIWa() {
+        const btn = document.getElementById('btn-copy-code-wa');
+        if (!btn) return;
+        const count = codeListWa.length;
+        if (count > 0) {
+            btn.className = "btn btn-green btn-lg";
+            btn.style.backgroundColor = "";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-code"></i> Copy Code (${count})`;
+        } else {
+            btn.className = "btn btn-lg";
+            btn.style.backgroundColor = "#95a5a6";
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-code"></i> Code Kosong`;
+        }
+    }
+
+    function copyLinkWa(btnElement) {
+        if (linkListWa.length === 0) return;
+        const textToCopy = linkListWa[0];
+        doCopyText(textToCopy, 'Link tersalin');
+        if (linkModeWa === 'cut') {
+            linkListWa.shift();
+            saveLinksLocalWa(linkListWa, linkModeWa);
+        }
+    }
+
+    function copyPasswordWa(btnElement) {
+        if (passwordListWa.length === 0) return;
+        const textToCopy = passwordListWa[0];
+        doCopyText(textToCopy, 'Password tersalin');
+        if (passwordModeWa === 'cut') {
+            passwordListWa.shift();
+            savePasswordsLocalWa(passwordListWa, passwordModeWa);
+        }
+    }
+
+    function copyCodeWa(btnElement) {
+        if (codeListWa.length === 0) return;
+        const textToCopy = codeListWa[0];
+        doCopyText(textToCopy, 'Code tersalin');
+        if (codeModeWa === 'cut') {
+            codeListWa.shift();
+            saveCodesLocalWa(codeListWa, codeModeWa);
+        }
+    }
+
+    function saveLinksLocalWa(list, mode) {
+        linkListWa = list; linkModeWa = mode;
+        localStorage.setItem('wa_links_data', JSON.stringify(linkListWa));
+        localStorage.setItem('wa_links_mode', linkModeWa);
+        db.ref('wa_settings/link_mode').set(linkModeWa).catch(() => {});
+        db.ref('wa_links').set(linkListWa).catch(() => {});
+        updateLinkBtnUIWa();
+    }
+
+    function savePasswordsLocalWa(list, mode) {
+        passwordListWa = list; passwordModeWa = mode;
+        localStorage.setItem('wa_passwords_data', JSON.stringify(passwordListWa));
+        localStorage.setItem('wa_passwords_mode', passwordModeWa);
+        db.ref('wa_settings/pass_mode').set(passwordModeWa).catch(() => {});
+        db.ref('wa_passwords').set(passwordListWa).catch(() => {});
+        updatePasswordBtnUIWa();
+    }
+
+    function saveCodesLocalWa(list, mode) {
+        codeListWa = list; codeModeWa = mode;
+        localStorage.setItem('wa_codes_data', JSON.stringify(codeListWa));
+        localStorage.setItem('wa_codes_mode', codeModeWa);
+        db.ref('wa_settings/code_mode').set(codeModeWa).catch(() => {});
+        db.ref('wa_codes').set(codeListWa).catch(() => {});
+        updateCodeBtnUIWa();
+    }
+
+    function openEditLinkModalWa() {
+        document.getElementById('edit-link-mode-select-wa').value = linkModeWa;
+        document.getElementById('edit-shopee-textarea-wa').value = linkListWa.join('\n');
+        document.getElementById('edit-link-modal-wa').classList.add('active');
+    }
+    function closeEditLinkModalWa() {
+        document.getElementById('edit-link-modal-wa').classList.remove('active');
+    }
+    function saveEditedLinksWa() {
+        const mode = document.getElementById('edit-link-mode-select-wa').value;
+        const text = document.getElementById('edit-shopee-textarea-wa').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        saveLinksLocalWa(lines, mode);
+        closeEditLinkModalWa();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} link (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllLinksWa() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar link?")) {
+            saveLinksLocalWa([], linkModeWa);
+            document.getElementById('edit-shopee-textarea-wa').value = '';
+            closeEditLinkModalWa();
+            showModal("Sukses", "Semua link dihapus", "alert");
+        }
+    }
+
+    function openEditPasswordModalWa() {
+        document.getElementById('edit-password-mode-select-wa').value = passwordModeWa;
+        document.getElementById('edit-password-textarea-wa').value = passwordListWa.join('\n');
+        document.getElementById('edit-password-modal-wa').classList.add('active');
+    }
+    function closeEditPasswordModalWa() {
+        document.getElementById('edit-password-modal-wa').classList.remove('active');
+    }
+    function saveEditedPasswordsWa() {
+        const mode = document.getElementById('edit-password-mode-select-wa').value;
+        const text = document.getElementById('edit-password-textarea-wa').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        savePasswordsLocalWa(lines, mode);
+        closeEditPasswordModalWa();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} password (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllPasswordsWa() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar password?")) {
+            savePasswordsLocalWa([], passwordModeWa);
+            document.getElementById('edit-password-textarea-wa').value = '';
+            closeEditPasswordModalWa();
+            showModal("Sukses", "Semua password dihapus", "alert");
+        }
+    }
+
+    function openEditCodeModalWa() {
+        document.getElementById('edit-code-mode-select-wa').value = codeModeWa;
+        document.getElementById('edit-kode-textarea-wa').value = codeListWa.join('\n');
+        document.getElementById('edit-code-modal-wa').classList.add('active');
+    }
+    function closeEditCodeModalWa() {
+        document.getElementById('edit-code-modal-wa').classList.remove('active');
+    }
+    function saveEditedKodeWa() {
+        const mode = document.getElementById('edit-code-mode-select-wa').value;
+        const text = document.getElementById('edit-kode-textarea-wa').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        saveCodesLocalWa(lines, mode);
+        closeEditCodeModalWa();
+        showModal("Sukses", `Berhasil menyimpan ${lines.length} code (Mode: ${mode.toUpperCase()})`, "alert");
+    }
+    async function deleteAllKodeWa() {
+        if (await showModal("Konfirmasi", "Hapus semua daftar code?")) {
+            saveCodesLocalWa([], codeModeWa);
+            document.getElementById('edit-kode-textarea-wa').value = '';
+            closeEditCodeModalWa();
+            showModal("Sukses", "Semua code dihapus", "alert");
+        }
+    }
+
 
     // ================= PENGATURAN AWAL =================
     const DEFAULT_USERS = ["UMAM", "YANTO", "MIA", "NAZILA", "MAHFUDZ", "MIFTAH"];
@@ -748,10 +1490,8 @@
         
         initUserDropdown();
         if (typeof updatePasteUI === 'function') updatePasteUI();
-
-        
-        
-        
+        if (typeof updateServiceHeaderUIWa === 'function') updateServiceHeaderUIWa();
+        if (typeof loadInitialAppDataWa === 'function') loadInitialAppDataWa();
 
         document.body.addEventListener('click', () => {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -760,16 +1500,17 @@
 
     // ================= FUNGSI DASAR UI =================
     document.addEventListener('click', function(event) {
-        const mainMenu = document.getElementById('main-menu');
-        const adminMenu = document.getElementById('admin-menu');
-        const menuIcon = document.querySelector('.menu-icon');
+        if (event.target.closest('.menu-icon')) return;
 
-        if (mainMenu && adminMenu && menuIcon) {
-            if (!mainMenu.contains(event.target) && !adminMenu.contains(event.target) && !menuIcon.contains(event.target)) {
-                mainMenu.classList.remove('active');
-                adminMenu.classList.remove('active');
-            }
-        }
+        const mainMenu = document.getElementById('main-menu');
+        const mainMenuWa = document.getElementById('main-menu-wa');
+        const adminMenu = document.getElementById('admin-menu');
+        const adminMenuWa = document.getElementById('admin-menu-wa');
+
+        if (mainMenu && !mainMenu.contains(event.target)) mainMenu.classList.remove('active');
+        if (mainMenuWa && !mainMenuWa.contains(event.target)) mainMenuWa.classList.remove('active');
+        if (adminMenu && !adminMenu.contains(event.target)) adminMenu.classList.remove('active');
+        if (adminMenuWa && !adminMenuWa.contains(event.target)) adminMenuWa.classList.remove('active');
     });
 
     function initUserDropdown() {
@@ -794,7 +1535,8 @@
         applyUserLockUI();
         refreshAllData();
         
-        setInterval(pollSms, 5000); 
+        setInterval(pollSms, 5000);
+        setInterval(pollSmsWa, 5000); 
         setInterval(updateSmsTimers, 1000);
     }
 
@@ -1484,11 +2226,17 @@
             if(btnData) {
                 btnData.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
             }
+            const btnDataWa = document.getElementById('btn-data-acak-wa');
+            if(btnDataWa) {
+                btnDataWa.innerHTML = `<i class="fas fa-id-card"></i> Data Acak`;
+            }
         })
         .catch(e => {
             console.log("Gagal memuat pos.csv", e);
             const btnData = document.getElementById('btn-data-acak');
             if(btnData) btnData.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
+            const btnDataWa = document.getElementById('btn-data-acak-wa');
+            if(btnDataWa) btnDataWa.innerHTML = `<i class="fas fa-id-card"></i> Error CSV`;
         });
     
     function generateDataAcak(btnElement) {
