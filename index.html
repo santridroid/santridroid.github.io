@@ -357,9 +357,14 @@
             <button id="btn-copy-code-wa" class="btn btn-green btn-lg" onclick="copyCodeWa(this)">
                 <i class="fas fa-code"></i> Copy Code (0)
             </button>
-            <button id="btn-edit-code-wa" class="btn btn-pink btn-lg" onclick="openEditCodeModalWa()">
-                <i class="fas fa-edit"></i> Edit
-            </button>
+            <div style="display: flex; gap: 6px;">
+                <button id="btn-edit-code-wa" class="btn btn-pink btn-lg" style="flex: 1; padding: 11px 4px; font-size: 13px;" onclick="openEditCodeModalWa()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button id="btn-next-code-wa" class="btn btn-orange btn-lg" style="flex: 1; padding: 11px 4px; font-size: 13px;" onclick="nextCodeWa(this)">
+                    <i class="fas fa-forward"></i> Next
+                </button>
+            </div>
 
             <button id="btn-data-acak-wa" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)">
                 <i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...
@@ -375,16 +380,21 @@
                 <label for="user-catatan-input-wa" style="font-size: 12px; font-weight: bold; color: #555;">
                     <i class="fas fa-sticky-note" style="color: #f39c12;"></i> CATATAN:
                 </label>
-                <button id="btn-copy-notes-wa" class="btn btn-teal" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotesWa(this)">
-                    <i class="far fa-copy"></i> Copy Catatan
-                </button>
+                <div style="display: flex; gap: 6px;">
+                    <button id="btn-cut-notes-wa" class="btn btn-blue" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="cutNotesWa(this)">
+                        <i class="fas fa-cut"></i> Cut
+                    </button>
+                    <button id="btn-copy-notes-wa" class="btn btn-green" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotesWa(this)">
+                        <i class="far fa-copy"></i> Copy
+                    </button>
+                </div>
             </div>
             
-            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #ccc; border-radius: 5px; background: #fff; height: 90px; overflow: hidden; position: relative;">
+            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #b8dcbe; border-radius: 5px; background-color: #eef7ed; background-image: repeating-linear-gradient(transparent, transparent 19px, #cce4cb 19px, #cce4cb 20px); height: 90px; overflow: hidden; position: relative;">
                 <!-- Line Numbers Gutter -->
                 <div id="notes-line-numbers-wa" 
-                    style="width: 36px; background-color: #e2e8f0; border-right: 1px solid #cbd5e1; font-size: 13px; font-family: monospace; font-weight: bold; user-select: none; -webkit-user-select: none; overflow: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
-                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #64748b;">1</div>
+                    style="width: 36px; background-color: #e2ede1; border-right: 1px solid #cbd8ca; font-size: 13px; font-family: monospace; user-select: none; -webkit-user-select: none; overflow: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
+                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #4a5d49; font-weight: normal;">1</div>
                 </div>
                 
                 <!-- Text Content Area (Backdrop + Textarea) -->
@@ -396,11 +406,25 @@
 
                     <!-- Notes Textarea -->
                     <textarea id="user-catatan-input-wa" 
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: transparent; caret-color: #000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: #000000; font-weight: 400; caret-color: #000000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
                         placeholder="Tulis catatan di sini..." 
                         oninput="updateNotesLineNumbersWa(); saveUserNotesWa(this.value);"
+                        onkeyup="updateNotesLineNumbersWa();"
+                        onchange="updateNotesLineNumbersWa();"
+                        onpaste="setTimeout(updateNotesLineNumbersWa, 10);"
                         onscroll="syncNotesScrollWa()"></textarea>
                 </div>
+            </div>
+
+            <!-- 1-LINE INPUT TEXTBOX & INPUT BUTTON -->
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                <input type="text" id="append-catatan-input-wa" 
+                    style="flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 6px 10px; font-size: 13px; height: 32px; color: #000; font-weight: bold;" 
+                    placeholder="Masukkan teks ke catatan di sini..." 
+                    onkeydown="if(event.key==='Enter') addTextToCatatanWa()">
+                <button class="btn btn-blue" style="width: auto; padding: 0 14px; font-size: 12px; height: 32px; font-weight: bold; flex-shrink: 0;" onclick="addTextToCatatanWa()">
+                    <i class="fas fa-plus"></i> INPUT
+                </button>
             </div>
         </div>
     </div>
@@ -1164,18 +1188,24 @@
         const savedLinks = localStorage.getItem('wa_links_data');
         if (savedLinks) {
             try { linkListWa = JSON.parse(savedLinks); } catch(e) { linkListWa = savedLinks.split('\n').filter(l => l.trim() !== ''); }
+        } else {
+            linkListWa = [];
         }
         linkModeWa = localStorage.getItem('wa_links_mode') || 'cut';
 
         const savedPass = localStorage.getItem('wa_passwords_data');
         if (savedPass) {
             try { passwordListWa = JSON.parse(savedPass); } catch(e) { passwordListWa = savedPass.split('\n').filter(l => l.trim() !== ''); }
+        } else {
+            passwordListWa = ["santridroid"];
         }
         passwordModeWa = localStorage.getItem('wa_passwords_mode') || 'copy';
 
         const savedCodes = localStorage.getItem('wa_codes_data');
         if (savedCodes) {
             try { codeListWa = JSON.parse(savedCodes); } catch(e) { codeListWa = savedCodes.split('\n').filter(l => l.trim() !== ''); }
+        } else {
+            codeListWa = [];
         }
         codeModeWa = localStorage.getItem('wa_codes_mode') || 'cut';
 
@@ -1186,37 +1216,19 @@
             updateNotesLineNumbersWa();
         }
 
-        db.ref('wa_settings/link_mode').on('value', snap => { if(snap.val()) linkModeWa = snap.val(); updateLinkBtnUIWa(); });
-        db.ref('wa_settings/pass_mode').on('value', snap => { if(snap.val()) passwordModeWa = snap.val(); updatePasswordBtnUIWa(); });
-        db.ref('wa_settings/code_mode').on('value', snap => { if(snap.val()) codeModeWa = snap.val(); updateCodeBtnUIWa(); });
-
-        db.ref('wa_links').on('value', snap => {
-            if (snap.val()) {
-                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
-                if (arr && arr.length > 0) { linkListWa = arr; localStorage.setItem('wa_links_data', JSON.stringify(linkListWa)); }
-            }
-            updateLinkBtnUIWa();
-        });
-
-        db.ref('wa_passwords').on('value', snap => {
-            if (snap.val()) {
-                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
-                if (arr && arr.length > 0) { passwordListWa = arr; localStorage.setItem('wa_passwords_data', JSON.stringify(passwordListWa)); }
-            }
-            updatePasswordBtnUIWa();
-        });
-
-        db.ref('wa_codes').on('value', snap => {
-            if (snap.val()) {
-                const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
-                if (arr && arr.length > 0) { codeListWa = arr; localStorage.setItem('wa_codes_data', JSON.stringify(codeListWa)); }
-            }
-            updateCodeBtnUIWa();
-        });
-
         updateLinkBtnUIWa();
         updatePasswordBtnUIWa();
         updateCodeBtnUIWa();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     function updateNotesLineNumbersWa() {
@@ -1226,7 +1238,7 @@
         if (!textarea || !gutter || !backdrop) return;
 
         const val = textarea.value;
-        const lines = val.split('\n');
+        const lines = val.split(/\r\n|\r|\n/);
         const lineCount = Math.max(1, lines.length);
 
         let gutterHtml = '';
@@ -1239,18 +1251,14 @@
             const lineText = (rawText !== undefined && rawText !== '') ? escapeHtml(rawText) : '&nbsp;';
 
             if (isMultipleOf6) {
-                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #ff4d4d; color: #000; font-weight: bold;">${i}</div>`;
-                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #ff4d4d; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #ff4d4d; color: #000000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #ff4d4d; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
             } else if (isMultipleOf7) {
-                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #2ecc71; color: #000; font-weight: bold;">${i}</div>`;
-                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #2ecc71; color: #000; font-weight: bold; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #2ecc71; color: #000000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #2ecc71; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
             } else {
-                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #e2e8f0; color: #64748b; font-weight: bold;">${i}</div>`;
-                if (val === '') {
-                    backdropHtml += ``;
-                } else {
-                    backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: transparent; color: #333; overflow: hidden; padding-left: 2px;">${lineText}</div>`;
-                }
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #e2ede1; color: #4a5d49; font-weight: normal;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: transparent; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
             }
         }
 
@@ -1276,9 +1284,46 @@
         localStorage.setItem('wa_user_notes', val);
     }
 
+    function addTextToCatatanWa() {
+        const input = document.getElementById('append-catatan-input-wa');
+        const textarea = document.getElementById('user-catatan-input-wa');
+        if (!input || !textarea) return;
+        const textToAdd = input.value;
+        if (!textToAdd || !textToAdd.trim()) return showToast("Masukkan teks terlebih dahulu");
+
+        let currentVal = textarea.value;
+        if (currentVal.length > 0 && !currentVal.endsWith('\n')) {
+            currentVal += '\n';
+        }
+        currentVal += textToAdd.trim();
+        textarea.value = currentVal;
+        input.value = '';
+
+        saveUserNotesWa(currentVal);
+        updateNotesLineNumbersWa();
+        showToast("Teks ditambahkan ke catatan");
+    }
+
+    function cutNotesWa(btnElement) {
+        const textarea = document.getElementById('user-catatan-input-wa');
+        if (!textarea) return;
+        const val = textarea.value;
+        if (!val || !val.trim()) {
+            return showToast("Catatan Kosong");
+        }
+        doCopyText(val, 'Catatan ter-cut');
+        textarea.value = '';
+        saveUserNotesWa('');
+        updateNotesLineNumbersWa();
+    }
+
     function copyNotesWa(btnElement) {
-        const val = document.getElementById('user-catatan-input-wa').value;
-        if (!val || !val.trim()) return showTempNotif(btnElement, '<i class="fa-solid fa-triangle-exclamation"></i> Kosong', '<i class="far fa-copy"></i> Copy Catatan');
+        const textarea = document.getElementById('user-catatan-input-wa');
+        if (!textarea) return;
+        const val = textarea.value;
+        if (!val || !val.trim()) {
+            return showToast("Catatan Kosong");
+        }
         doCopyText(val, 'Catatan tersalin');
     }
 
@@ -1294,7 +1339,7 @@
         } else {
             btn.className = "btn btn-lg";
             btn.style.backgroundColor = "#95a5a6";
-            btn.disabled = true;
+            btn.disabled = false;
             btn.innerHTML = `<i class="fas fa-link"></i> Link Kosong`;
         }
     }
@@ -1311,7 +1356,7 @@
         } else {
             btn.className = "btn btn-lg";
             btn.style.backgroundColor = "#95a5a6";
-            btn.disabled = true;
+            btn.disabled = false;
             btn.innerHTML = `<i class="fas fa-key"></i> Password Kosong`;
         }
     }
@@ -1328,13 +1373,15 @@
         } else {
             btn.className = "btn btn-lg";
             btn.style.backgroundColor = "#95a5a6";
-            btn.disabled = true;
+            btn.disabled = false;
             btn.innerHTML = `<i class="fas fa-code"></i> Code Kosong`;
         }
     }
 
     function copyLinkWa(btnElement) {
-        if (linkListWa.length === 0) return;
+        if (linkListWa.length === 0) {
+            return showToast("Daftar Link Kosong");
+        }
         const textToCopy = linkListWa[0];
         doCopyText(textToCopy, 'Link tersalin');
         if (linkModeWa === 'cut') {
@@ -1344,7 +1391,9 @@
     }
 
     function copyPasswordWa(btnElement) {
-        if (passwordListWa.length === 0) return;
+        if (passwordListWa.length === 0) {
+            return showToast("Daftar Password Kosong");
+        }
         const textToCopy = passwordListWa[0];
         doCopyText(textToCopy, 'Password tersalin');
         if (passwordModeWa === 'cut') {
@@ -1354,12 +1403,23 @@
     }
 
     function copyCodeWa(btnElement) {
-        if (codeListWa.length === 0) return;
+        if (codeListWa.length === 0) {
+            return showToast("Daftar Code Kosong");
+        }
         const textToCopy = codeListWa[0];
         doCopyText(textToCopy, 'Code tersalin');
-        if (codeModeWa === 'cut') {
-            codeListWa.shift();
-            saveCodesLocalWa(codeListWa, codeModeWa);
+    }
+
+    function nextCodeWa(btnElement) {
+        if (codeListWa.length === 0) {
+            return showToast("Daftar Code Kosong");
+        }
+        const removedCode = codeListWa.shift();
+        saveCodesLocalWa(codeListWa, codeModeWa);
+        if (codeListWa.length > 0) {
+            showToast(`Code ter-cut. Lanjut ke berikutnya (Sisa: ${codeListWa.length})`);
+        } else {
+            showToast("Semua Code telah ter-cut (Kosong)");
         }
     }
 
@@ -1367,8 +1427,6 @@
         linkListWa = list; linkModeWa = mode;
         localStorage.setItem('wa_links_data', JSON.stringify(linkListWa));
         localStorage.setItem('wa_links_mode', linkModeWa);
-        db.ref('wa_settings/link_mode').set(linkModeWa).catch(() => {});
-        db.ref('wa_links').set(linkListWa).catch(() => {});
         updateLinkBtnUIWa();
     }
 
@@ -1376,8 +1434,6 @@
         passwordListWa = list; passwordModeWa = mode;
         localStorage.setItem('wa_passwords_data', JSON.stringify(passwordListWa));
         localStorage.setItem('wa_passwords_mode', passwordModeWa);
-        db.ref('wa_settings/pass_mode').set(passwordModeWa).catch(() => {});
-        db.ref('wa_passwords').set(passwordListWa).catch(() => {});
         updatePasswordBtnUIWa();
     }
 
@@ -1385,8 +1441,6 @@
         codeListWa = list; codeModeWa = mode;
         localStorage.setItem('wa_codes_data', JSON.stringify(codeListWa));
         localStorage.setItem('wa_codes_mode', codeModeWa);
-        db.ref('wa_settings/code_mode').set(codeModeWa).catch(() => {});
-        db.ref('wa_codes').set(codeListWa).catch(() => {});
         updateCodeBtnUIWa();
     }
 
@@ -2156,11 +2210,20 @@
     function doCopy(text, onSuccess, onError) {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text)
-                .then(() => onSuccess())
+                .then(() => { if (onSuccess) onSuccess(); })
                 .catch(() => fallbackCopyTextToClipboard(text, onSuccess, onError));
         } else {
             fallbackCopyTextToClipboard(text, onSuccess, onError);
         }
+    }
+
+    function doCopyText(text, msg) {
+        if (!text) return;
+        doCopy(text, () => {
+            if (msg) showToast(msg);
+        }, () => {
+            showToast("Gagal menyalin ke clipboard");
+        });
     }
 
     function fallbackCopyTextToClipboard(text, onSuccess, onError) {
