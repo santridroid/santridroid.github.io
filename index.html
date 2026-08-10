@@ -142,10 +142,10 @@
             </div>
         </header>
         <div id="main-menu" class="admin-popup">
-            <div class="menu-item" onclick="openAdminMenu()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="openAdminMenu(event)"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
             <div class="menu-item" onclick="switchToWhatsappView()"><i class="fab fa-whatsapp" style="color: #25D366; font-size: 22px;"></i> WhatsApp</div>
             <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
-            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
+            <div class="menu-item" onclick="openServerModal(event)"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
         <div id="admin-menu" class="admin-popup">
             <div id="login-form">
@@ -308,10 +308,10 @@
             </div>
         </header>
         <div id="main-menu-wa" class="admin-popup">
-            <div class="menu-item" onclick="openAdminMenuWa()"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
+            <div class="menu-item" onclick="openAdminMenuWa(event)"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
             <div class="menu-item" onclick="switchToSmsView()"><i class="fas fa-comment-sms" style="color: #2e86de; font-size: 22px;"></i> Layanan SMS</div>
             <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
-            <div class="menu-item" onclick="openServerModal()"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
+            <div class="menu-item" onclick="openServerModal(event)"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
         <div id="admin-menu-wa" class="admin-popup">
             <div id="login-form-wa">
@@ -1030,11 +1030,45 @@
         if (menu) menu.classList.toggle('active');
     }
 
-    function openAdminMenuWa() {
+    function openAdminMenuWa(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
         const menu = document.getElementById('main-menu-wa');
         const adminMenu = document.getElementById('admin-menu-wa');
         if (menu) menu.classList.remove('active');
         if (adminMenu) adminMenu.classList.add('active');
+    }
+
+    function globalLoginWa() {
+        const emailEl = document.getElementById('global-email-wa');
+        const passEl = document.getElementById('global-pass-wa');
+        const rememberEl = document.getElementById('remember-me-wa');
+        if (!emailEl || !passEl) return;
+
+        const e = emailEl.value.trim();
+        const p = passEl.value.trim();
+        const rememberMe = rememberEl ? rememberEl.checked : false;
+
+        if (!e || !p) return showModal("Peringatan", "Email dan Password harus diisi", "alert");
+
+        localStorage.removeItem('session_synced');
+        auth.signInWithEmailAndPassword(e, p).then(() => {
+            showModal("Sukses", "Login Admin Berhasil", "alert");
+            if (rememberMe) {
+                localStorage.setItem('xurel_admin_email', e);
+                localStorage.setItem('xurel_admin_pass', p);
+            } else {
+                localStorage.removeItem('xurel_admin_email');
+                localStorage.removeItem('xurel_admin_pass');
+            }
+            const adminMenu = document.getElementById('admin-menu-wa');
+            if (adminMenu) adminMenu.classList.remove('active');
+        }).catch(() => showModal("Gagal", "Email atau Password Salah", "alert"));
+    }
+
+    function globalLogoutWa() {
+        auth.signOut();
+        const adminMenu = document.getElementById('admin-menu-wa');
+        if (adminMenu) adminMenu.classList.remove('active');
     }
 
     function toggleUserLockWa() {
@@ -1556,16 +1590,18 @@
     // ================= FUNGSI DASAR UI =================
     document.addEventListener('click', function(event) {
         if (event.target.closest('.menu-icon')) return;
+        if (event.target.closest('.admin-popup')) return;
+        if (event.target.closest('.modal-overlay')) return;
 
         const mainMenu = document.getElementById('main-menu');
         const mainMenuWa = document.getElementById('main-menu-wa');
         const adminMenu = document.getElementById('admin-menu');
         const adminMenuWa = document.getElementById('admin-menu-wa');
 
-        if (mainMenu && !mainMenu.contains(event.target)) mainMenu.classList.remove('active');
-        if (mainMenuWa && !mainMenuWa.contains(event.target)) mainMenuWa.classList.remove('active');
-        if (adminMenu && !adminMenu.contains(event.target)) adminMenu.classList.remove('active');
-        if (adminMenuWa && !adminMenuWa.contains(event.target)) adminMenuWa.classList.remove('active');
+        if (mainMenu) mainMenu.classList.remove('active');
+        if (mainMenuWa) mainMenuWa.classList.remove('active');
+        if (adminMenu) adminMenu.classList.remove('active');
+        if (adminMenuWa) adminMenuWa.classList.remove('active');
     });
 
     function initUserDropdown() {
@@ -1741,13 +1777,15 @@
         document.getElementById('server-modal').classList.remove('active');
     }
     
-    function openAdminMenu() { 
+    function openAdminMenu(e) { 
+        if (e && e.stopPropagation) e.stopPropagation();
         document.getElementById('main-menu').classList.remove('active'); 
         document.getElementById('admin-menu').classList.add('active'); 
         if (typeof updatePasteUI === 'function') updatePasteUI();
     }
 
-    function openServerModal() {
+    function openServerModal(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
         document.getElementById('main-menu').classList.remove('active');
         document.getElementById('server-modal').classList.add('active');
         document.querySelectorAll('.server-btn').forEach(btn => {
@@ -1775,8 +1813,16 @@
 
     auth.onAuthStateChanged(user => {
         globalUser = user; 
-        document.getElementById('login-form').classList.toggle('hidden', !!user);
-        document.getElementById('logout-form').classList.toggle('hidden', !user);
+        const loginForm = document.getElementById('login-form');
+        const logoutForm = document.getElementById('logout-form');
+        if (loginForm) loginForm.classList.toggle('hidden', !!user);
+        if (logoutForm) logoutForm.classList.toggle('hidden', !user);
+
+        const loginFormWa = document.getElementById('login-form-wa');
+        const logoutFormWa = document.getElementById('logout-form-wa');
+        if (loginFormWa) loginFormWa.classList.toggle('hidden', !!user);
+        if (logoutFormWa) logoutFormWa.classList.toggle('hidden', !user);
+
         refreshSms();
     });
 
