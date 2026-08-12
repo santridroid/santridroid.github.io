@@ -68,8 +68,8 @@
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
         .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
-        .btn-grid { display: flex; gap: 5px; flex-wrap: wrap;}
-        .btn-sm { flex: 1; padding: 6px 5px; border: 1px solid #ccc; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555;}
+        .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+        .btn-sm { width: 100%; padding: 6px 4px; border: 1px solid #ccc; background: rgba(255,255,255,0.85); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555; text-align: center; box-sizing: border-box; }
         .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
         .loader-bars { display: flex; align-items: center; justify-content: center; gap: 4px; height: 20px;}
         .loader-bars span { display: block; width: 4px; height: 100%; background-color: #95a5a6; border-radius: 2px; animation: bounceBar 1.2s infinite ease-in-out; }
@@ -229,6 +229,9 @@
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
 </div>
+</div>
+
+<!-- GLOBAL MODALS & OVERLAYS -->
 <div id="toast-container"></div>
 <div id="universal-modal" class="modal-overlay" style="z-index: 3000;">
     <div class="modal-box">
@@ -285,7 +288,6 @@
 <button class="fab-quick-note" onclick="switchToNotesView()">
     <i class="fas fa-pencil-alt"></i>
 </button>
-</div>
 
 <!-- ==================== WHATSAPP VIEW ==================== -->
 <div id="whatsapp-view" style="display: none;">
@@ -1139,10 +1141,14 @@
             });
             const j = await res.json();
             if(j.success) {
-                const o = j.data.orders[0]; 
-                localStorage.setItem(`UMAM_phone_${o.id}`, o.phone_number); 
-                localStorage.setItem(`UMAM_price_${o.id}`, price);
-                localStorage.setItem(`UMAM_provider_${o.id}`, "herosms"); 
+                const ordersArr = j.data?.orders || (Array.isArray(j.data) ? j.data : [j.data]);
+                const o = ordersArr[0] || {};
+                const orderId = o.id || o.order_id || Date.now();
+                const phoneNum = o.phone_number || o.phone || 'Mencari...';
+
+                localStorage.setItem(`UMAM_phone_${orderId}`, phoneNum); 
+                localStorage.setItem(`UMAM_price_${orderId}`, price);
+                localStorage.setItem(`UMAM_provider_${orderId}`, "herosms"); 
                 pollSmsWa(); updateSmsBalWa();
             } else showModal("Gagal", j.error?.message || `Gagal order nomor ${serviceInfo.name}`, "alert");
         } catch(e){
@@ -1155,45 +1161,276 @@
         const waView = document.getElementById('whatsapp-view');
         if(!box || !waView || waView.style.display === 'none') return;
         try {
-            const res = await fetchWorker(`/get-active`, {
-                headers: { "X-User-Name": "UMAM", "X-Provider": "herosms" }
+            let idsHero = [];
+            const prefix = `UMAM_phone_`;
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key && key.startsWith(prefix)) {
+                    let id = key.replace(prefix, '');
+                    idsHero.push(id);
+                }
+            }
+
+            if (idsHero.length === 0) {
+                box.innerHTML = '';
+                return;
+            }
+
+            const res = await fetch(`${WORKER_URL}/get-active`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" },
+                body: JSON.stringify({ active_ids: idsHero })
             });
             const j = await res.json();
-            if(j.success && j.data && j.data.orders) {
-                renderActiveOrdersWa(j.data.orders);
-            } else {
-                box.innerHTML = '';
+            let orders = [];
+            if(j.success && j.data) {
+                orders = Array.isArray(j.data) ? j.data : (j.data.orders || [j.data]);
             }
+            renderActiveOrdersWa(orders);
         } catch(e) {}
     }
 
-    function renderActiveOrdersWa(orders) {
-        const box = document.getElementById('sms-active-orders-wa');
-        if(!box) return;
-        if(!orders || orders.length === 0) { box.innerHTML = ''; return; }
-        
-        box.innerHTML = orders.map(o => {
-            const phone = localStorage.getItem(`UMAM_phone_${o.id}`) || o.phone_number || 'Nomor...';
-            const price = localStorage.getItem(`UMAM_price_${o.id}`) || '0';
-            const smsObj = (o.sms && o.sms.length > 0) ? o.sms[0] : null;
-            const otpCode = smsObj ? (smsObj.code || smsObj.text) : 'Menunggu SMS...';
+    async function actSmsWa(action, id) {
+        if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        try {
+            const res = await fetchWorker(`/order-action`, { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" }, 
+                body: JSON.stringify({ id, action, order_id: id }) 
+            });
+            const j = await res.json();
+            if(j.success) {
+                if(action !== 'resend') { 
+                    cleanUpOrderStorageWa(id);
+                }
+                pollSmsWa(); updateSmsBalWa();
+            } else {
+                showModal("Gagal", j.error?.message || "Gagal melakukan aksi", "alert");
+            }
+        } catch(e) {
+            showModal("Gagal", "Error koneksi server worker", "alert");
+        }
+    }
 
-            return `
-                <div class="order-card card-herosms">
-                    <div class="order-header">
-                        <span>HERO SMS (UMAM)</span>
-                        <span>$ ${price}</span>
+    function cleanUpOrderStorageWa(id) {
+        localStorage.removeItem(`UMAM_phone_${id}`);
+        localStorage.removeItem(`UMAM_price_${id}`);
+        localStorage.removeItem(`UMAM_provider_${id}`);
+        localStorage.removeItem(`UMAM_timer_${id}`);
+        localStorage.removeItem(`UMAM_block_timer_${id}`);
+        localStorage.removeItem(`UMAM_hide_${id}`);
+    }
+
+    function toggleHideWa(id) {
+        const key = `UMAM_hide_${id}`;
+        const isHidden = localStorage.getItem(key) === 'true';
+        if (isHidden) localStorage.removeItem(key);
+        else localStorage.setItem(key, 'true');
+        pollSmsWa();
+    }
+
+    function blockSmsWa(id) {
+        let expireTime = localStorage.getItem(`UMAM_timer_${id}`);
+        if (!expireTime) {
+            expireTime = Date.now() + (20 * 60000);
+            localStorage.setItem(`UMAM_timer_${id}`, expireTime);
+        }
+
+        const remainingSecs = Math.floor((parseInt(expireTime) - Date.now()) / 1000);
+        const passed2Mins = (remainingSecs <= 1080);
+
+        if (passed2Mins) {
+            autoCancelSmsWa(id);
+        } else {
+            const blockEndTime = parseInt(expireTime) - (1080 * 1000);
+            localStorage.setItem(`UMAM_block_timer_${id}`, blockEndTime);
+            pollSmsWa();
+        }
+    }
+
+    function unblockSmsWa(id) {
+        localStorage.removeItem(`UMAM_block_timer_${id}`);
+        showOtpToast("Blokir dibatalkan");
+        pollSmsWa();
+    }
+
+    async function autoCancelSmsWa(id) {
+        try {
+            const res = await fetchWorker(`/order-action`, { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" }, 
+                body: JSON.stringify({ id, action: 'cancel', order_id: id }) 
+            });
+            await res.json();
+        } catch(e){}
+        cleanUpOrderStorageWa(id);
+        pollSmsWa(); updateSmsBalWa();
+    }
+
+    function updateWaTimers() {
+        const now = Date.now();
+        const prefix = `UMAM_timer_`;
+
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                const id = key.replace(prefix, '');
+                const expireTime = parseInt(localStorage.getItem(key));
+                const diff = Math.floor((expireTime - now) / 1000);
+
+                const el = document.querySelector(`.sms-timer-wa[data-id="${id}"]`);
+                if (diff <= 0) {
+                    if (el) el.innerText = "00:00";
+                } else {
+                    const mins = String(Math.floor(diff / 60)).padStart(2, '0');
+                    const secs = String(diff % 60).padStart(2, '0');
+                    if (el) el.innerText = `${mins}:${secs}`;
+                }
+            }
+        }
+
+        document.querySelectorAll('.block-countdown-wa').forEach(el => {
+            const id = el.getAttribute('data-id');
+            const blockTime = localStorage.getItem(`UMAM_block_timer_${id}`);
+            if (blockTime) {
+                const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now()) / 1000));
+                el.innerText = `${diff}s`;
+            }
+        });
+    }
+
+    function renderActiveOrdersWa(orders) {
+        const container = document.getElementById('sms-active-orders-wa');
+        if(!container) return;
+        const activeIds = orders ? orders.map(o => 'wa-order-' + (o.id || o.order_id)) : [];
+        
+        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        
+        if(!orders || !orders.length) { container.innerHTML = ''; return; }
+
+        orders.forEach(o => {
+            const orderId = o.id || o.order_id;
+            const phone = o.phone || o.phone_number || localStorage.getItem(`UMAM_phone_${orderId}`) || 'Mencari...';
+            if(o.phone || o.phone_number) localStorage.setItem(`UMAM_phone_${orderId}`, o.phone || o.phone_number);
+
+            const price = localStorage.getItem(`UMAM_price_${orderId}`) || o.price || o.cost || '0.07';
+            if(price) localStorage.setItem(`UMAM_price_${orderId}`, price);
+
+            let expireTime = localStorage.getItem(`UMAM_timer_${orderId}`);
+            if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`UMAM_timer_${orderId}`, expireTime); }
+
+            const now = Date.now();
+            if (now >= parseInt(expireTime) + 5000) {
+                const card = document.getElementById('wa-order-' + orderId);
+                if (card) card.remove();
+                cleanUpOrderStorageWa(orderId);
+                return;
+            }
+
+            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1080);
+
+            // Block check
+            const blockTime = localStorage.getItem(`UMAM_block_timer_${orderId}`);
+            const isBlocked = blockTime && (parseInt(blockTime) - Date.now() > 0);
+
+            if (blockTime && !isBlocked) {
+                localStorage.removeItem(`UMAM_block_timer_${orderId}`);
+                autoCancelSmsWa(orderId);
+                return;
+            }
+
+            if (isBlocked) {
+                const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
+                const blockedHtml = `
+                    <div class="blocked-status-bar" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span>Cancel: <span class="block-countdown-wa" data-id="${orderId}">${diff}s</span></span>
+                            <span style="margin-left: 10px;">$ ${price}</span>
+                        </div>
+                        <button class="btn-sm btn-blue btn-unblock" style="background-color: #38bdf8; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;" onclick="unblockSmsWa('${orderId}')">UNBLOCK</button>
                     </div>
-                    <div class="order-phone" onclick="doCopyText('${phone}', 'Nomor tersalin')">${phone}</div>
-                    <div class="order-otp">${otpCode}</div>
-                    <div class="btn-grid">
-                        <button class="btn-sm" onclick="doCopyText('${phone}', 'Nomor tersalin')"><i class="far fa-copy"></i> No</button>
-                        <button class="btn-sm" ${smsObj ? '' : 'disabled'} onclick="doCopyText('${smsObj?.code || ''}', 'OTP tersalin')"><i class="far fa-copy"></i> OTP</button>
-                        <button class="btn-sm" style="background:#e74c3c; color:white;" onclick="cancelOrderWa('${o.id}')"><i class="fas fa-times"></i> Batal</button>
-                    </div>
+                `;
+                const existing = document.getElementById('wa-order-' + orderId);
+                if (existing) {
+                    existing.className = `order-card order-blocked`;
+                    existing.innerHTML = blockedHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card order-blocked" id="wa-order-${orderId}">
+                        ${blockedHtml}
+                    </div>`);
+                }
+                return;
+            }
+
+            let smsCode = o.otp_code || (o.sms && o.sms.length > 0 ? (o.sms[0].code || o.sms[0].text) : null);
+            if (smsCode && !localStorage.getItem(`UMAM_notif_otp_${orderId}_${smsCode}`)) {
+                showOtpToast(smsCode); localStorage.setItem(`UMAM_notif_otp_${orderId}_${smsCode}`, 'true');
+            }
+
+            const isHidden = localStorage.getItem(`UMAM_hide_${orderId}`) === 'true';
+            const unhideBtnHtml = `<button class="btn btn-blue btn-unhide" style="background-color: #38bdf8; color: white; width: 100%; padding: 8px 10px; font-weight: bold; border-radius: 5px; cursor: pointer;" onclick="toggleHideWa('${orderId}')">UNHIDE</button>`;
+
+            if (isHidden) {
+                const existing = document.getElementById('wa-order-' + orderId);
+                if (existing) {
+                    existing.className = `order-card card-herosms`;
+                    existing.innerHTML = unhideBtnHtml;
+                } else {
+                    container.insertAdjacentHTML('afterbegin', `
+                    <div class="order-card card-herosms" id="wa-order-${orderId}">
+                        ${unhideBtnHtml}
+                    </div>`);
+                }
+                return;
+            }
+
+            let otpDisplay = smsCode ? smsCode : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            const fullCardHtml = `
+                <div class="order-header"><span>#${orderId} - $ ${price}</span><span class="sms-timer-wa" data-id="${orderId}">--:--</span></div>
+                <div class="order-phone" onclick="doCopyText('${phone}', 'Nomor tersalin')">${phone}</div>
+                <div class="order-otp">${otpDisplay}</div>
+                <div class="btn-grid">
+                    <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideWa('${orderId}')">HIDE</button>
+                    <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSmsWa('finish', '${orderId}')">DONE</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1;" onclick="actSmsWa('resend', '${orderId}')" ${smsCode?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-cancel" style="grid-column: 1; grid-row: 2;" onclick="actSmsWa('cancel', '${orderId}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2;" onclick="doCopyText('${smsCode||''}', 'OTP tersalin')" ${smsCode?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2;" onclick="blockSmsWa('${orderId}')">BLOCK</button>
                 </div>
             `;
-        }).join('');
+
+            const existing = document.getElementById('wa-order-' + orderId);
+            if (existing) {
+                existing.className = `order-card card-herosms`;
+                if (!existing.querySelector('.order-phone')) {
+                    existing.innerHTML = fullCardHtml;
+                } else {
+                    existing.querySelector('.order-header span').innerText = `#${orderId} - $ ${price}`;
+                    existing.querySelector('.order-phone').innerText = phone;
+                    existing.querySelector('.order-otp').innerHTML = otpDisplay;
+                    if(smsCode) {
+                        let resendBtn = existing.querySelector('.btn-resend');
+                        if(resendBtn) resendBtn.disabled = false;
+                        let salinBtn = existing.querySelector('.btn-salin');
+                        if(salinBtn) {
+                            salinBtn.disabled = false;
+                            salinBtn.setAttribute('onclick', `doCopyText('${smsCode}', 'OTP tersalin')`);
+                        }
+                    }
+                    if(passed2Mins) { 
+                        let cancelBtn = existing.querySelector('.btn-cancel');
+                        if(cancelBtn) cancelBtn.disabled = false; 
+                    }
+                }
+            } else {
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="order-card card-herosms" id="wa-order-${orderId}">
+                    ${fullCardHtml}
+                </div>`);
+            }
+        });
+        updateWaTimers();
     }
 
     async function cancelOrderWa(orderId) {
@@ -1629,6 +1866,7 @@
         setInterval(pollSms, 5000);
         setInterval(pollSmsWa, 5000); 
         setInterval(updateSmsTimers, 1000);
+        setInterval(updateWaTimers, 1000);
     }
 
     function updateDropdownUI() {
@@ -2724,9 +2962,12 @@
             if (isBlocked) {
                 const diff = Math.max(0, Math.floor((parseInt(blockTime) - Date.now())/1000));
                 const blockedHtml = `
-                    <div class="blocked-status-bar">
-                        <span>Cancel: <span class="block-countdown" data-id="${o.id}">${diff}s</span></span>
-                        <span>${currStr}${serverPrice||'...'}</span>
+                    <div class="blocked-status-bar" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span>Cancel: <span class="block-countdown" data-id="${o.id}">${diff}s</span></span>
+                            <span style="margin-left: 10px;">${currStr}${serverPrice||'...'}</span>
+                        </div>
+                        <button class="btn-sm btn-blue btn-unblock" style="background-color: #38bdf8; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;" onclick="unblockSms('${o.id}')">UNBLOCK</button>
                     </div>
                 `;
                 const existing = document.getElementById('order-' + o.id);
@@ -2769,12 +3010,12 @@
                 <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
                 <div class="order-otp">${otpDisplay}</div>
                 <div class="btn-grid">
-                    <button class="btn-sm btn-hide" style="background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
-                    <button class="btn-sm" onclick="actSms('finish', '${o.id}')">DONE</button>
-                    <button class="btn-sm btn-resend" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
-                    <button class="btn-sm btn-cancel" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                    <button class="btn-sm btn-salin" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
-                    <button class="btn-sm btn-block" onclick="blockSms('${o.id}')">BLOCK</button>
+                    <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
+                    <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSms('finish', '${o.id}')">DONE</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1;" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-cancel" style="grid-column: 1; grid-row: 2;" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2;" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2;" onclick="blockSms('${o.id}')">BLOCK</button>
                 </div>
             `;
 
@@ -2809,6 +3050,12 @@
             }
         });
         updateSmsTimers();
+    }
+
+    function unblockSms(id) {
+        localStorage.removeItem(`${currentUser}_block_timer_${id}`);
+        showToast("Blokir dibatalkan (Unblocked)");
+        pollSms();
     }
 
     function updateSmsTimers() {
