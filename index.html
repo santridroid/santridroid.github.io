@@ -346,7 +346,7 @@
     <div class="card">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
             <button id="btn-copy-link-wa" class="btn btn-orange btn-lg" onclick="copyLinkWa(this)">
-                <i class="fas fa-link"></i> Copy Link (0)
+                <i class="fas fa-code"></i> Copy Code (0)
             </button>
             <button id="btn-edit-link-wa" class="btn btn-blue btn-lg" onclick="openEditLinkModalWa()">
                 <i class="fas fa-edit"></i> Edit
@@ -360,7 +360,7 @@
             </button>
 
             <button id="btn-copy-code-wa" class="btn btn-green btn-lg" onclick="copyCodeWa(this)">
-                <i class="fas fa-code"></i> Copy Code (0)
+                <i class="fas fa-phone"></i> Copy Nomor (0)
             </button>
             <div style="display: flex; gap: 6px;">
                 <button id="btn-edit-code-wa" class="btn btn-pink btn-lg" style="flex: 1; padding: 11px 4px; font-size: 13px;" onclick="openEditCodeModalWa()">
@@ -374,8 +374,8 @@
             <button id="btn-data-acak-wa" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)">
                 <i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...
             </button>
-            <button id="btn-data-asli-wa" class="btn btn-blue btn-lg" onclick="generateDataAsli(this)">
-                <i class="fas fa-id-card"></i> Data Asli
+            <button id="btn-data-asli-wa" class="btn btn-red btn-lg" onclick="copyLinkDaftarWa(this)">
+                <i class="fas fa-external-link-alt"></i> Link Daftar
             </button>
         </div>
 
@@ -1475,11 +1475,11 @@
 
     // --- LINK, PASSWORD, CODE & CATATAN LOGIC FOR WA VIEW ---
     let linkListWa = [];
-    let linkModeWa = 'cut';
+    let linkModeWa = 'copy';
     let passwordListWa = ["santridroid"];
     let passwordModeWa = 'copy';
     let codeListWa = [];
-    let codeModeWa = 'cut';
+    let codeModeWa = 'copy';
 
     function loadInitialAppDataWa() {
         const savedLinks = localStorage.getItem('wa_links_data');
@@ -1488,7 +1488,7 @@
         } else {
             linkListWa = [];
         }
-        linkModeWa = localStorage.getItem('wa_links_mode') || 'cut';
+        linkModeWa = localStorage.getItem('wa_links_mode') || 'copy';
 
         const savedPass = localStorage.getItem('wa_passwords_data');
         if (savedPass) {
@@ -1504,7 +1504,7 @@
         } else {
             codeListWa = [];
         }
-        codeModeWa = localStorage.getItem('wa_codes_mode') || 'cut';
+        codeModeWa = localStorage.getItem('wa_codes_mode') || 'copy';
 
         const savedNotes = localStorage.getItem('wa_user_notes') || '';
         const notesInput = document.getElementById('user-catatan-input-wa');
@@ -1629,6 +1629,11 @@
         doCopyText(val, 'Catatan tersalin');
     }
 
+    function copyLinkDaftarWa(btnElement) {
+        const linkDaftar = 'https://shopee.co.id/buyer/signup?from=/&next=/';
+        doCopyText(linkDaftar, 'Link Daftar tersalin');
+    }
+
     function updateLinkBtnUIWa() {
         const btn = document.getElementById('btn-copy-link-wa');
         if (!btn) return;
@@ -1637,12 +1642,12 @@
             btn.className = "btn btn-orange btn-lg";
             btn.style.backgroundColor = "";
             btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-link"></i> Copy Link (${count})`;
+            btn.innerHTML = `<i class="fas fa-code"></i> Copy Code (${count})`;
         } else {
             btn.className = "btn btn-lg";
             btn.style.backgroundColor = "#95a5a6";
             btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-link"></i> Link Kosong`;
+            btn.innerHTML = `<i class="fas fa-code"></i> Code Kosong`;
         }
     }
 
@@ -1671,12 +1676,12 @@
             btn.className = "btn btn-green btn-lg";
             btn.style.backgroundColor = "";
             btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-code"></i> Copy Code (${count})`;
+            btn.innerHTML = `<i class="fas fa-phone"></i> Copy Nomor (${count})`;
         } else {
             btn.className = "btn btn-lg";
             btn.style.backgroundColor = "#95a5a6";
             btn.disabled = false;
-            btn.innerHTML = `<i class="fas fa-code"></i> Code Kosong`;
+            btn.innerHTML = `<i class="fas fa-phone"></i> Nomor Kosong`;
         }
     }
 
