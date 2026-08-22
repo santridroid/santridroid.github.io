@@ -71,6 +71,7 @@
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: bold; color: #555;}
         .order-phone { font-size: 20px; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 10px; cursor: pointer; color: #2c3e50;}
         .order-otp { text-align: center; font-size: 22px; font-weight: bold; color: #27ae60; letter-spacing: 2px; min-height: 30px; margin-bottom: 10px;}
+        .order-otp.otp-url { font-size: 12px; letter-spacing: 0; word-break: break-all; color: #2980b9; text-decoration: underline; cursor: pointer; }
         .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
         .btn-sm { width: 100%; padding: 6px 4px; border: 1px solid #ccc; background: rgba(255,255,255,0.85); border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #555; text-align: center; box-sizing: border-box; }
         .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -928,6 +929,10 @@
         document.body.style.padding = '0';
         document.body.style.display = 'block';
         document.body.style.backgroundColor = '#f0f0f0';
+
+        // Sembunyikan tombol pensil di halaman catatan
+        const fabNote = document.querySelector('.fab-quick-note');
+        if (fabNote) fabNote.style.display = 'none';
     }
     function switchToSmsView() {
         const mainMenu = document.getElementById('main-menu');
@@ -944,6 +949,10 @@
         document.body.style.display = 'flex';
         document.body.style.justifyContent = 'center';
         document.body.style.backgroundColor = '#eef2f6';
+
+        // Tampilkan kembali tombol pensil di halaman SMS
+        const fabNote = document.querySelector('.fab-quick-note');
+        if (fabNote) fabNote.style.display = 'flex';
     }
     function switchToWhatsappView() {
         const mainMenu = document.getElementById('main-menu');
@@ -957,6 +966,10 @@
         document.body.style.display = 'flex';
         document.body.style.justifyContent = 'center';
         document.body.style.backgroundColor = '#eef2f6';
+
+        // Tampilkan kembali tombol pensil di halaman WhatsApp
+        const fabNote = document.querySelector('.fab-quick-note');
+        if (fabNote) fabNote.style.display = 'flex';
 
         updateServiceHeaderUIWa();
         loadSmsPricesWa();
@@ -1411,11 +1424,13 @@
                 return;
             }
 
+            let isUrlWa = smsCode && /^https?:\/\//i.test(smsCode);
             let otpDisplay = smsCode ? smsCode : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            let otpClassWa = isUrlWa ? 'order-otp otp-url' : 'order-otp';
             const fullCardHtml = `
                 <div class="order-header"><span>#${orderId} - $ ${price}</span><span class="sms-timer-wa" data-id="${orderId}">--:--</span></div>
                 <div class="order-phone" onclick="doCopyText('${phone}', 'Nomor tersalin')">${phone}</div>
-                <div class="order-otp">${otpDisplay}</div>
+                <div class="${otpClassWa}">${otpDisplay}</div>
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideWa('${orderId}')">HIDE</button>
                     <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSmsWa('finish', '${orderId}')">DONE</button>
@@ -3041,11 +3056,13 @@
                 return;
             }
 
+            let isUrl = o.otp_code && /^https?:\/\//i.test(o.otp_code);
             let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            let otpClass = isUrl ? 'order-otp otp-url' : 'order-otp';
             const fullCardHtml = `
                 <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
                 <div class="order-phone" onclick="copyPhoneNumber('${phone}', this)">${phone}</div>
-                <div class="order-otp">${otpDisplay}</div>
+                <div class="${otpClass}">${otpDisplay}</div>
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
                     <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSms('finish', '${o.id}')">DONE</button>
