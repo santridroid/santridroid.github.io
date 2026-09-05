@@ -304,9 +304,12 @@
                     <option value="wa">WhatsApp</option>
                     <option value="ka">Shopee</option>
                 </select>
-                <div class="header-title" id="header-service-title-wa" style="white-space: nowrap;">
-                    <i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i> WhatsApp
-                </div>
+                <select id="wa-provider-selector" onchange="changeWaProvider()" style="padding: 5px 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; cursor: pointer;">
+                    <option value="herosms">Hero SMS 1</option>
+                    <option value="herosms2">Hero SMS 2</option>
+                    <option value="otpcepat1">OTP Cepat 1</option>
+                    <option value="otpcepat2">OTP Cepat 2</option>
+                </select>
             </div>
             <div class="header-right">
                 <span class="saldo-text" id="sms-balance-wa">$ 0</span>
@@ -994,52 +997,21 @@
     
     // ================= WHATSAPP / SHOPEE VIEW LOGIC =================
     let currentHeroServiceWa = localStorage.getItem('wa_hero_service') || 'wa';
+    let currentWaProvider = localStorage.getItem('wa_provider') || 'herosms';
     let isUserLockedWa = false;
 
     const HERO_SERVICES_WA = {
-        wa: {
-            code: "wa",
-            name: "WhatsApp",
-            color: "#25D366",
-            icon: '<i class="fab fa-whatsapp" style="font-size: 20px; color: #25D366;"></i>',
-            operators: [
-                { code: "indosat", name: "Indosat (Promo)", price: 0.1575 },
-                { code: "indosat", name: "INDOSAT", price: 0.1644 },
-                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.1575 },
-                { code: "telkomsel", name: "TELKOMSEL", price: 0.1644 },
-                { code: "three", name: "Three (Promo)", price: 0.1575 },
-                { code: "three", name: "THREE", price: 0.1644 },
-                { code: "xl", name: "XL (Promo)", price: 0.1575 },
-                { code: "xl", name: "XL", price: 0.1644 },
-                { code: "axis", name: "AXIS (Promo)", price: 0.1575 },
-                { code: "axis", name: "AXIS", price: 0.1644 },
-                { code: "smartfren", name: "Smartfren (Promo)", price: 0.1575 },
-                { code: "smartfren", name: "SMARTFREN", price: 0.1644 },
-                { code: "any", name: "Semua Operator", price: 0.1644 }
-            ]
-        },
-        ka: {
-            code: "ka",
-            name: "Shopee",
-            color: "#ee4d2d",
-            icon: '<i class="fas fa-shopping-bag" style="font-size: 18px; color: #ee4d2d;"></i>',
-            operators: [
-                { code: "indosat", name: "Indosat (Promo)", price: 0.063 },
-                { code: "indosat", name: "INDOSAT", price: 0.07 },
-                { code: "telkomsel", name: "Telkomsel (Promo)", price: 0.063 },
-                { code: "telkomsel", name: "TELKOMSEL", price: 0.07 },
-                { code: "three", name: "Three (Promo)", price: 0.063 },
-                { code: "three", name: "THREE", price: 0.07 },
-                { code: "xl", name: "XL (Promo)", price: 0.063 },
-                { code: "xl", name: "XL", price: 0.07 },
-                { code: "axis", name: "AXIS (Promo)", price: 0.063 },
-                { code: "axis", name: "AXIS", price: 0.07 },
-                { code: "smartfren", name: "Smartfren (Promo)", price: 0.063 },
-                { code: "smartfren", name: "SMARTFREN", price: 0.07 },
-                { code: "any", name: "Semua Operator", price: 0.07 }
-            ]
-        }
+        wa: { code: "wa", name: "WhatsApp" },
+        ka: { code: "ka", name: "Shopee" }
     };
+
+    // Fungsi baru: fetchWorkerWa - mengirim request ke worker dengan provider dari WA view
+    async function fetchWorkerWa(path, options = {}) {
+        return fetch(`${WORKER_URL}${path}`, { 
+            ...options, 
+            headers: { ...options.headers, "X-User-Name": "UMAM", "X-Provider": currentWaProvider } 
+        });
+    }
 
     function toggleMainMenuWa() {
         const menu = document.getElementById('main-menu-wa');
@@ -1104,44 +1076,110 @@
             currentHeroServiceWa = select.value;
             localStorage.setItem('wa_hero_service', currentHeroServiceWa);
         }
-        updateServiceHeaderUIWa();
         loadSmsPricesWa();
     }
 
-    function updateServiceHeaderUIWa() {
-        const select = document.getElementById('hero-service-selector-wa');
-        if (select) select.value = currentHeroServiceWa;
+    function changeWaProvider() {
+        const select = document.getElementById('wa-provider-selector');
+        if (select) {
+            currentWaProvider = select.value;
+            localStorage.setItem('wa_provider', currentWaProvider);
+        }
+        loadSmsPricesWa();
+        updateSmsBalWa();
+    }
 
-        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
-        const titleEl = document.getElementById('header-service-title-wa');
-        if (titleEl) {
-            titleEl.style.color = serviceInfo.color;
-            titleEl.innerHTML = `${serviceInfo.icon} ${serviceInfo.name}`;
+    function updateServiceHeaderUIWa() {
+        const provSelect = document.getElementById('wa-provider-selector');
+        if (provSelect) provSelect.value = currentWaProvider;
+        const serviceSelect = document.getElementById('hero-service-selector-wa');
+        if (serviceSelect) {
+            serviceSelect.value = currentHeroServiceWa;
         }
     }
 
-    function loadSmsPricesWa() {
+    async function loadSmsPricesWa() {
         const box = document.getElementById('sms-prices-wa');
         if (!box) return;
-        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
+        box.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Mengambil Data...</div>';
 
-        box.innerHTML = serviceInfo.operators.map(op => `
-            <div class="list-item" onclick="buySmsWa('6|${serviceInfo.code}|${op.code}', ${op.price}, '${op.name}')">
-                <span class="item-name">${op.name}</span>
-                <span class="item-price">$ ${op.price.toFixed(4)}</span>
-                <span class="item-stock">~ stok</span>
-            </div>
-        `).join('');
+        try {
+            // Kirim service code (wa/ka) via query parameter ?service= agar tidak memicu CORS preflight error
+            const srv = currentHeroServiceWa || 'wa';
+            const isWa = (srv === 'wa');
+            const res = await fetchWorkerWa(`/get-prices?service=${srv}`);
+            const json = await res.json();
+
+            let currencyStr = "$ ";
+            if (currentWaProvider.startsWith('otpcepat')) currencyStr = "Rp ";
+
+            let listData = (json && json.data && Array.isArray(json.data)) ? json.data : [];
+
+            // Filter agar hanya menampilkan layanan yang cocok dengan pilihan (WhatsApp atau Shopee)
+            let filtered = listData.filter(i => {
+                const n = (i.name || '').toLowerCase();
+                return isWa 
+                    ? (n.includes('whatsapp') || n.includes('whats app') || n.includes('watsap') || /\bwa\b/.test(n))
+                    : n.includes('shopee');
+            });
+
+            // Jika memilih WhatsApp namun worker masih mengembalikan list Shopee (worker lama belum di-deploy)
+            if (isWa && filtered.length === 0) {
+                if (currentWaProvider === 'herosms' || currentWaProvider === 'herosms2') {
+                    // Fallback langsung untuk Hero SMS agar bisa langsung dipakai
+                    filtered = [
+                        { id: '6|wa|indosat|0.1575', name: 'WhatsApp Indosat (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|indosat|0.1644', name: 'WhatsApp INDOSAT', price: 0.1644, available: '~' },
+                        { id: '6|wa|telkomsel|0.1575', name: 'WhatsApp Telkomsel (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|telkomsel|0.1644', name: 'WhatsApp TELKOMSEL', price: 0.1644, available: '~' },
+                        { id: '6|wa|three|0.1575', name: 'WhatsApp Three (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|three|0.1644', name: 'WhatsApp THREE', price: 0.1644, available: '~' },
+                        { id: '6|wa|xl|0.1575', name: 'WhatsApp XL (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|xl|0.1644', name: 'WhatsApp XL', price: 0.1644, available: '~' },
+                        { id: '6|wa|axis|0.1575', name: 'WhatsApp AXIS (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|axis|0.1644', name: 'WhatsApp AXIS', price: 0.1644, available: '~' },
+                        { id: '6|wa|smartfren|0.1575', name: 'WhatsApp Smartfren (Promo)', price: 0.1575, available: '~' },
+                        { id: '6|wa|smartfren|0.1644', name: 'WhatsApp SMARTFREN', price: 0.1644, available: '~' }
+                    ];
+                } else {
+                    box.innerHTML = `<div style="padding:15px; text-align:center; color:#e67e22; font-size:12px; line-height:1.5;">
+                        <b>Layanan WhatsApp OTP Cepat Belum Aktif di Worker</b><br>
+                        Cloudflare Worker saat ini masih menggunakan kode lama yang hanya menampilkan Shopee.<br>
+                        Silakan copy & deploy ulang kode dari <b>Cloudflare Worker.txt</b> ke Cloudflare Workers Dashboard agar layanan WhatsApp OTP Cepat dapat dimuat.
+                    </div>`;
+                    return;
+                }
+            }
+
+            if (filtered.length > 0) {
+                box.innerHTML = filtered.map(i => `
+                    <div class="list-item" onclick="buySmsWa('${i.id}', ${i.price}, '${i.name}')">
+                        <span class="item-name">${i.name}</span>
+                        <span class="item-price">${currencyStr}${i.price}</span>
+                        <span class="item-stock">${i.available || '~'} stok</span>
+                    </div>`).join('');
+            } else {
+                box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                    ${json.error || "Layanan " + (isWa ? "WhatsApp" : "Shopee") + " tidak ditemukan / Kosong"}
+                </div>`;
+            }
+        } catch (e) {
+            box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`;
+        }
     }
 
     async function updateSmsBalWa() {
         try {
-            const res = await fetchWorker(`/get-balance`, {
-                headers: { "X-User-Name": "UMAM", "X-Provider": "herosms" }
-            }); 
+            const res = await fetchWorkerWa(`/get-balance`); 
             const json = await res.json();
             if (json.success && document.getElementById('sms-balance-wa')) {
-                document.getElementById('sms-balance-wa').innerText = `$ ${json.data.balance}`;
+                let currencyPrefix = "$ ";
+                let balanceDisplay = json.data.balance;
+                if (currentWaProvider.startsWith('otpcepat')) {
+                    currencyPrefix = "Rp ";
+                    balanceDisplay = parseFloat(balanceDisplay).toLocaleString('id-ID');
+                }
+                document.getElementById('sms-balance-wa').innerText = `${currencyPrefix}${balanceDisplay}`;
             }
         } catch(e) {}
     }
@@ -1151,12 +1189,15 @@
         if (!globalUser) {
             return showModal("Peringatan", "Anda harus login terlebih dahulu untuk menggunakan layanan SMS.", "alert");
         }
-        const serviceInfo = HERO_SERVICES_WA[currentHeroServiceWa] || HERO_SERVICES_WA.wa;
-        if(!await showModal(`Pesan Nomor ${serviceInfo.name}`, `Beli ${name} (${serviceInfo.name}) seharga $ ${price}?`)) return;
+
+        let currStr = "$ ";
+        if (currentWaProvider.startsWith('otpcepat')) currStr = "Rp ";
+
+        if(!await showModal(`Pesan Nomor`, `Beli ${name} seharga ${currStr}${price}?`)) return;
         try {
-            const res = await fetchWorker(`/create-order`, { 
+            const res = await fetchWorkerWa(`/create-order`, { 
                 method: "POST", 
-                headers: {"Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms"}, 
+                headers: {"Content-Type": "application/json"}, 
                 body: JSON.stringify({ product_id: pid }) 
             });
             const j = await res.json();
@@ -1168,9 +1209,9 @@
 
                 localStorage.setItem(`UMAM_phone_${orderId}`, phoneNum); 
                 localStorage.setItem(`UMAM_price_${orderId}`, price);
-                localStorage.setItem(`UMAM_provider_${orderId}`, "herosms"); 
+                localStorage.setItem(`UMAM_provider_${orderId}`, currentWaProvider); 
                 pollSmsWa(); updateSmsBalWa();
-            } else showModal("Gagal", j.error?.message || `Gagal order nomor ${serviceInfo.name}`, "alert");
+            } else showModal("Gagal", j.error?.message || `Gagal order nomor`, "alert");
         } catch(e){
             showModal("Gagal", "Gagal menghubungi server worker", "alert");
         }
@@ -1181,41 +1222,58 @@
         const waView = document.getElementById('whatsapp-view');
         if(!box || !waView || waView.style.display === 'none') return;
         try {
-            let idsHero = [];
+            // Kumpulkan semua order ID dan kelompokkan berdasarkan provider
             const prefix = `UMAM_phone_`;
+            const ordersByProvider = {};
             for(let i=0; i<localStorage.length; i++) {
                 let key = localStorage.key(i);
                 if(key && key.startsWith(prefix)) {
                     let id = key.replace(prefix, '');
-                    idsHero.push(id);
+                    let prov = localStorage.getItem(`UMAM_provider_${id}`) || 'herosms';
+                    if (!ordersByProvider[prov]) ordersByProvider[prov] = [];
+                    ordersByProvider[prov].push(id);
                 }
             }
 
-            if (idsHero.length === 0) {
+            const allProviders = Object.keys(ordersByProvider);
+            if (allProviders.length === 0) {
                 box.innerHTML = '';
                 return;
             }
 
-            const res = await fetch(`${WORKER_URL}/get-active`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" },
-                body: JSON.stringify({ active_ids: idsHero })
+            // Fetch dari setiap provider secara paralel
+            let allOrders = [];
+            const fetchPromises = allProviders.map(async (prov) => {
+                const ids = ordersByProvider[prov];
+                try {
+                    const res = await fetch(`${WORKER_URL}/get-active`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": prov },
+                        body: JSON.stringify({ active_ids: ids })
+                    });
+                    const j = await res.json();
+                    if(j.success && j.data) {
+                        let orders = Array.isArray(j.data) ? j.data : (j.data.orders || [j.data]);
+                        orders.forEach(o => { o._provider = prov; });
+                        return orders;
+                    }
+                } catch(e) {}
+                return [];
             });
-            const j = await res.json();
-            let orders = [];
-            if(j.success && j.data) {
-                orders = Array.isArray(j.data) ? j.data : (j.data.orders || [j.data]);
-            }
-            renderActiveOrdersWa(orders);
+            const results = await Promise.all(fetchPromises);
+            results.forEach(orders => { allOrders = allOrders.concat(orders); });
+
+            renderActiveOrdersWa(allOrders);
         } catch(e) {}
     }
 
     async function actSmsWa(action, id) {
         if(!await showModal("Konfirmasi", action === 'cancel' ? "Batalkan pesanan ini?" : "Lanjutkan aksi ini?")) return;
+        const orderProv = localStorage.getItem(`UMAM_provider_${id}`) || currentWaProvider;
         try {
-            const res = await fetchWorker(`/order-action`, { 
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
                 method: "POST", 
-                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" }, 
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": orderProv }, 
                 body: JSON.stringify({ id, action, order_id: id }) 
             });
             const j = await res.json();
@@ -1276,10 +1334,11 @@
     }
 
     async function autoCancelSmsWa(id) {
+        const orderProv = localStorage.getItem(`UMAM_provider_${id}`) || currentWaProvider;
         try {
-            const res = await fetchWorker(`/order-action`, { 
+            const res = await fetch(`${WORKER_URL}/order-action`, { 
                 method: "POST", 
-                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" }, 
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": orderProv }, 
                 body: JSON.stringify({ id, action: 'cancel', order_id: id }) 
             });
             await res.json();
@@ -1354,6 +1413,10 @@
 
             const price = localStorage.getItem(`UMAM_price_${orderId}`) || o.price || o.cost || '0.07';
             if(price) localStorage.setItem(`UMAM_price_${orderId}`, price);
+            const orderProv = o._provider || localStorage.getItem(`UMAM_provider_${orderId}`) || 'herosms';
+            let currStr = (orderProv.startsWith('otpcepat')) ? 'Rp ' : '$ ';
+            let cardClass = 'card-herosms';
+            if (orderProv.startsWith('otpcepat')) cardClass = 'card-otpcepat';
 
             let expireTime = localStorage.getItem(`UMAM_timer_${orderId}`);
             if (!expireTime) { expireTime = Date.now() + (20 * 60000); localStorage.setItem(`UMAM_timer_${orderId}`, expireTime); }
@@ -1384,7 +1447,7 @@
                     <div class="blocked-status-bar" style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <span>Cancel: <span class="block-countdown-wa" data-id="${orderId}">${diff}s</span></span>
-                            <span style="margin-left: 10px;">$ ${price}</span>
+                            <span style="margin-left: 10px;">${currStr}${price}</span>
                         </div>
                         <button class="btn-sm btn-blue btn-unblock" style="background-color: #38bdf8; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;" onclick="unblockSmsWa('${orderId}')">UNBLOCK</button>
                     </div>
@@ -1413,11 +1476,11 @@
             if (isHidden) {
                 const existing = document.getElementById('wa-order-' + orderId);
                 if (existing) {
-                    existing.className = `order-card card-herosms`;
+                    existing.className = `order-card ${cardClass}`;
                     existing.innerHTML = unhideBtnHtml;
                 } else {
                     container.insertAdjacentHTML('afterbegin', `
-                    <div class="order-card card-herosms" id="wa-order-${orderId}">
+                    <div class="order-card ${cardClass}" id="wa-order-${orderId}">
                         ${unhideBtnHtml}
                     </div>`);
                 }
@@ -1428,31 +1491,33 @@
             let otpDisplay = smsCode ? smsCode : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
             let otpClassWa = isUrlWa ? 'order-otp otp-url' : 'order-otp';
             const fullCardHtml = `
-                <div class="order-header"><span>#${orderId} - $ ${price}</span><span class="sms-timer-wa" data-id="${orderId}">--:--</span></div>
+                <div class="order-header"><span>#${orderId} - ${currStr}${price}</span><span class="sms-timer-wa" data-id="${orderId}">--:--</span></div>
                 <div class="order-phone" onclick="doCopyText('${phone}', 'Nomor tersalin')">${phone}</div>
                 <div class="${otpClassWa}">${otpDisplay}</div>
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideWa('${orderId}')">HIDE</button>
-                    <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSmsWa('finish', '${orderId}')">DONE</button>
-                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1;" onclick="actSmsWa('resend', '${orderId}')" ${smsCode?'':'disabled'}>RESEND</button>
-                    <button class="btn-sm btn-cancel" style="grid-column: 1; grid-row: 2;" onclick="actSmsWa('cancel', '${orderId}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2;" onclick="doCopyText('${smsCode||''}', 'OTP tersalin')" ${smsCode?'':'disabled'}>SALIN</button>
-                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2;" onclick="blockSmsWa('${orderId}')">BLOCK</button>
+                    <button class="btn-sm btn-cancel" style="grid-column: 2; grid-row: 1; background-color: #ef4444; color: white;" onclick="actSmsWa('cancel', '${orderId}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSmsWa('resend', '${orderId}')" ${smsCode?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-done" style="grid-column: 1; grid-row: 2; background-color: #22c55e; color: white;" onclick="actSmsWa('finish', '${orderId}')" ${smsCode?'':'disabled'}>DONE</button>
+                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2; background-color: #8b5cf6; color: white;" onclick="doCopyText('${smsCode||''}', 'OTP tersalin')" ${smsCode?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2; background-color: #6b7280; color: white;" onclick="blockSmsWa('${orderId}')">BLOCK</button>
                 </div>
             `;
 
             const existing = document.getElementById('wa-order-' + orderId);
             if (existing) {
-                existing.className = `order-card card-herosms`;
+                existing.className = `order-card ${cardClass}`;
                 if (!existing.querySelector('.order-phone')) {
                     existing.innerHTML = fullCardHtml;
                 } else {
-                    existing.querySelector('.order-header span').innerText = `#${orderId} - $ ${price}`;
+                    existing.querySelector('.order-header span').innerText = `#${orderId} - ${currStr}${price}`;
                     existing.querySelector('.order-phone').innerText = phone;
                     existing.querySelector('.order-otp').innerHTML = otpDisplay;
                     if(smsCode) {
                         let resendBtn = existing.querySelector('.btn-resend');
                         if(resendBtn) resendBtn.disabled = false;
+                        let doneBtn = existing.querySelector('.btn-done');
+                        if(doneBtn) doneBtn.disabled = false;
                         let salinBtn = existing.querySelector('.btn-salin');
                         if(salinBtn) {
                             salinBtn.disabled = false;
@@ -1466,7 +1531,7 @@
                 }
             } else {
                 container.insertAdjacentHTML('afterbegin', `
-                <div class="order-card card-herosms" id="wa-order-${orderId}">
+                <div class="order-card ${cardClass}" id="wa-order-${orderId}">
                     ${fullCardHtml}
                 </div>`);
             }
@@ -1476,10 +1541,11 @@
 
     async function cancelOrderWa(orderId) {
         if(!await showModal("Konfirmasi Batal", "Batalkan pesanan nomor ini?")) return;
+        const orderProv = localStorage.getItem(`UMAM_provider_${orderId}`) || currentWaProvider;
         try {
-            const res = await fetchWorker(`/order-action`, {
+            const res = await fetch(`${WORKER_URL}/order-action`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": "herosms" },
+                headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": orderProv },
                 body: JSON.stringify({ action: "cancel", order_id: orderId })
             });
             const j = await res.json();
@@ -3065,11 +3131,11 @@
                 <div class="${otpClass}">${otpDisplay}</div>
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
-                    <button class="btn-sm" style="grid-column: 2; grid-row: 1;" onclick="actSms('finish', '${o.id}')">DONE</button>
-                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1;" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
-                    <button class="btn-sm btn-cancel" style="grid-column: 1; grid-row: 2;" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2;" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
-                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2;" onclick="blockSms('${o.id}')">BLOCK</button>
+                    <button class="btn-sm btn-cancel" style="grid-column: 2; grid-row: 1; background-color: #ef4444; color: white;" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-done" style="grid-column: 1; grid-row: 2; background-color: #22c55e; color: white;" onclick="actSms('finish', '${o.id}')" ${o.otp_code?'':'disabled'}>DONE</button>
+                    <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2; background-color: #8b5cf6; color: white;" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
+                    <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2; background-color: #6b7280; color: white;" onclick="blockSms('${o.id}')">BLOCK</button>
                 </div>
             `;
 
@@ -3085,6 +3151,8 @@
                     if(o.otp_code) {
                         let resendBtn = existing.querySelector('.btn-resend');
                         if(resendBtn) resendBtn.disabled = false;
+                        let doneBtn = existing.querySelector('.btn-done');
+                        if(doneBtn) doneBtn.disabled = false;
                         let salinBtn = existing.querySelector('.btn-salin');
                         if(salinBtn) {
                             salinBtn.disabled = false;
