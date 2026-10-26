@@ -38,9 +38,9 @@
         .menu-item:last-child { border-bottom: none; }
         .card { background-color: white; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; border: 1px solid #e0e0e0; }
         .email-input { width: 100%; border: 1px solid #ccc; padding: 6px 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 8px; font-size: 13px; }
-        .btn { width: 100%; padding: 6px 8px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn { width: 100%; padding: 8px 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn-lg { padding: 6px 6px; font-size: 12px; min-height: 34px; }
+        .btn-lg { padding: 11px 8px; font-size: 14px; min-height: 45px; }
         .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
@@ -216,7 +216,7 @@
             <button class="btn btn-red" style="width: 36px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 0px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0px;">
             <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
             <button id="btn-data-acak" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
