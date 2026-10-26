@@ -21,8 +21,8 @@
         .hidden { display: none !important; }
         #sms-view, #whatsapp-view { width: 100%; max-width: 400px; margin: 0 auto; }
         .app-container { width: 100%; background-color: #eef2f6; position: relative; padding: 4px 2px; padding-top: 10px; }
-        .header { background-color: white; padding: 15px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
-        .sticky-header-wrapper { position: sticky; top: 10px; z-index: 1000; margin-bottom: 10px; }
+        .header { background-color: white; padding: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; flex-wrap: nowrap; gap: 8px; z-index: 1000; }
+        .sticky-header-wrapper { position: sticky; top: 6px; z-index: 1000; margin-bottom: 6px; }
         .menu-icon { font-size: 20px; color: #555; cursor: pointer; flex-shrink: 0; }
         .dropdown-group { display: flex; gap: 5px; flex: 1; justify-content: center; margin-top: 8px; }
         .dropdown-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; width: 100%; max-width: 115px; text-overflow: ellipsis; cursor: pointer; }
@@ -36,11 +36,11 @@
         .menu-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
         .menu-item:hover { background-color: #f5f5f5; border-radius: 5px; }
         .menu-item:last-child { border-bottom: none; }
-        .card { background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
-        .email-input { width: 100%; border: 1px solid #ccc; padding: 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 10px; font-size: 15px; }
-        .btn { width: 100%; padding: 8px 10px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; transition: 0.2s; }
+        .card { background-color: white; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; border: 1px solid #e0e0e0; }
+        .email-input { width: 100%; border: 1px solid #ccc; padding: 6px 10px; text-align: center; font-weight: bold; border-radius: 5px; margin-bottom: 8px; font-size: 13px; }
+        .btn { width: 100%; padding: 6px 8px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn-lg { padding: 11px 8px; font-size: 14px; min-height: 45px; }
+        .btn-lg { padding: 6px 6px; font-size: 12px; min-height: 34px; }
         .btn-orange { background-color: #f39c12; }
         .btn-blue { background-color: #2e86de; }
         .btn-green { background-color: #27ae60; }
@@ -49,8 +49,8 @@
         .btn-teal { background-color: #16a085; }
         .btn-pink { background-color: #e84393; }
         .btn-row { display: flex; gap: 10px; }
-        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; letter-spacing: 1px; }
-        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 15px 0 5px 5px; }
+        .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 8px; letter-spacing: 1px; }
+        .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 8px 0 4px 4px; }
         .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
         .list-item:hover { background-color: #f9f9f9; }
@@ -212,11 +212,11 @@
         </div>
     </div>
     <div class="card">
-        <div style="display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;">
-            <button class="btn btn-red" style="width: 45px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
+        <div style="display: flex; align-items: stretch; gap: 6px; margin-bottom: 6px;">
+            <button class="btn btn-red" style="width: 36px; padding: 0; margin: 0; flex-shrink: 0;" onclick="decrementEmail()" title="Undo Email"><i class="fas fa-undo"></i></button>
             <input type="text" id="genEmailInput" class="email-input" style="margin-bottom: 0;" placeholder="Masukkan email disini" oninput="localStorage.setItem('xurel_saved_email', this.value)">
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 0px;">
             <button id="btn-copy-email" class="btn btn-orange btn-lg" onclick="copyAndIncrementEmail()"><i class="far fa-copy"></i> Copy Email</button>
             <button id="btn-copy-password" class="btn btn-purple btn-lg" onclick="copyPassword(this)"><i class="fas fa-key"></i> Copy Password</button>
             <button id="btn-data-acak" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)"><i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...</button>
@@ -232,6 +232,7 @@
     <div class="list-group" id="sms-prices">
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
+    <div id="sms-inactive-orders" style="margin-top: 10px;"></div>
 </div>
 </div>
 
@@ -446,6 +447,7 @@
     <div class="list-group" id="sms-prices-wa">
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
+    <div id="sms-inactive-orders-wa" style="margin-top: 10px;"></div>
 </div>
 </div>
 
@@ -1152,12 +1154,26 @@
             }
 
             if (filtered.length > 0) {
-                box.innerHTML = filtered.map(i => `
-                    <div class="list-item" onclick="buySmsWa('${i.id}', ${i.price}, '${i.name}')">
-                        <span class="item-name">${i.name}</span>
+                box.innerHTML = filtered.map(i => {
+                    let displayName = i.name;
+                    if (currentWaProvider === "otpcepat1" || currentWaProvider === "otpcepat2") {
+                        if (Math.round(i.price) === 1590) {
+                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => `(${op.toUpperCase()})`);
+                        } else if (Math.round(i.price) === 1250) {
+                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => {
+                                let c = op.charAt(0).toUpperCase() + op.slice(1).toLowerCase();
+                                if (op.toLowerCase() === 'xl') c = 'Xl';
+                                return `(${c})`;
+                            });
+                        }
+                    }
+                    return `
+                    <div class="list-item" onclick="buySmsWa('${i.id}', ${i.price}, '${displayName}')">
+                        <span class="item-name">${displayName}</span>
                         <span class="item-price">${currencyStr}${i.price}</span>
                         <span class="item-stock">${i.available || '~'} stok</span>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             } else {
                 box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
                     ${json.error || "Layanan " + (isWa ? "WhatsApp" : "Shopee") + " tidak ditemukan / Kosong"}
@@ -1280,10 +1296,14 @@
             if(j.success) {
                 if(action !== 'resend') { 
                     cleanUpOrderStorageWa(id);
+                } else {
+                    const currentOtp = localStorage.getItem(`UMAM_last_otp_${id}`) || 'pending';
+                    localStorage.setItem(`UMAM_resend_pending_${id}`, currentOtp);
+                    showToast("Permintaan Resend berhasil! Menunggu kode baru...");
                 }
                 pollSmsWa(); updateSmsBalWa();
             } else {
-                showModal("Gagal", j.error?.message || "Gagal melakukan aksi", "alert");
+                showModal("Gagal", j.error?.message || j.message || ("Gagal melakukan aksi " + action), "alert");
             }
         } catch(e) {
             showModal("Gagal", "Error koneksi server worker", "alert");
@@ -1298,6 +1318,9 @@
         localStorage.removeItem(`UMAM_block_timer_${id}`);
         localStorage.removeItem(`UMAM_hide_${id}`);
         localStorage.removeItem(`UMAM_autocancel_${id}`);
+        localStorage.removeItem(`UMAM_resend_pending_${id}`);
+        localStorage.removeItem(`UMAM_last_otp_${id}`);
+        Object.keys(localStorage).forEach(k => { if(k.startsWith(`UMAM_notif_otp_${id}`)) localStorage.removeItem(k); });
     }
 
     function toggleHideWa(id) {
@@ -1399,12 +1422,16 @@
 
     function renderActiveOrdersWa(orders) {
         const container = document.getElementById('sms-active-orders-wa');
+        const inactiveContainer = document.getElementById('sms-inactive-orders-wa');
         if(!container) return;
         const activeIds = orders ? orders.map(o => 'wa-order-' + (o.id || o.order_id)) : [];
         
         Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        if (inactiveContainer) {
+            Array.from(inactiveContainer.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        }
         
-        if(!orders || !orders.length) { container.innerHTML = ''; return; }
+        if(!orders || !orders.length) return;
 
         orders.forEach(o => {
             const orderId = o.id || o.order_id;
@@ -1452,12 +1479,16 @@
                         <button class="btn-sm btn-blue btn-unblock" style="background-color: #38bdf8; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;" onclick="unblockSmsWa('${orderId}')">UNBLOCK</button>
                     </div>
                 `;
+                const targetBox = inactiveContainer || container;
                 const existing = document.getElementById('wa-order-' + orderId);
                 if (existing) {
                     existing.className = `order-card order-blocked`;
                     existing.innerHTML = blockedHtml;
-                } else {
-                    container.insertAdjacentHTML('afterbegin', `
+                    if (existing.parentElement !== targetBox) {
+                        targetBox.prepend(existing);
+                    }
+                } else if (targetBox) {
+                    targetBox.insertAdjacentHTML('afterbegin', `
                     <div class="order-card order-blocked" id="wa-order-${orderId}">
                         ${blockedHtml}
                     </div>`);
@@ -1474,12 +1505,16 @@
             const unhideBtnHtml = `<button class="btn btn-blue btn-unhide" style="background-color: #38bdf8; color: white; width: 100%; padding: 8px 10px; font-weight: bold; border-radius: 5px; cursor: pointer;" onclick="toggleHideWa('${orderId}')">UNHIDE</button>`;
 
             if (isHidden) {
+                const targetBox = inactiveContainer || container;
                 const existing = document.getElementById('wa-order-' + orderId);
                 if (existing) {
                     existing.className = `order-card ${cardClass}`;
                     existing.innerHTML = unhideBtnHtml;
-                } else {
-                    container.insertAdjacentHTML('afterbegin', `
+                    if (existing.parentElement !== targetBox) {
+                        targetBox.prepend(existing);
+                    }
+                } else if (targetBox) {
+                    targetBox.insertAdjacentHTML('afterbegin', `
                     <div class="order-card ${cardClass}" id="wa-order-${orderId}">
                         ${unhideBtnHtml}
                     </div>`);
@@ -1487,8 +1522,23 @@
                 return;
             }
 
+            const resendPending = localStorage.getItem(`UMAM_resend_pending_${orderId}`);
+            let isResendWaiting = false;
+            if (resendPending) {
+                if (smsCode && smsCode !== resendPending && resendPending !== 'pending') {
+                    localStorage.removeItem(`UMAM_resend_pending_${orderId}`);
+                    localStorage.setItem(`UMAM_last_otp_${orderId}`, smsCode);
+                } else {
+                    isResendWaiting = true;
+                }
+            } else if (smsCode) {
+                localStorage.setItem(`UMAM_last_otp_${orderId}`, smsCode);
+            }
+
             let isUrlWa = smsCode && /^https?:\/\//i.test(smsCode);
-            let otpDisplay = smsCode ? smsCode : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            let otpDisplay = isResendWaiting
+                ? `<div class="loader-bars"><span></span><span></span><span></span></div><div style="font-size:11px; color:#888; text-align:center; margin-top:2px;">Menunggu SMS baru...</div>`
+                : (smsCode ? smsCode : `<div class="loader-bars"><span></span><span></span><span></span></div>`);
             let otpClassWa = isUrlWa ? 'order-otp otp-url' : 'order-otp';
             const fullCardHtml = `
                 <div class="order-header"><span>#${orderId} - ${currStr}${price}</span><span class="sms-timer-wa" data-id="${orderId}">--:--</span></div>
@@ -1497,7 +1547,7 @@
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideWa('${orderId}')">HIDE</button>
                     <button class="btn-sm btn-cancel" style="grid-column: 2; grid-row: 1; background-color: #ef4444; color: white;" onclick="actSmsWa('cancel', '${orderId}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSmsWa('resend', '${orderId}')" ${smsCode?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSmsWa('resend', '${orderId}')" ${(smsCode && !isResendWaiting)?'':'disabled'}>RESEND</button>
                     <button class="btn-sm btn-done" style="grid-column: 1; grid-row: 2; background-color: #22c55e; color: white;" onclick="actSmsWa('finish', '${orderId}')" ${smsCode?'':'disabled'}>DONE</button>
                     <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2; background-color: #8b5cf6; color: white;" onclick="doCopyText('${smsCode||''}', 'OTP tersalin')" ${smsCode?'':'disabled'}>SALIN</button>
                     <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2; background-color: #6b7280; color: white;" onclick="blockSmsWa('${orderId}')">BLOCK</button>
@@ -1507,29 +1557,31 @@
             const existing = document.getElementById('wa-order-' + orderId);
             if (existing) {
                 existing.className = `order-card ${cardClass}`;
+                if (container && existing.parentElement !== container) {
+                    container.prepend(existing);
+                }
                 if (!existing.querySelector('.order-phone')) {
                     existing.innerHTML = fullCardHtml;
                 } else {
                     existing.querySelector('.order-header span').innerText = `#${orderId} - ${currStr}${price}`;
                     existing.querySelector('.order-phone').innerText = phone;
                     existing.querySelector('.order-otp').innerHTML = otpDisplay;
-                    if(smsCode) {
-                        let resendBtn = existing.querySelector('.btn-resend');
-                        if(resendBtn) resendBtn.disabled = false;
-                        let doneBtn = existing.querySelector('.btn-done');
-                        if(doneBtn) doneBtn.disabled = false;
-                        let salinBtn = existing.querySelector('.btn-salin');
-                        if(salinBtn) {
-                            salinBtn.disabled = false;
-                            salinBtn.setAttribute('onclick', `doCopyText('${smsCode}', 'OTP tersalin')`);
-                        }
+                    existing.querySelector('.order-otp').className = otpClassWa;
+                    let resendBtn = existing.querySelector('.btn-resend');
+                    if(resendBtn) resendBtn.disabled = !(smsCode && !isResendWaiting);
+                    let doneBtn = existing.querySelector('.btn-done');
+                    if(doneBtn) doneBtn.disabled = !smsCode;
+                    let salinBtn = existing.querySelector('.btn-salin');
+                    if(salinBtn) {
+                        salinBtn.disabled = !smsCode;
+                        salinBtn.setAttribute('onclick', `doCopyText('${smsCode||''}', 'OTP tersalin')`);
                     }
                     if(passed2Mins) { 
                         let cancelBtn = existing.querySelector('.btn-cancel');
                         if(cancelBtn) cancelBtn.disabled = false; 
                     }
                 }
-            } else {
+            } else if (container) {
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="wa-order-${orderId}">
                     ${fullCardHtml}
@@ -2890,12 +2942,26 @@
             const box = document.getElementById('sms-prices');
             
             if (json.success && json.data && json.data.length > 0) {
-                box.innerHTML = json.data.map(i => `
-                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${i.name}')">
-                        <span class="item-name">${i.name}</span>
+                box.innerHTML = json.data.map(i => {
+                    let displayName = i.name;
+                    if (provider === "otpcepat1" || provider === "otpcepat2") {
+                        if (Math.round(i.price) === 1590) {
+                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => `(${op.toUpperCase()})`);
+                        } else if (Math.round(i.price) === 1250) {
+                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => {
+                                let c = op.charAt(0).toUpperCase() + op.slice(1).toLowerCase();
+                                if (op.toLowerCase() === 'xl') c = 'Xl';
+                                return `(${c})`;
+                            });
+                        }
+                    }
+                    return `
+                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${displayName}')">
+                        <span class="item-name">${displayName}</span>
                         <span class="item-price">${currencyStr}${i.price}</span>
                         <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             } else {
                 box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
                     ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
@@ -3011,6 +3077,8 @@
         localStorage.removeItem(`${currentUser}_hide_${id}`);
         localStorage.removeItem(`${currentUser}_block_timer_${id}`);
         localStorage.removeItem(`${currentUser}_autocancel_${id}`);
+        localStorage.removeItem(`${currentUser}_resend_pending_${id}`);
+        localStorage.removeItem(`${currentUser}_last_otp_${id}`);
         Object.keys(localStorage).forEach(k => { if(k.startsWith(`${currentUser}_notif_otp_${id}`)) localStorage.removeItem(k); });
     }
 
@@ -3026,9 +3094,15 @@
 
     function renderSmsOrders(orders) {
         const container = document.getElementById('sms-active-orders'); 
+        const inactiveContainer = document.getElementById('sms-inactive-orders');
         const activeIds = orders ? orders.map(o => 'order-' + o.id) : [];
         
-        Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        if (container) {
+            Array.from(container.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        }
+        if (inactiveContainer) {
+            Array.from(inactiveContainer.children).forEach(child => { if (!activeIds.includes(child.id)) child.remove(); });
+        }
         
         if(!orders || !orders.length) return;
 
@@ -3088,12 +3162,16 @@
                         <button class="btn-sm btn-blue btn-unblock" style="background-color: #38bdf8; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;" onclick="unblockSms('${o.id}')">UNBLOCK</button>
                     </div>
                 `;
+                const targetBox = inactiveContainer || container;
                 const existing = document.getElementById('order-' + o.id);
                 if (existing) {
                     existing.className = `order-card order-blocked`;
                     existing.innerHTML = blockedHtml;
-                } else {
-                    container.insertAdjacentHTML('afterbegin', `
+                    if (existing.parentElement !== targetBox) {
+                        targetBox.prepend(existing);
+                    }
+                } else if (targetBox) {
+                    targetBox.insertAdjacentHTML('afterbegin', `
                     <div class="order-card order-blocked" id="order-${o.id}">
                         ${blockedHtml}
                     </div>`);
@@ -3109,12 +3187,16 @@
             const unhideBtnHtml = `<button class="btn btn-blue btn-unhide" style="background-color: #38bdf8; color: white; width: 100%; padding: 8px 10px; font-weight: bold; border-radius: 5px; cursor: pointer;" onclick="toggleHideSms('${o.id}')">UNHIDE</button>`;
 
             if (isHidden) {
+                const targetBox = inactiveContainer || container;
                 const existing = document.getElementById('order-' + o.id);
                 if (existing) {
                     existing.className = `order-card ${cardClass}`;
                     existing.innerHTML = unhideBtnHtml;
-                } else {
-                    container.insertAdjacentHTML('afterbegin', `
+                    if (existing.parentElement !== targetBox) {
+                        targetBox.prepend(existing);
+                    }
+                } else if (targetBox) {
+                    targetBox.insertAdjacentHTML('afterbegin', `
                     <div class="order-card ${cardClass}" id="order-${o.id}">
                         ${unhideBtnHtml}
                     </div>`);
@@ -3122,8 +3204,23 @@
                 return;
             }
 
+            const resendPending = localStorage.getItem(`${currentUser}_resend_pending_${o.id}`);
+            let isResendWaiting = false;
+            if (resendPending) {
+                if (o.otp_code && o.otp_code !== resendPending && resendPending !== 'pending') {
+                    localStorage.removeItem(`${currentUser}_resend_pending_${o.id}`);
+                    localStorage.setItem(`${currentUser}_last_otp_${o.id}`, o.otp_code);
+                } else {
+                    isResendWaiting = true;
+                }
+            } else if (o.otp_code) {
+                localStorage.setItem(`${currentUser}_last_otp_${o.id}`, o.otp_code);
+            }
+
             let isUrl = o.otp_code && /^https?:\/\//i.test(o.otp_code);
-            let otpDisplay = o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`;
+            let otpDisplay = isResendWaiting 
+                ? `<div class="loader-bars"><span></span><span></span><span></span></div><div style="font-size:11px; color:#888; text-align:center; margin-top:2px;">Menunggu SMS baru...</div>`
+                : (o.otp_code ? o.otp_code : `<div class="loader-bars"><span></span><span></span><span></span></div>`);
             let otpClass = isUrl ? 'order-otp otp-url' : 'order-otp';
             const fullCardHtml = `
                 <div class="order-header"><span>#${o.id} - ${currStr}${serverPrice||'...'}</span><span class="sms-timer" data-id="${o.id}">--:--</span></div>
@@ -3132,7 +3229,7 @@
                 <div class="btn-grid">
                     <button class="btn-sm btn-hide" style="grid-column: 1; grid-row: 1; background-color: #38bdf8; color: white;" onclick="toggleHideSms('${o.id}')">HIDE</button>
                     <button class="btn-sm btn-cancel" style="grid-column: 2; grid-row: 1; background-color: #ef4444; color: white;" onclick="actSms('cancel', '${o.id}')" ${passed2Mins?'':'disabled'}>CANCEL</button>
-                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSms('resend', '${o.id}')" ${o.otp_code?'':'disabled'}>RESEND</button>
+                    <button class="btn-sm btn-resend" style="grid-column: 3; grid-row: 1; background-color: #f59e0b; color: white;" onclick="actSms('resend', '${o.id}')" ${(o.otp_code && !isResendWaiting)?'':'disabled'}>RESEND</button>
                     <button class="btn-sm btn-done" style="grid-column: 1; grid-row: 2; background-color: #22c55e; color: white;" onclick="actSms('finish', '${o.id}')" ${o.otp_code?'':'disabled'}>DONE</button>
                     <button class="btn-sm btn-salin" style="grid-column: 2; grid-row: 2; background-color: #8b5cf6; color: white;" onclick="copyOTP('${o.otp_code||''}', this)" ${o.otp_code?'':'disabled'}>SALIN</button>
                     <button class="btn-sm btn-block" style="grid-column: 3; grid-row: 2; background-color: #6b7280; color: white;" onclick="blockSms('${o.id}')">BLOCK</button>
@@ -3142,29 +3239,31 @@
             const existing = document.getElementById('order-' + o.id);
             if (existing) {
                 existing.className = `order-card ${cardClass}`;
+                if (container && existing.parentElement !== container) {
+                    container.prepend(existing);
+                }
                 if (!existing.querySelector('.order-phone')) {
                     existing.innerHTML = fullCardHtml;
                 } else {
                     existing.querySelector('.order-header span').innerText = `#${o.id} - ${currStr}${serverPrice||'...'}`;
                     existing.querySelector('.order-phone').innerText = phone;
                     existing.querySelector('.order-otp').innerHTML = otpDisplay;
-                    if(o.otp_code) {
-                        let resendBtn = existing.querySelector('.btn-resend');
-                        if(resendBtn) resendBtn.disabled = false;
-                        let doneBtn = existing.querySelector('.btn-done');
-                        if(doneBtn) doneBtn.disabled = false;
-                        let salinBtn = existing.querySelector('.btn-salin');
-                        if(salinBtn) {
-                            salinBtn.disabled = false;
-                            salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code}', this)`);
-                        }
+                    existing.querySelector('.order-otp').className = otpClass;
+                    let resendBtn = existing.querySelector('.btn-resend');
+                    if(resendBtn) resendBtn.disabled = !(o.otp_code && !isResendWaiting);
+                    let doneBtn = existing.querySelector('.btn-done');
+                    if(doneBtn) doneBtn.disabled = !o.otp_code;
+                    let salinBtn = existing.querySelector('.btn-salin');
+                    if(salinBtn) {
+                        salinBtn.disabled = !o.otp_code;
+                        salinBtn.setAttribute('onclick', `copyOTP('${o.otp_code||''}', this)`);
                     }
                     if(passed2Mins) { 
                         let cancelBtn = existing.querySelector('.btn-cancel');
                         if(cancelBtn) cancelBtn.disabled = false; 
                     }
                 }
-            } else {
+            } else if (container) {
                 container.insertAdjacentHTML('afterbegin', `
                 <div class="order-card ${cardClass}" id="order-${o.id}">
                     ${fullCardHtml}
@@ -3267,13 +3366,22 @@
                 body: JSON.stringify({id, action}) 
             });
 
-            if((await res.json()).success) {
+            const j = await res.json();
+            if(j.success) {
                 if(action !== 'resend') { 
                     cleanUpOrderStorage(id);
+                } else {
+                    const currentOtp = localStorage.getItem(`${currentUser}_last_otp_${id}`) || 'pending';
+                    localStorage.setItem(`${currentUser}_resend_pending_${id}`, currentOtp);
+                    showToast("Permintaan Resend berhasil! Menunggu kode baru...");
                 }
                 pollSms(); updateSmsBal();
+            } else {
+                showModal("Gagal", j.error?.message || j.message || ("Gagal melakukan aksi " + action), "alert");
             }
-        } catch(e){}
+        } catch(e){
+            showModal("Gagal", "Error koneksi server worker", "alert");
+        }
     }
 
     async function autoCancelSms(id) {
@@ -3326,6 +3434,10 @@
                         <span>${currStr}${serverPrice}</span>
                     </div>
                 `;
+                const inactiveContainer = document.getElementById('sms-inactive-orders');
+                if (inactiveContainer && card.parentElement !== inactiveContainer) {
+                    inactiveContainer.prepend(card);
+                }
             }
             updateSmsTimers();
         }
