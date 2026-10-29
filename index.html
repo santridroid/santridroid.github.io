@@ -1339,12 +1339,12 @@
         }
 
         const remainingSecs = Math.floor((parseInt(expireTime) - Date.now()) / 1000);
-        const passed2Mins = (remainingSecs <= 1080);
+        const passed2Mins = (remainingSecs <= 1075);
 
         if (passed2Mins) {
             autoCancelSmsWa(id);
         } else {
-            const blockEndTime = parseInt(expireTime) - (1080 * 1000);
+            const blockEndTime = parseInt(expireTime) - (1075 * 1000);
             localStorage.setItem(`UMAM_block_timer_${id}`, blockEndTime);
             pollSmsWa();
         }
@@ -1364,7 +1364,16 @@
                 headers: { "Content-Type": "application/json", "X-User-Name": "UMAM", "X-Provider": orderProv }, 
                 body: JSON.stringify({ id, action: 'cancel', order_id: id }) 
             });
-            await res.json();
+            const j = await res.json();
+            if (!j.success) {
+                if (j.error_code === "CANCEL_TOO_EARLY" || (j.wait_seconds && j.wait_seconds > 0)) {
+                    const waitSec = (j.wait_seconds || 3) + 2;
+                    localStorage.setItem(`UMAM_block_timer_${id}`, Date.now() + (waitSec * 1000));
+                    showToast(`Nomor #${id}: menunggu jeda server ${waitSec}s sebelum batal...`);
+                    updateWaTimers();
+                    return;
+                }
+            }
         } catch(e){}
         cleanUpOrderStorageWa(id);
         pollSmsWa(); updateSmsBalWa();
@@ -1388,6 +1397,14 @@
                     const mins = String(Math.floor(diff / 60)).padStart(2, '0');
                     const secs = String(diff % 60).padStart(2, '0');
                     if (el) el.innerText = `${mins}:${secs}`;
+                }
+
+                if (diff <= 1075) {
+                    const card = document.getElementById('wa-order-' + id);
+                    if (card) {
+                        const btnCancel = card.querySelector('.btn-cancel');
+                        if (btnCancel) btnCancel.disabled = false;
+                    }
                 }
 
                 // Auto-cancel jika 8 menit berlalu (sisa <= 12 menit = 720 detik) dan belum ada kode OTP
@@ -1456,7 +1473,7 @@
                 return;
             }
 
-            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1080);
+            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1075);
 
             // Block check
             const blockTime = localStorage.getItem(`UMAM_block_timer_${orderId}`);
@@ -3138,7 +3155,7 @@
                 return;
             }
 
-            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1080);
+            let passed2Mins = (Math.floor((parseInt(expireTime) - now) / 1000) <= 1075);
 
             // Block status check
             const blockTime = localStorage.getItem(`${currentUser}_block_timer_${o.id}`);
@@ -3308,7 +3325,7 @@
                     timerEl.style.color = displayDiff < 600 ? "#e74c3c" : "#555";
                 }
 
-                if (diffSec <= 1080) {
+                if (diffSec <= 1075) {
                     const card = document.getElementById('order-' + id);
                     if (card) {
                         const btnCancel = card.querySelector('.btn-cancel');
@@ -3392,7 +3409,16 @@
                 headers:{ "Content-Type":"application/json", "X-User-Name": currentUser, "X-Provider": orderProvider }, 
                 body: JSON.stringify({id, action: 'cancel'}) 
             });
-            await res.json();
+            const j = await res.json();
+            if (!j.success) {
+                if (j.error_code === "CANCEL_TOO_EARLY" || (j.wait_seconds && j.wait_seconds > 0)) {
+                    const waitSec = (j.wait_seconds || 3) + 2;
+                    localStorage.setItem(`${currentUser}_block_timer_${id}`, Date.now() + (waitSec * 1000));
+                    showToast(`Nomor #${id}: menunggu jeda server ${waitSec}s sebelum batal...`);
+                    updateSmsTimers();
+                    return;
+                }
+            }
         } catch(e){}
         
         cleanUpOrderStorage(id);
@@ -3408,14 +3434,14 @@
         }
 
         const remainingSecs = Math.floor((parseInt(expireTime) - Date.now()) / 1000);
-        const passed2Mins = (remainingSecs <= 1080);
+        const passed2Mins = (remainingSecs <= 1075);
 
         if (passed2Mins) {
-            // Sudah lewat 2 menit (sisa waktu <= 18 menit), langsung cancel sekarang
+            // Sudah lewat 2 menit 5 detik (sisa waktu <= 17 menit 55 detik), langsung cancel sekarang
             autoCancelSms(id);
         } else {
-            // Belum 2 menit, hitung sisa waktu tunggu sampai mencapai batas 18 menit (1080s)
-            const blockEndTime = parseInt(expireTime) - (1080 * 1000);
+            // Belum 2 menit, hitung sisa waktu tunggu sampai mencapai batas aman (1075s)
+            const blockEndTime = parseInt(expireTime) - (1075 * 1000);
             localStorage.setItem(`${currentUser}_block_timer_${id}`, blockEndTime);
             
             const card = document.getElementById('order-' + id);
