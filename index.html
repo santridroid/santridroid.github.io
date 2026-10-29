@@ -51,6 +51,8 @@
         .btn-row { display: flex; gap: 10px; }
         .section-title { text-align: center; font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 8px; letter-spacing: 1px; }
         .list-header { font-size: 12px; font-weight: bold; color: #555; margin: 8px 0 4px 4px; }
+        .country-pill { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .country-pill.active { background: #2563eb; border-color: #1d4ed8; color: #ffffff; }
         .list-group { background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden; max-height: 400px; overflow-y: auto;}
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer;}
         .list-item:hover { background-color: #f9f9f9; }
@@ -228,7 +230,14 @@
         </div>
     </div>
     <div id="sms-active-orders"></div>
-    <div class="list-header">PESAN NOMOR BARU</div>
+    <div class="list-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>PESAN NOMOR BARU</span>
+        <div id="country-filter-pills" style="display:flex; gap:5px;">
+            <button type="button" class="country-pill active" data-country="ALL" onclick="setCountryFilter('ALL')">SEMUA</button>
+            <button type="button" class="country-pill" data-country="ID" onclick="setCountryFilter('ID')">ID</button>
+            <button type="button" class="country-pill" data-country="PH" onclick="setCountryFilter('PH')">PH</button>
+        </div>
+    </div>
     <div class="list-group" id="sms-prices">
         <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
     </div>
@@ -2947,39 +2956,124 @@
         } catch(e) {}
     }
 
+    let currentSmsPricesData = [];
+    let currentSmsCountryFilter = 'ALL';
+
+    function setCountryFilter(country) {
+        currentSmsCountryFilter = country;
+        renderSmsPrices();
+    }
+
+    function cleanOperatorDisplayName(rawName, price) {
+        if (!rawName) return "ID Telkomsel";
+        let str = String(rawName).trim();
+
+        // Deteksi kode negara
+        let prefix = "ID";
+        if (str.startsWith("PH ") || /philippines?|filipina/i.test(str)) {
+            prefix = "PH";
+        }
+
+        const is1590 = Math.round(parseFloat(price) || 0) === 1590 || (/\b[A-Z]{3,}\b/.test(str) && !str.includes("PROMO"));
+
+        // Bersihkan kata Shopee, Indonesia, Philippines, Promo, tanda kurung, simbol dan teks harga dalam nama
+        str = str.replace(/shopee/gi, '')
+                 .replace(/indonesia/gi, '')
+                 .replace(/philippines?/gi, '')
+                 .replace(/filipina/gi, '')
+                 .replace(/promo/gi, '')
+                 .replace(/\$[\d.]+/g, '')
+                 .replace(/[()\-:]/g, ' ')
+                 .replace(/\s+/g, ' ')
+                 .trim();
+
+        if (str.startsWith("ID ")) str = str.substring(3).trim();
+        else if (str.startsWith("PH ")) str = str.substring(3).trim();
+
+        let lower = str.toLowerCase();
+        let opName = str;
+        if (lower.includes('indosat')) opName = is1590 ? 'INDOSAT' : 'Indosat';
+        else if (lower.includes('telkomsel')) opName = is1590 ? 'TELKOMSEL' : 'Telkomsel';
+        else if (lower.includes('three')) opName = is1590 ? 'THREE' : 'Three';
+        else if (lower.includes('axis')) opName = is1590 ? 'AXIS' : 'Axis';
+        else if (lower.includes('byu')) opName = is1590 ? 'BYU' : 'Byu';
+        else if (lower.includes('smartfren')) opName = is1590 ? 'SMARTFREN' : 'Smartfren';
+        else if (lower === 'xl') opName = is1590 ? 'XL' : 'Xl';
+        else if (lower === 'smart' || lower.includes('smart telecom')) opName = 'Smart';
+        else if (lower === 'tm' || lower.includes('tm')) opName = 'TM';
+        else if (lower.includes('globe')) opName = 'Globe';
+        else if (lower.includes('dito')) opName = 'Dito';
+        else if (lower.includes('any') || lower.includes('all') || lower.includes('random') || !opName) opName = 'All Operator';
+
+        return `${prefix} ${opName}`;
+    }
+
+    function renderSmsPrices() {
+        const box = document.getElementById('sms-prices');
+        if (!box) return;
+        const provider = document.getElementById('provider-selector').value;
+        let currencyStr = "Rp ";
+        if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim" || provider === "smsvirtual") currencyStr = "$ ";
+
+        let list = currentSmsPricesData || [];
+
+        // Atur tampilan pill filter negara: muncul jika provider menyediakan opsi Filipina (PH)
+        const pillsContainer = document.getElementById('country-filter-pills');
+        const hasPh = list.some(i => (i.name || '').includes('PH') || /philippines?|filipina/i.test(i.name || ''));
+        if (pillsContainer) {
+            pillsContainer.style.display = hasPh ? 'flex' : 'none';
+        }
+
+        if (currentSmsCountryFilter === 'ID') {
+            list = list.filter(i => {
+                const cleaned = cleanOperatorDisplayName(i.name, i.price);
+                return cleaned.startsWith('ID ');
+            });
+        } else if (currentSmsCountryFilter === 'PH') {
+            list = list.filter(i => {
+                const cleaned = cleanOperatorDisplayName(i.name, i.price);
+                return cleaned.startsWith('PH ');
+            });
+        }
+
+        // Update status active pada tombol pill
+        document.querySelectorAll('.country-pill').forEach(btn => {
+            if (btn.getAttribute('data-country') === currentSmsCountryFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        if (list.length > 0) {
+            box.innerHTML = list.map(i => {
+                let displayName = cleanOperatorDisplayName(i.name, i.price);
+                return `
+                <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${displayName}')">
+                    <span class="item-name">${displayName}</span>
+                    <span class="item-price">${currencyStr}${i.price}</span>
+                    <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
+                </div>`;
+            }).join('');
+        } else {
+            box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                Layanan ${currentSmsCountryFilter !== 'ALL' ? (currentSmsCountryFilter === 'PH' ? 'Philipines' : 'Indonesia') : 'Shopee'} tidak ditemukan / Kosong
+            </div>`;
+        }
+    }
+
     async function loadSmsPrices() {
         if(!globalUser || !isWorkerLocked) return;
         try {
-            const provider = document.getElementById('provider-selector').value;
-            let currencyStr = "Rp ";
-            if (provider === "herosms" || provider === "herosms2" || provider === "smspool" || provider === "5sim" || provider === "smsvirtual") currencyStr = "$ ";
-
             const res = await fetchWorker(`/get-prices`); 
             const json = await res.json();
             const box = document.getElementById('sms-prices');
             
             if (json.success && json.data && json.data.length > 0) {
-                box.innerHTML = json.data.map(i => {
-                    let displayName = i.name;
-                    if (provider === "otpcepat1" || provider === "otpcepat2") {
-                        if (Math.round(i.price) === 1590) {
-                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => `(${op.toUpperCase()})`);
-                        } else if (Math.round(i.price) === 1250) {
-                            displayName = displayName.replace(/\(([^)]+)\)/, (m, op) => {
-                                let c = op.charAt(0).toUpperCase() + op.slice(1).toLowerCase();
-                                if (op.toLowerCase() === 'xl') c = 'Xl';
-                                return `(${c})`;
-                            });
-                        }
-                    }
-                    return `
-                    <div class="list-item" onclick="buySms('${i.id}', ${i.price}, '${displayName}')">
-                        <span class="item-name">${displayName}</span>
-                        <span class="item-price">${currencyStr}${i.price}</span>
-                        <span class="item-stock">${i.available} ${provider === "smspool" ? '' : 'stok'}</span>
-                    </div>`;
-                }).join('');
+                currentSmsPricesData = json.data;
+                renderSmsPrices();
             } else {
+                currentSmsPricesData = [];
                 box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
                     ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
                 </div>`;
