@@ -236,6 +236,7 @@
             <button type="button" class="country-pill active" data-country="ALL" onclick="setCountryFilter('ALL')">SEMUA</button>
             <button type="button" class="country-pill" data-country="ID" onclick="setCountryFilter('ID')">ID</button>
             <button type="button" class="country-pill" data-country="PH" onclick="setCountryFilter('PH')">PH</button>
+            <button type="button" class="country-pill" data-country="TH" onclick="setCountryFilter('TH')">TH</button>
         </div>
     </div>
     <div class="list-group" id="sms-prices">
@@ -2972,15 +2973,18 @@
         let prefix = "ID";
         if (str.startsWith("PH ") || /philippines?|filipina/i.test(str)) {
             prefix = "PH";
+        } else if (str.startsWith("TH ") || /thailand/i.test(str)) {
+            prefix = "TH";
         }
 
         const is1590 = Math.round(parseFloat(price) || 0) === 1590 || (/\b[A-Z]{3,}\b/.test(str) && !str.includes("PROMO"));
 
-        // Bersihkan kata Shopee, Indonesia, Philippines, Promo, tanda kurung, simbol dan teks harga dalam nama
+        // Bersihkan kata Shopee, Indonesia, Philippines, Thailand, Promo, tanda kurung, simbol dan teks harga dalam nama
         str = str.replace(/shopee/gi, '')
                  .replace(/indonesia/gi, '')
                  .replace(/philippines?/gi, '')
                  .replace(/filipina/gi, '')
+                 .replace(/thailand/gi, '')
                  .replace(/promo/gi, '')
                  .replace(/\$[\d.]+/g, '')
                  .replace(/[()\-:]/g, ' ')
@@ -2989,6 +2993,7 @@
 
         if (str.startsWith("ID ")) str = str.substring(3).trim();
         else if (str.startsWith("PH ")) str = str.substring(3).trim();
+        else if (str.startsWith("TH ")) str = str.substring(3).trim();
 
         let lower = str.toLowerCase();
         let opName = str;
@@ -3003,6 +3008,11 @@
         else if (lower === 'tm' || lower.includes('tm')) opName = 'TM';
         else if (lower.includes('globe')) opName = 'Globe';
         else if (lower.includes('dito')) opName = 'Dito';
+        else if (lower === 'ais' || lower.includes('ais')) opName = 'AIS';
+        else if (lower === 'dtac' || lower.includes('dtac')) opName = 'DTAC';
+        else if (lower.includes('truemove')) opName = 'TrueMove';
+        else if (lower === 'my') opName = 'My';
+        else if (lower.includes('cat_mobile') || lower === 'cat') opName = 'CAT';
         else if (lower.includes('any') || lower.includes('all') || lower.includes('random') || !opName) opName = 'All Operator';
 
         return `${prefix} ${opName}`;
@@ -3017,11 +3027,11 @@
 
         let list = currentSmsPricesData || [];
 
-        // Atur tampilan pill filter negara: muncul jika provider menyediakan opsi Filipina (PH)
+        // Atur tampilan pill filter negara: muncul jika provider menyediakan opsi luar negeri (PH / TH)
         const pillsContainer = document.getElementById('country-filter-pills');
-        const hasPh = list.some(i => (i.name || '').includes('PH') || /philippines?|filipina/i.test(i.name || ''));
+        const hasForeign = list.some(i => (i.name || '').includes('PH') || (i.name || '').includes('TH') || /philippines?|filipina|thailand/i.test(i.name || ''));
         if (pillsContainer) {
-            pillsContainer.style.display = hasPh ? 'flex' : 'none';
+            pillsContainer.style.display = hasForeign ? 'flex' : 'none';
         }
 
         if (currentSmsCountryFilter === 'ID') {
@@ -3033,6 +3043,11 @@
             list = list.filter(i => {
                 const cleaned = cleanOperatorDisplayName(i.name, i.price);
                 return cleaned.startsWith('PH ');
+            });
+        } else if (currentSmsCountryFilter === 'TH') {
+            list = list.filter(i => {
+                const cleaned = cleanOperatorDisplayName(i.name, i.price);
+                return cleaned.startsWith('TH ');
             });
         }
 
@@ -3056,8 +3071,12 @@
                 </div>`;
             }).join('');
         } else {
+            let emptyLabel = 'Shopee';
+            if (currentSmsCountryFilter === 'PH') emptyLabel = 'Philipines';
+            else if (currentSmsCountryFilter === 'TH') emptyLabel = 'Thailand';
+            else if (currentSmsCountryFilter === 'ID') emptyLabel = 'Indonesia';
             box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
-                Layanan ${currentSmsCountryFilter !== 'ALL' ? (currentSmsCountryFilter === 'PH' ? 'Philipines' : 'Indonesia') : 'Shopee'} tidak ditemukan / Kosong
+                Layanan ${emptyLabel} tidak ditemukan / Kosong
             </div>`;
         }
     }
