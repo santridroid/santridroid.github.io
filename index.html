@@ -172,6 +172,12 @@
                     <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
                 </div>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pilihan Tombol Bawah (Halaman Utama):</div>
+                <select id="admin-bottom-mode" class="form-input" onchange="changeBottomMode()" style="margin-bottom: 15px;">
+                    <option value="paste_unduh">Tombol PASTE & UNDUH</option>
+                    <option value="copy_nomor">Tombol Copy Nomor & Textbox</option>
+                </select>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Tambah User SMS:</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="new-username" class="form-input" placeholder="Nama User (Cth: UDIN)" style="margin-bottom: 0;">
@@ -227,6 +233,8 @@
             <button id="btn-copy-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
             <button id="btn-paste" class="btn btn-teal btn-lg" onclick="handlePasteAction(this)"><i class="fas fa-paste"></i> Paste</button>
             <button id="btn-unduh" class="btn btn-pink btn-lg" onclick="handleUnduhAction(this)"><i class="fas fa-download"></i> Unduh</button>
+            <button id="btn-copy-nomor" class="btn btn-teal btn-lg" style="display: none;" onclick="copyNomor(this)"><i class="far fa-copy"></i> Copy Nomor</button>
+            <input type="text" id="manualNomorInput" class="email-input" style="display: none; margin-bottom: 0; height: 100%; min-height: 45px; box-sizing: border-box;" placeholder="Masukkan nomor disini" oninput="localStorage.setItem('xurel_saved_nomor', this.value)">
         </div>
     </div>
     <div id="sms-active-orders"></div>
@@ -2002,6 +2010,12 @@
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
 
+        const savedNomor = localStorage.getItem('xurel_saved_nomor');
+        if(savedNomor && document.getElementById('manualNomorInput')) {
+            document.getElementById('manualNomorInput').value = savedNomor;
+        }
+        updateBottomModeUI();
+
         const savedAdminEmail = localStorage.getItem('xurel_admin_email');
         const savedAdminPass = localStorage.getItem('xurel_admin_pass');
         if (savedAdminEmail && savedAdminPass) {
@@ -2012,6 +2026,8 @@
         
         initUserDropdown();
         if (typeof updatePasteUI === 'function') updatePasteUI();
+        const selectBottom = document.getElementById('admin-bottom-mode');
+        if (selectBottom) selectBottom.value = currentBottomMode;
         if (typeof updateServiceHeaderUIWa === 'function') updateServiceHeaderUIWa();
         if (typeof loadInitialAppDataWa === 'function') loadInitialAppDataWa();
 
@@ -2393,6 +2409,7 @@
     let isCuttingLink = false;
     let currentKodeMode = 'cut';
     let currentLinkMode = 'cut';
+    let currentBottomMode = localStorage.getItem('xurel_bottom_mode') || 'paste_unduh';
     let kodeRotatorIndex = 0;
     let linkRotatorIndex = 0;
 
@@ -2434,6 +2451,89 @@
             console.warn("Gagal simpan link_mode ke Firebase:", err);
         });
         updateLinkButtonState();
+    }
+
+    // --- LISTENER MODE TOMBOL BAWAH (PASTE/UNDUH VS COPY NOMOR) ---
+    db.ref('worker_status/bottom_mode').on('value', snap => {
+        const val = snap.val();
+        currentBottomMode = val ? val : (localStorage.getItem('xurel_bottom_mode') || 'paste_unduh');
+        const selectMode = document.getElementById('admin-bottom-mode');
+        if (selectMode) selectMode.value = currentBottomMode;
+        updateBottomModeUI();
+    }, error => {
+        console.warn("Gagal membaca bottom_mode dari Firebase:", error);
+        currentBottomMode = localStorage.getItem('xurel_bottom_mode') || 'paste_unduh';
+        const selectMode = document.getElementById('admin-bottom-mode');
+        if (selectMode) selectMode.value = currentBottomMode;
+        updateBottomModeUI();
+    });
+
+    function changeBottomMode() {
+        const selectMode = document.getElementById('admin-bottom-mode');
+        if (!selectMode) return;
+        const mode = selectMode.value;
+        currentBottomMode = mode;
+        localStorage.setItem('xurel_bottom_mode', mode);
+        db.ref('worker_status/bottom_mode').set(mode).catch(err => {
+            console.warn("Gagal simpan bottom_mode ke Firebase:", err);
+        });
+        updateBottomModeUI();
+    }
+
+    function updateBottomModeUI() {
+        const btnPaste = document.getElementById('btn-paste');
+        const btnUnduh = document.getElementById('btn-unduh');
+        const btnCopyNomor = document.getElementById('btn-copy-nomor');
+        const inputNomor = document.getElementById('manualNomorInput');
+
+        if (currentBottomMode === 'copy_nomor') {
+            if (btnPaste) btnPaste.style.display = 'none';
+            if (btnUnduh) btnUnduh.style.display = 'none';
+            if (btnCopyNomor) btnCopyNomor.style.display = '';
+            if (inputNomor) inputNomor.style.display = '';
+        } else {
+            if (btnPaste) btnPaste.style.display = '';
+            if (btnUnduh) btnUnduh.style.display = '';
+            if (btnCopyNomor) btnCopyNomor.style.display = 'none';
+            if (inputNomor) inputNomor.style.display = 'none';
+        }
+    }
+
+    function copyNomor(btnElement) {
+        const input = document.getElementById('manualNomorInput');
+        const val = input ? input.value.trim() : '';
+        if (!val) {
+            showModal("Peringatan", "Masukkan nomor terlebih dahulu di textbox!", "alert");
+            if (input) input.focus();
+            return;
+        }
+        const origHTML = btnElement.innerHTML;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(val).then(() => {
+                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', origHTML);
+            }).catch(() => {
+                fallbackCopyText(val, btnElement, origHTML);
+            });
+        } else {
+            fallbackCopyText(val, btnElement, origHTML);
+        }
+    }
+
+    function fallbackCopyText(val, btnElement, origHTML) {
+        const ta = document.createElement('textarea');
+        ta.value = val;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', origHTML);
+        } catch (e) {
+            showModal("Gagal", "Gagal menyalin nomor ke clipboard", "alert");
+        }
+        document.body.removeChild(ta);
     }
 
     // --- LISTENER DATA KODE ---
