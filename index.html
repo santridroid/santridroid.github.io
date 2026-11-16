@@ -16,7 +16,7 @@
         body { background-color: #eef2f6; display: flex; justify-content: center; padding: 0; color: #333; }
         input, select, button, textarea { outline: none; }
         /* Hide scrollbar for notes gutter & backdrop sync */
-        #notes-line-numbers-wa, #notes-backdrop-wa { scrollbar-width: none; -ms-overflow-style: none; }
+        #notes-line-numbers-main, #notes-backdrop-main, #notes-line-numbers-wa, #notes-backdrop-wa { scrollbar-width: none; -ms-overflow-style: none; }
         #notes-line-numbers-wa::-webkit-scrollbar, #notes-backdrop-wa::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
         #sms-view, #whatsapp-view { width: 100%; max-width: 400px; margin: 0 auto; }
@@ -149,7 +149,7 @@
         </header>
         <div id="main-menu" class="admin-popup">
             <div class="menu-item" onclick="openAdminMenu(event)"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
-            <div class="menu-item" onclick="switchToWhatsappView()"><i class="fab fa-whatsapp" style="color: #25D366; font-size: 22px;"></i> WhatsApp</div>
+            
             <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
             <div class="menu-item" onclick="openServerModal(event)"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
         </div>
@@ -171,6 +171,12 @@
                     <button id="btn-worker-lock" class="btn btn-green" onclick="setWorkerLock(true)"><i class="fas fa-lock"></i> Lock</button>
                     <button id="btn-worker-unlock" class="btn btn-red" onclick="setWorkerLock(false)"><i class="fas fa-unlock"></i> Unlock</button>
                 </div>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Mode Tampilan Halaman:</div>
+                <select id="admin-view-mode" class="form-input" onchange="changeViewMode()" style="margin-bottom: 15px;">
+                    <option value="sms">Mode Layanan SMS</option>
+                    <option value="catatan">Mode Pencatatan</option>
+                </select>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
                 <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Pilihan Tombol Bawah (Halaman Utama):</div>
                 <select id="admin-bottom-mode" class="form-input" onchange="changeBottomMode()" style="margin-bottom: 15px;">
@@ -233,24 +239,106 @@
             <button id="btn-copy-link" class="btn btn-lg" style="background-color: #95a5a6;" disabled onclick="copyLink(this)"><i class="fas fa-spinner fa-spin"></i> Memuat...</button>
             <button id="btn-paste" class="btn btn-teal btn-lg" onclick="handlePasteAction(this)"><i class="fas fa-paste"></i> Paste</button>
             <button id="btn-unduh" class="btn btn-pink btn-lg" onclick="handleUnduhAction(this)"><i class="fas fa-download"></i> Unduh</button>
-            <button id="btn-copy-nomor" class="btn btn-teal btn-lg" style="display: none;" onclick="copyNomor(this)"><i class="far fa-copy"></i> Copy Nomor</button>
-            <input type="text" id="manualNomorInput" class="email-input" style="display: none; margin-bottom: 0; height: 100%; min-height: 45px; box-sizing: border-box;" placeholder="Masukkan nomor disini" oninput="localStorage.setItem('xurel_saved_nomor', this.value)">
+            <!-- CONTAINER TOMBOL COPY NOMOR & NEXT -->
+            <div id="nomor-actions-container" style="display: none; gap: 4px;">
+                <button id="btn-copy-nomor" class="btn btn-teal btn-lg" style="flex: 1.25; padding: 11px 4px; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center;" onclick="copyNomor(this)">
+                    Copy Nomor
+                </button>
+                <button id="btn-next-nomor" class="btn btn-orange btn-lg" style="flex: 0.75; padding: 11px 4px; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px;" onclick="nextNomor(this)">
+                    <i class="fas fa-forward" style="font-size: 11px;"></i> Next
+                </button>
+            </div>
+            <!-- CONTAINER TEXTBOX NOMOR BESERTA BADGE JUMLAH LINE -->
+            <div id="nomor-input-container" style="display: none; position: relative; width: 100%; height: 100%;">
+                <input type="text" id="manualNomorInput" class="email-input" 
+                    style="margin-bottom: 0; width: 100%; height: 100%; min-height: 45px; box-sizing: border-box; padding-right: 38px; font-size: 13px; text-align: center; font-weight: bold;" 
+                    placeholder="Masukkan nomor disini" 
+                    onpaste="handleNomorPaste(event)"
+                    oninput="handleNomorInputSingle(this.value)"
+                    title="Klik angka di kanan untuk lihat/edit semua nomor">
+                <span id="nomor-count-badge" 
+                    onclick="openEditNomorModal()" 
+                    title="Klik untuk melihat / mengedit semua nomor"
+                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #2c3e50; color: #fff; font-size: 11px; font-weight: bold; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 11px; cursor: pointer; user-select: none; box-shadow: 0 1px 3px rgba(0,0,0,0.25);">
+                    0
+                </span>
+            </div>
         </div>
     </div>
-    <div id="sms-active-orders"></div>
-    <div class="list-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <span>PESAN NOMOR BARU</span>
-        <div id="country-filter-pills" style="display:flex; gap:5px;">
-            <button type="button" class="country-pill active" data-country="ALL" onclick="setCountryFilter('ALL')">SEMUA</button>
-            <button type="button" class="country-pill" data-country="ID" onclick="setCountryFilter('ID')">ID</button>
-            <button type="button" class="country-pill" data-country="PH" onclick="setCountryFilter('PH')">PH</button>
-            <button type="button" class="country-pill" data-country="TH" onclick="setCountryFilter('TH')">TH</button>
+    <!-- AREA LAYANAN SMS (MODE SMS) -->
+    <div id="sms-service-section">
+        <div id="sms-active-orders"></div>
+        <div class="list-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>PESAN NOMOR BARU</span>
+            <div id="country-filter-pills" style="display:flex; gap:5px;">
+                <button type="button" class="country-pill active" data-country="ALL" onclick="setCountryFilter('ALL')">SEMUA</button>
+                <button type="button" class="country-pill" data-country="ID" onclick="setCountryFilter('ID')">ID</button>
+                <button type="button" class="country-pill" data-country="PH" onclick="setCountryFilter('PH')">PH</button>
+                <button type="button" class="country-pill" data-country="TH" onclick="setCountryFilter('TH')">TH</button>
+            </div>
+        </div>
+        <div class="list-group" id="sms-prices">
+            <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
+        </div>
+        <div id="sms-inactive-orders" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- AREA CATATAN (MODE PENCATATAN) -->
+    <div id="main-catatan-section" class="card" style="display: none; margin-top: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="user-catatan-input-main" style="font-size: 12px; font-weight: bold; color: #555;">
+                    <i class="fas fa-sticky-note" style="color: #f39c12;"></i> CATATAN:
+                </label>
+                <div style="display: flex; gap: 6px;">
+                    <button id="btn-cut-notes-main" class="btn btn-blue" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="cutNotesMain(this)">
+                        <i class="fas fa-cut"></i> Cut
+                    </button>
+                    <button id="btn-copy-notes-main" class="btn btn-green" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotesMain(this)">
+                        <i class="far fa-copy"></i> Copy
+                    </button>
+                    <button id="btn-last-notes-main" class="btn btn-orange" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyLastNoteMain(this)">
+                        <i class="fas fa-step-forward"></i> Last
+                    </button>
+                </div>
+            </div>
+            
+            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #b8dcbe; border-radius: 5px; background-color: #eef7ed; background-image: repeating-linear-gradient(transparent, transparent 19px, #cce4cb 19px, #cce4cb 20px); height: 90px; overflow: hidden; position: relative;">
+                <!-- Line Numbers Gutter -->
+                <div id="notes-line-numbers-main" 
+                    style="width: 36px; background-color: #e2ede1; border-right: 1px solid #cbd8ca; font-size: 13px; font-family: monospace; user-select: none; -webkit-user-select: none; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
+                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #4a5d49; font-weight: normal;">1</div>
+                </div>
+                
+                <!-- Text Content Area (Backdrop + Textarea) -->
+                <div style="flex: 1; position: relative; overflow: hidden;">
+                    <div id="notes-backdrop-main" 
+                        style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; font-size: 13px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; pointer-events: none; padding: 8px; box-sizing: border-box;">
+                    </div>
+
+                    <textarea id="user-catatan-input-main" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: #000000; font-weight: 400; caret-color: #000000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
+                        placeholder="Tulis catatan di sini..." 
+                        oninput="updateNotesLineNumbersMain(); saveUserNotesMain(this.value);"
+                        onkeyup="updateNotesLineNumbersMain();"
+                        onchange="updateNotesLineNumbersMain();"
+                        onpaste="setTimeout(updateNotesLineNumbersMain, 10);"
+                        onscroll="syncNotesScrollMain()"></textarea>
+                </div>
+            </div>
+
+            <!-- 1-LINE INPUT TEXTBOX & INPUT BUTTON -->
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                <input type="text" id="append-catatan-input-main" 
+                    style="flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 6px 10px; font-size: 13px; height: 32px; color: #000; font-weight: bold;" 
+                    placeholder="Masukkan teks ke catatan di sini..." 
+                    onkeydown="if(event.key==='Enter') addTextToCatatanMain()">
+                <button class="btn btn-blue" style="width: auto; padding: 0 14px; font-size: 12px; height: 32px; font-weight: bold; flex-shrink: 0;" onclick="addTextToCatatanMain()">
+                    <i class="fas fa-plus"></i> INPUT
+                </button>
+            </div>
         </div>
     </div>
-    <div class="list-group" id="sms-prices">
-        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
-    </div>
-    <div id="sms-inactive-orders" style="margin-top: 10px;"></div>
 </div>
 </div>
 
@@ -286,6 +374,23 @@
         </div>
     </div>
 </div>
+<!-- MODAL EDIT DAFTAR NOMOR -->
+<div id="edit-nomor-modal" class="modal-overlay" style="z-index: 2005;">
+    <div class="modal-box" style="width: 90%; max-width: 400px;">
+        <h3 style="margin-bottom: 12px; color: #333; font-size: 16px;">
+            <i class="fas fa-list-ol" style="color: #16a085;"></i> Daftar Nomor
+        </h3>
+        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+            Masukkan daftar nomor di bawah ini (pisahkan dengan enter):
+        </p>
+        <textarea id="edit-nomor-textarea" class="form-input" style="height: 180px; resize: vertical; font-family: monospace; font-size: 13px; line-height: 1.4;" placeholder="08123456789&#10;08987654321&#10;..."></textarea>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button class="btn btn-green" style="flex: 1;" onclick="saveEditNomorModal()">Simpan</button>
+            <button class="btn btn-red" style="width: auto; padding: 0 12px;" onclick="clearEditNomorModal()">Hapus Semua</button>
+            <button class="btn" style="background: #bdc3c7; color: #333; width: auto; padding: 0 12px;" onclick="closeEditNomorModal()">Tutup</button>
+        </div>
+    </div>
+</div>
 <div id="edit-link-modal" class="modal-overlay" style="z-index: 2005;">
     <div class="modal-box" style="width: 90%; max-width: 400px;">
         <h3 style="margin-bottom:15px; color:#333;">Edit Link</h3>
@@ -311,229 +416,6 @@
 <button class="fab-quick-note" onclick="switchToNotesView()">
     <i class="fas fa-pencil-alt"></i>
 </button>
-
-<!-- ==================== WHATSAPP VIEW ==================== -->
-<div id="whatsapp-view" style="display: none;">
-<div class="app-container">
-    <div class="sticky-header-wrapper">
-        <header class="header">
-            <div class="menu-icon" onclick="toggleMainMenuWa()"><i class="fas fa-bars"></i></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <select id="hero-service-selector-wa" onchange="changeHeroServiceWa()" style="padding: 5px 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; cursor: pointer;">
-                    <option value="wa">WhatsApp</option>
-                    <option value="ka">Shopee</option>
-                </select>
-                <select id="wa-provider-selector" onchange="changeWaProvider()" style="padding: 5px 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; background: white; font-size: 12px; cursor: pointer;">
-                    <option value="herosms">Hero SMS 1</option>
-                    <option value="herosms2">Hero SMS 2</option>
-                    <option value="otpcepat1">OTP Cepat 1</option>
-                    <option value="otpcepat2">OTP Cepat 2</option>
-                </select>
-            </div>
-            <div class="header-right">
-                <span class="saldo-text" id="sms-balance-wa">$ 0</span>
-                <i class="fas fa-unlock lock-icon" id="user-lock-icon-wa" onclick="toggleUserLockWa()"></i>
-            </div>
-        </header>
-        <div id="main-menu-wa" class="admin-popup">
-            <div class="menu-item" onclick="openAdminMenuWa(event)"><i class="fas fa-user-shield" style="color: #3498db; font-size: 22px;"></i> Admin Panel</div>
-            <div class="menu-item" onclick="switchToSmsView()"><i class="fas fa-comment-sms" style="color: #2e86de; font-size: 22px;"></i> Layanan SMS</div>
-            <div class="menu-item" onclick="switchToNotesView()"><i class="fas fa-sticky-note" style="color: #f1c40f; font-size: 22px;"></i> Catatan</div>
-            <div class="menu-item" onclick="openServerModal(event)"><i class="fas fa-server" style="color: #e67e22; font-size: 22px;"></i> Pilih Server</div>
-        </div>
-        <div id="admin-menu-wa" class="admin-popup">
-            <div id="login-form-wa">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d; font-size: 12px; text-align: center;">SISTEM ADMIN</div>
-                <input type="email" id="global-email-wa" class="form-input" placeholder="Email Admin">
-                <input type="password" id="global-pass-wa" class="form-input" placeholder="Password Admin">
-                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; margin-top: -5px; padding-left: 5px;">
-                    <input type="checkbox" id="remember-me-wa" style="cursor: pointer; width: 16px; height: 16px;">
-                    <label for="remember-me-wa" style="font-size: 13px; color: #555; cursor: pointer; user-select: none;">Simpan Sandi</label>
-                </div>
-                <button class="btn btn-blue" onclick="globalLoginWa()">Masuk</button>
-            </div>
-            <div id="logout-form-wa" class="hidden">
-                <p style="text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 15px;">ADMIN TERVERIFIKASI</p>
-                <div style="font-weight: bold; margin-bottom: 5px; font-size: 12px;">Koneksi Worker (Sistem SMS):</div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <button id="btn-worker-lock-wa" class="btn btn-green" onclick="setWorkerLockWa(true)"><i class="fas fa-lock"></i> Lock</button>
-                    <button id="btn-worker-unlock-wa" class="btn btn-red" onclick="setWorkerLockWa(false)"><i class="fas fa-unlock"></i> Unlock</button>
-                </div>
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
-                <button class="btn btn-red" onclick="globalLogoutWa()">Logout</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UPPER CARD WITH BUTTONS & CATATAN TEXTBOX -->
-    <div class="card">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-            <button id="btn-copy-link-wa" class="btn btn-orange btn-lg" onclick="copyLinkWa(this)">
-                <i class="fas fa-code"></i> Copy Code (0)
-            </button>
-            <button id="btn-edit-link-wa" class="btn btn-blue btn-lg" onclick="openEditLinkModalWa()">
-                <i class="fas fa-edit"></i> Edit
-            </button>
-
-            <button id="btn-copy-password-wa" class="btn btn-purple btn-lg" onclick="copyPasswordWa(this)">
-                <i class="fas fa-key"></i> Password (0)
-            </button>
-            <button id="btn-edit-password-wa" class="btn btn-teal btn-lg" onclick="openEditPasswordModalWa()">
-                <i class="fas fa-edit"></i> Edit
-            </button>
-
-            <button id="btn-copy-code-wa" class="btn btn-green btn-lg" onclick="copyCodeWa(this)">
-                <i class="fas fa-phone"></i> Copy Nomor (0)
-            </button>
-            <div style="display: flex; gap: 6px;">
-                <button id="btn-edit-code-wa" class="btn btn-pink btn-lg" style="flex: 1; padding: 11px 4px; font-size: 13px;" onclick="openEditCodeModalWa()">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button id="btn-next-code-wa" class="btn btn-orange btn-lg" style="flex: 1; padding: 11px 4px; font-size: 13px;" onclick="nextCodeWa(this)">
-                    <i class="fas fa-forward"></i> Next
-                </button>
-            </div>
-
-            <button id="btn-data-acak-wa" class="btn btn-blue btn-lg" onclick="generateDataAcak(this)">
-                <i class="fas fa-spinner fa-spin"></i> Menyiapkan Data...
-            </button>
-            <button id="btn-data-asli-wa" class="btn btn-red btn-lg" onclick="copyLinkDaftarWa(this)">
-                <i class="fas fa-external-link-alt"></i> Link Daftar
-            </button>
-        </div>
-
-        <!-- COLUMN CATATAN (WITH HIGHLIGHT BACKDROP & GUTTER LINE NUMBERS, HEIGHT = 90px) -->
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label for="user-catatan-input-wa" style="font-size: 12px; font-weight: bold; color: #555;">
-                    <i class="fas fa-sticky-note" style="color: #f39c12;"></i> CATATAN:
-                </label>
-                <div style="display: flex; gap: 6px;">
-                    <button id="btn-cut-notes-wa" class="btn btn-blue" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="cutNotesWa(this)">
-                        <i class="fas fa-cut"></i> Cut
-                    </button>
-                    <button id="btn-copy-notes-wa" class="btn btn-green" style="width: auto; padding: 4px 10px; font-size: 12px; height: 26px;" onclick="copyNotesWa(this)">
-                        <i class="far fa-copy"></i> Copy
-                    </button>
-                </div>
-            </div>
-            
-            <div class="notes-editor-wrapper" style="display: flex; border: 1px solid #b8dcbe; border-radius: 5px; background-color: #eef7ed; background-image: repeating-linear-gradient(transparent, transparent 19px, #cce4cb 19px, #cce4cb 20px); height: 90px; overflow: hidden; position: relative;">
-                <!-- Line Numbers Gutter -->
-                <div id="notes-line-numbers-wa" 
-                    style="width: 36px; background-color: #e2ede1; border-right: 1px solid #cbd8ca; font-size: 13px; font-family: monospace; user-select: none; -webkit-user-select: none; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; box-sizing: border-box; padding-top: 8px; padding-bottom: 8px;">
-                    <div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; color: #4a5d49; font-weight: normal;">1</div>
-                </div>
-                
-                <!-- Text Content Area (Backdrop + Textarea) -->
-                <div style="flex: 1; position: relative; overflow: hidden;">
-                    <!-- Backdrop for colored line backgrounds & bold black text -->
-                    <div id="notes-backdrop-wa" 
-                        style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; font-size: 13px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; pointer-events: none; padding: 8px; box-sizing: border-box;">
-                    </div>
-
-                    <!-- Notes Textarea -->
-                    <textarea id="user-catatan-input-wa" 
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; outline: none; background: transparent; color: #000000; font-weight: 400; caret-color: #000000; padding: 8px; font-size: 13px; line-height: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; white-space: pre; overflow: auto; box-sizing: border-box; resize: none;" 
-                        placeholder="Tulis catatan di sini..." 
-                        oninput="updateNotesLineNumbersWa(); saveUserNotesWa(this.value);"
-                        onkeyup="updateNotesLineNumbersWa();"
-                        onchange="updateNotesLineNumbersWa();"
-                        onpaste="setTimeout(updateNotesLineNumbersWa, 10);"
-                        onscroll="syncNotesScrollWa()"></textarea>
-                </div>
-            </div>
-
-            <!-- 1-LINE INPUT TEXTBOX & INPUT BUTTON -->
-            <div style="display: flex; gap: 6px; margin-top: 4px;">
-                <input type="text" id="append-catatan-input-wa" 
-                    style="flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 6px 10px; font-size: 13px; height: 32px; color: #000; font-weight: bold;" 
-                    placeholder="Masukkan teks ke catatan di sini..." 
-                    onkeydown="if(event.key==='Enter') addTextToCatatanWa()">
-                <button class="btn btn-blue" style="width: auto; padding: 0 14px; font-size: 12px; height: 32px; font-weight: bold; flex-shrink: 0;" onclick="addTextToCatatanWa()">
-                    <i class="fas fa-plus"></i> INPUT
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ACTIVE ORDERS CONTAINER -->
-    <div id="sms-active-orders-wa"></div>
-
-    <!-- OPERATORS & PRICES LIST FOR WHATSAPP -->
-    <div class="list-header">PESAN NOMOR BARU</div>
-    <div class="list-group" id="sms-prices-wa">
-        <div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>
-    </div>
-    <div id="sms-inactive-orders-wa" style="margin-top: 10px;"></div>
-</div>
-</div>
-
-<!-- EDIT LINK MODAL (WA) -->
-<div id="edit-link-modal-wa" class="modal-overlay" style="z-index: 2005;">
-    <div class="modal-box" style="width: 90%; max-width: 400px;">
-        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-link"></i> Pengaturan & Edit Link</h3>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Link:</div>
-        <select id="edit-link-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
-            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
-            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
-        </select>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Link (Bisa > 1, pisahkan dengan Enter):</div>
-        <textarea id="edit-shopee-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan link di sini..."></textarea>
-        
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditLinkModalWa()">Batal</button>
-            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllLinksWa()">Hapus Semua</button>
-            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedLinksWa()">Simpan</button>
-        </div>
-    </div>
-</div>
-
-<!-- EDIT PASSWORD MODAL (WA) -->
-<div id="edit-password-modal-wa" class="modal-overlay" style="z-index: 2005;">
-    <div class="modal-box" style="width: 90%; max-width: 400px;">
-        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-key"></i> Pengaturan & Edit Password</h3>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Password:</div>
-        <select id="edit-password-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
-            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
-            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
-        </select>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Password (Bisa > 1, pisahkan dengan Enter):</div>
-        <textarea id="edit-password-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan password di sini..."></textarea>
-        
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditPasswordModalWa()">Batal</button>
-            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllPasswordsWa()">Hapus Semua</button>
-            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedPasswordsWa()">Simpan</button>
-        </div>
-    </div>
-</div>
-
-<!-- EDIT CODE MODAL (WA) -->
-<div id="edit-code-modal-wa" class="modal-overlay" style="z-index: 2005;">
-    <div class="modal-box" style="width: 90%; max-width: 400px;">
-        <h3 style="margin-bottom:12px; color:#333;"><i class="fas fa-code"></i> Pengaturan & Edit Code</h3>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Pilih Mode Code:</div>
-        <select id="edit-code-mode-select-wa" class="form-input" style="margin-bottom: 12px; text-align: left;">
-            <option value="cut">Mode Cut (Hapus setelah disalin)</option>
-            <option value="copy">Mode Copy (Salin tanpa menghapus)</option>
-        </select>
-        
-        <div style="text-align: left; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: #555;">Daftar Code (Bisa > 1, pisahkan dengan Enter):</div>
-        <textarea id="edit-kode-textarea-wa" class="form-input" style="height: 180px; resize: vertical; font-size: 12px; text-align: left; white-space: pre; overflow-wrap: normal; overflow-x: auto;" placeholder="Masukkan code di sini..."></textarea>
-        
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button class="btn" style="background:#bdc3c7; color:#333; flex: 1;" onclick="closeEditCodeModalWa()">Batal</button>
-            <button class="btn btn-red" style="flex: 1;" onclick="deleteAllKodeWa()">Hapus Semua</button>
-            <button class="btn btn-green" style="flex: 1;" onclick="saveEditedKodeWa()">Simpan</button>
-        </div>
-    </div>
-</div>
 
 <!-- ==================== NOTES VIEW ==================== -->
 <div id="notes-view" class="h-[100dvh] flex flex-col overflow-hidden relative" style="user-select: none; -webkit-user-select: none;">
@@ -978,26 +860,7 @@
         if (fabNote) fabNote.style.display = 'flex';
     }
     function switchToWhatsappView() {
-        const mainMenu = document.getElementById('main-menu');
-        const mainMenuWa = document.getElementById('main-menu-wa');
-        if (mainMenu) mainMenu.classList.remove('active');
-        if (mainMenuWa) mainMenuWa.classList.remove('active');
-
-        document.getElementById('sms-view').style.display = 'none';
-        document.getElementById('notes-view').style.display = 'none';
-        if (document.getElementById('whatsapp-view')) document.getElementById('whatsapp-view').style.display = 'block';
-        document.body.style.display = 'flex';
-        document.body.style.justifyContent = 'center';
-        document.body.style.backgroundColor = '#eef2f6';
-
-        // Tampilkan kembali tombol pensil di halaman WhatsApp
-        const fabNote = document.querySelector('.fab-quick-note');
-        if (fabNote) fabNote.style.display = 'flex';
-
-        updateServiceHeaderUIWa();
-        loadSmsPricesWa();
-        updateSmsBalWa();
-        pollSmsWa();
+        switchToSmsView();
     }
 
     function notesInternalBack() {
@@ -2010,11 +1873,10 @@
         const savedEmail = localStorage.getItem('xurel_saved_email');
         if(savedEmail) document.getElementById('genEmailInput').value = savedEmail;
 
-        const savedNomor = localStorage.getItem('xurel_saved_nomor');
-        if(savedNomor && document.getElementById('manualNomorInput')) {
-            document.getElementById('manualNomorInput').value = savedNomor;
-        }
+        loadNomorListFromStorage();
         updateBottomModeUI();
+        applyViewModeUI();
+        loadInitialNotesMain();
 
         const savedAdminEmail = localStorage.getItem('xurel_admin_email');
         const savedAdminPass = localStorage.getItem('xurel_admin_pass');
@@ -2028,8 +1890,9 @@
         if (typeof updatePasteUI === 'function') updatePasteUI();
         const selectBottom = document.getElementById('admin-bottom-mode');
         if (selectBottom) selectBottom.value = currentBottomMode;
-        if (typeof updateServiceHeaderUIWa === 'function') updateServiceHeaderUIWa();
-        if (typeof loadInitialAppDataWa === 'function') loadInitialAppDataWa();
+        const selectView = document.getElementById('admin-view-mode');
+        if (selectView) selectView.value = currentViewMode;
+
 
         document.body.addEventListener('click', () => {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2076,9 +1939,7 @@
         refreshAllData();
         
         setInterval(pollSms, 5000);
-        setInterval(pollSmsWa, 5000); 
         setInterval(updateSmsTimers, 1000);
-        setInterval(updateWaTimers, 1000);
     }
 
     function updateDropdownUI() {
@@ -2483,43 +2344,292 @@
     function updateBottomModeUI() {
         const btnPaste = document.getElementById('btn-paste');
         const btnUnduh = document.getElementById('btn-unduh');
-        const btnCopyNomor = document.getElementById('btn-copy-nomor');
-        const inputNomor = document.getElementById('manualNomorInput');
+        const actionsContainer = document.getElementById('nomor-actions-container');
+        const inputContainer = document.getElementById('nomor-input-container');
 
         if (currentBottomMode === 'copy_nomor') {
             if (btnPaste) btnPaste.style.display = 'none';
             if (btnUnduh) btnUnduh.style.display = 'none';
-            if (btnCopyNomor) btnCopyNomor.style.display = '';
-            if (inputNomor) inputNomor.style.display = '';
+            if (actionsContainer) actionsContainer.style.display = 'flex';
+            if (inputContainer) inputContainer.style.display = 'block';
         } else {
             if (btnPaste) btnPaste.style.display = '';
             if (btnUnduh) btnUnduh.style.display = '';
-            if (btnCopyNomor) btnCopyNomor.style.display = 'none';
-            if (inputNomor) inputNomor.style.display = 'none';
+            if (actionsContainer) actionsContainer.style.display = 'none';
+            if (inputContainer) inputContainer.style.display = 'none';
         }
+    }
+
+    // ================= PENGATURAN MODE TAMPILAN (SMS VS PENCATATAN - PER PERANGKAT) =================
+    let currentViewMode = localStorage.getItem('xurel_view_mode') || 'sms';
+
+    function changeViewMode() {
+        const select = document.getElementById('admin-view-mode');
+        if (!select) return;
+        currentViewMode = select.value;
+        localStorage.setItem('xurel_view_mode', currentViewMode);
+        applyViewModeUI();
+        showToast("Mode tampilan diubah ke: " + (currentViewMode === 'catatan' ? "Mode Pencatatan" : "Mode Layanan SMS"));
+    }
+
+    function applyViewModeUI() {
+        const smsSection = document.getElementById('sms-service-section');
+        const catatanSection = document.getElementById('main-catatan-section');
+        const select = document.getElementById('admin-view-mode');
+        if (select) select.value = currentViewMode;
+
+        if (currentViewMode === 'catatan') {
+            if (smsSection) smsSection.style.display = 'none';
+            if (catatanSection) catatanSection.style.display = 'block';
+            if (typeof updateNotesLineNumbersMain === 'function') updateNotesLineNumbersMain();
+        } else {
+            if (smsSection) smsSection.style.display = 'block';
+            if (catatanSection) catatanSection.style.display = 'none';
+        }
+    }
+
+    // ================= LOGIKA CATATAN UTAMA (MODE PENCATATAN) =================
+    function loadInitialNotesMain() {
+        const savedNotes = localStorage.getItem('main_user_notes') || localStorage.getItem('wa_user_notes') || '';
+        const notesInput = document.getElementById('user-catatan-input-main');
+        if (notesInput) {
+            notesInput.value = savedNotes;
+            updateNotesLineNumbersMain();
+        }
+    }
+
+    function updateNotesLineNumbersMain() {
+        const textarea = document.getElementById('user-catatan-input-main');
+        const gutter = document.getElementById('notes-line-numbers-main');
+        const backdrop = document.getElementById('notes-backdrop-main');
+        if (!textarea || !gutter || !backdrop) return;
+
+        const val = textarea.value;
+        const lines = val.split(/\r?\n/);
+        const lineCount = Math.max(1, lines.length);
+
+        let gutterHtml = '';
+        let backdropHtml = '';
+
+        for (let i = 1; i <= lineCount; i++) {
+            const isMultipleOf6 = (i % 6 === 0);
+            const isMultipleOf7 = (i % 7 === 0);
+
+            if (isMultipleOf6) {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #ff4d4d; color: #000000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #ff4d4d; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
+            } else if (isMultipleOf7) {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #2ecc71; color: #000000; font-weight: bold;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: #2ecc71; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
+            } else {
+                gutterHtml += `<div style="height: 20px; line-height: 20px; text-align: right; padding-right: 6px; background-color: #e2ede1; color: #4a5d49; font-weight: normal;">${i}</div>`;
+                backdropHtml += `<div style="height: 20px; line-height: 20px; background-color: transparent; color: transparent; overflow: hidden; padding-left: 2px;">&nbsp;</div>`;
+            }
+        }
+
+        gutter.innerHTML = gutterHtml;
+        backdrop.innerHTML = backdropHtml;
+        syncNotesScrollMain();
+    }
+
+    function saveUserNotesMain(val) {
+        localStorage.setItem('main_user_notes', val);
+    }
+
+    function syncNotesScrollMain() {
+        const textarea = document.getElementById('user-catatan-input-main');
+        const gutter = document.getElementById('notes-line-numbers-main');
+        const backdrop = document.getElementById('notes-backdrop-main');
+        if (textarea) {
+            if (gutter) gutter.scrollTop = textarea.scrollTop;
+            if (backdrop) {
+                backdrop.scrollTop = textarea.scrollTop;
+                backdrop.scrollLeft = textarea.scrollLeft;
+            }
+        }
+    }
+
+    function addTextToCatatanMain() {
+        const input = document.getElementById('append-catatan-input-main');
+        const textarea = document.getElementById('user-catatan-input-main');
+        if (!input || !textarea) return;
+        const textToAdd = input.value;
+        if (!textToAdd || !textToAdd.trim()) return showToast("Masukkan teks terlebih dahulu");
+
+        let currentVal = textarea.value;
+        if (currentVal.length > 0 && !currentVal.endsWith('\n')) {
+            currentVal += '\n';
+        }
+        currentVal += textToAdd.trim();
+        textarea.value = currentVal;
+        input.value = '';
+
+        saveUserNotesMain(currentVal);
+        updateNotesLineNumbersMain();
+
+        textarea.scrollTop = textarea.scrollHeight;
+        syncNotesScrollMain();
+        showToast("Teks ditambahkan ke catatan");
+    }
+
+    function cutNotesMain(btnElement) {
+        const textarea = document.getElementById('user-catatan-input-main');
+        if (!textarea) return;
+        const val = textarea.value;
+        if (!val || !val.trim()) return showToast("Catatan Kosong");
+        doCopyText(val, 'Catatan ter-cut');
+        textarea.value = '';
+        saveUserNotesMain('');
+        updateNotesLineNumbersMain();
+    }
+
+    function copyNotesMain(btnElement) {
+        const textarea = document.getElementById('user-catatan-input-main');
+        if (!textarea) return;
+        const val = textarea.value;
+        if (!val || !val.trim()) return showToast("Catatan Kosong");
+        doCopyText(val, 'Catatan tersalin');
+    }
+
+    function copyLastNoteMain(btnElement) {
+        const textarea = document.getElementById('user-catatan-input-main');
+        if (!textarea) return;
+        const val = textarea.value;
+        if (!val || !val.trim()) return showToast("Catatan Kosong");
+        const lines = val.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return showToast("Catatan Kosong");
+        const lastLine = lines[lines.length - 1];
+        doCopyText(lastLine, 'Baris terakhir tersalin: ' + lastLine);
+    }
+
+    // ================= LOGIKA DAFTAR NOMOR, COPY NOMOR & NEXT =================
+    let nomorList = [];
+
+    function loadNomorListFromStorage() {
+        const saved = localStorage.getItem('xurel_saved_nomor_list');
+        if (saved) {
+            try {
+                nomorList = JSON.parse(saved);
+                if (!Array.isArray(nomorList)) nomorList = [];
+            } catch(e) {
+                nomorList = saved.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+            }
+        } else {
+            const single = localStorage.getItem('xurel_saved_nomor');
+            if (single && single.trim()) {
+                nomorList = single.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+            } else {
+                nomorList = [];
+            }
+        }
+        renderNomorUI();
+    }
+
+    function saveNomorListToStorage() {
+        localStorage.setItem('xurel_saved_nomor_list', JSON.stringify(nomorList));
+        localStorage.setItem('xurel_saved_nomor', nomorList.join('\n'));
+    }
+
+    function renderNomorUI() {
+        const input = document.getElementById('manualNomorInput');
+        const badge = document.getElementById('nomor-count-badge');
+        if (input) {
+            input.value = nomorList.length > 0 ? nomorList[0] : '';
+        }
+        if (badge) {
+            badge.innerText = nomorList.length;
+        }
+    }
+
+    function handleNomorPaste(e) {
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+        const pastedData = clipboardData.getData('Text');
+        if (!pastedData) return;
+
+        if (pastedData.includes('\n') || pastedData.includes('\r')) {
+            e.preventDefault();
+            setNomorListFromText(pastedData);
+            showToast(`Berhasil memuat ${nomorList.length} nomor`);
+        }
+    }
+
+    function handleNomorInputSingle(val) {
+        if (val.includes('\n') || val.includes('\r')) {
+            setNomorListFromText(val);
+            return;
+        }
+        const clean = val.trim();
+        if (clean) {
+            if (nomorList.length === 0) {
+                nomorList = [clean];
+            } else {
+                nomorList[0] = clean;
+            }
+        } else {
+            if (nomorList.length > 0) {
+                nomorList[0] = '';
+            }
+        }
+        saveNomorListToStorage();
+        const badge = document.getElementById('nomor-count-badge');
+        if (badge) badge.innerText = nomorList.filter(n => n.trim().length > 0).length;
+    }
+
+    function setNomorListFromText(text) {
+        nomorList = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length > 0);
+        saveNomorListToStorage();
+        renderNomorUI();
     }
 
     function copyNomor(btnElement) {
-        const input = document.getElementById('manualNomorInput');
-        const val = input ? input.value.trim() : '';
-        if (!val) {
-            showModal("Peringatan", "Masukkan nomor terlebih dahulu di textbox!", "alert");
+        if (!nomorList || nomorList.length === 0 || !nomorList[0]) {
+            showModal("Peringatan", "Daftar nomor kosong! Silakan masukkan nomor terlebih dahulu.", "alert");
+            const input = document.getElementById('manualNomorInput');
             if (input) input.focus();
             return;
         }
-        const origHTML = btnElement.innerHTML;
+        const topNumber = nomorList[0];
+        const origHTML = btnElement ? btnElement.innerHTML : '';
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(val).then(() => {
-                showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', origHTML);
+            navigator.clipboard.writeText(topNumber).then(() => {
+                if (btnElement) showTempNotif(btnElement, 'Tersalin!', origHTML);
+                showToast("Nomor tersalin: " + topNumber);
             }).catch(() => {
-                fallbackCopyText(val, btnElement, origHTML);
+                fallbackCopyNomor(topNumber, btnElement, origHTML);
             });
         } else {
-            fallbackCopyText(val, btnElement, origHTML);
+            fallbackCopyNomor(topNumber, btnElement, origHTML);
         }
     }
 
-    function fallbackCopyText(val, btnElement, origHTML) {
+    function nextNomor(btnElement) {
+        if (!nomorList || nomorList.length === 0 || !nomorList[0]) {
+            showModal("Peringatan", "Daftar nomor sudah kosong!", "alert");
+            return;
+        }
+        const cutNumber = nomorList.shift();
+        saveNomorListToStorage();
+        renderNomorUI();
+
+        const origHTML = btnElement ? btnElement.innerHTML : '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(cutNumber).then(() => {
+                if (btnElement) showTempNotif(btnElement, '<i class="fas fa-cut"></i> Ter-cut!', origHTML);
+                if (nomorList.length > 0) {
+                    showToast(`Nomor di-cut: ${cutNumber}. Sisa: ${nomorList.length}`);
+                } else {
+                    showToast(`Nomor di-cut: ${cutNumber}. Daftar nomor kosong.`);
+                }
+            }).catch(() => {
+                fallbackCopyNomor(cutNumber, btnElement, origHTML);
+            });
+        } else {
+            fallbackCopyNomor(cutNumber, btnElement, origHTML);
+        }
+    }
+
+    function fallbackCopyNomor(val, btnElement, origHTML) {
         const ta = document.createElement('textarea');
         ta.value = val;
         ta.style.position = 'fixed';
@@ -2529,11 +2639,43 @@
         ta.select();
         try {
             document.execCommand('copy');
-            showTempNotif(btnElement, '<i class="fa-solid fa-check"></i> Tersalin!', origHTML);
+            if (btnElement) showTempNotif(btnElement, 'Tersalin!', origHTML);
+            showToast("Nomor tersalin: " + val);
         } catch (e) {
             showModal("Gagal", "Gagal menyalin nomor ke clipboard", "alert");
         }
         document.body.removeChild(ta);
+    }
+
+    function openEditNomorModal() {
+        const modal = document.getElementById('edit-nomor-modal');
+        const ta = document.getElementById('edit-nomor-textarea');
+        if (ta) ta.value = nomorList.join('\n');
+        if (modal) modal.classList.add('active');
+    }
+
+    function closeEditNomorModal() {
+        const modal = document.getElementById('edit-nomor-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    function saveEditNomorModal() {
+        const ta = document.getElementById('edit-nomor-textarea');
+        if (ta) {
+            setNomorListFromText(ta.value);
+            showToast(`Daftar nomor disimpan (${nomorList.length} nomor)`);
+        }
+        closeEditNomorModal();
+    }
+
+    function clearEditNomorModal() {
+        if (confirm("Kosongkan semua daftar nomor?")) {
+            const ta = document.getElementById('edit-nomor-textarea');
+            if (ta) ta.value = '';
+            setNomorListFromText('');
+            showToast("Daftar nomor dikosongkan");
+            closeEditNomorModal();
+        }
     }
 
     // --- LISTENER DATA KODE ---
