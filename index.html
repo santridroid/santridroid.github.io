@@ -269,7 +269,12 @@
     <div id="sms-service-section">
         <div id="sms-active-orders"></div>
         <div class="list-header" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>PESAN NOMOR BARU</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <select id="sms-service-selector" onchange="changeTargetService(this.value)" style="border: 1px solid #ced4da; border-radius: 4px; padding: 4px 10px; font-weight: bold; font-size: 13px; color: #2c3e50; outline: none; background: #fff; cursor: pointer; height: 30px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <option value="shopee" selected>Shopee</option>
+                    <option value="wa">WhatsApp</option>
+                </select>
+            </div>
             <div id="country-filter-pills" style="display:flex; gap:5px;">
                 <button type="button" class="country-pill active" data-country="ALL" onclick="setCountryFilter('ALL')">SEMUA</button>
                 <button type="button" class="country-pill" data-country="ID" onclick="setCountryFilter('ID')">ID</button>
@@ -3155,9 +3160,27 @@
     }
 
     // ================= LOGIKA SMS =================
+    let currentTargetService = 'shopee';
+
+    function changeTargetService(val) {
+        currentTargetService = val || 'shopee';
+        const sel = document.getElementById('sms-service-selector');
+        if (sel) sel.value = currentTargetService;
+        loadSmsPrices();
+    }
+
     async function fetchWorker(path, options = {}) {
         const provider = document.getElementById('provider-selector').value || "smscode";
-        return fetch(`${WORKER_URL}${path}`, { ...options, headers: { ...options.headers, "X-User-Name": currentUser, "X-Provider": provider } });
+        const srvHeader = currentTargetService === 'wa' ? 'wa' : 'ka';
+        return fetch(`${WORKER_URL}${path}`, { 
+            ...options, 
+            headers: { 
+                ...options.headers, 
+                "X-User-Name": currentUser, 
+                "X-Provider": provider,
+                "X-Hero-Service": srvHeader
+            } 
+        });
     }
 
     function refreshSms() {
@@ -3221,8 +3244,11 @@
 
         const is1590 = Math.round(parseFloat(price) || 0) === 1590 || (/\b[A-Z]{3,}\b/.test(str) && !str.includes("PROMO"));
 
-        // Bersihkan kata Shopee, Indonesia, Philippines, Thailand, Promo, tanda kurung, simbol dan teks harga dalam nama
+        // Bersihkan kata Shopee, WhatsApp, Indonesia, Philippines, Thailand, Promo, tanda kurung, simbol dan teks harga dalam nama
         str = str.replace(/shopee/gi, '')
+                 .replace(/whats\s*app/gi, '')
+                 .replace(/watsap/gi, '')
+                 .replace(/\bwa\b/gi, '')
                  .replace(/indonesia/gi, '')
                  .replace(/philippines?/gi, '')
                  .replace(/filipina/gi, '')
@@ -3313,10 +3339,11 @@
                 </div>`;
             }).join('');
         } else {
-            let emptyLabel = 'Shopee';
-            if (currentSmsCountryFilter === 'PH') emptyLabel = 'Philipines';
-            else if (currentSmsCountryFilter === 'TH') emptyLabel = 'Thailand';
-            else if (currentSmsCountryFilter === 'ID') emptyLabel = 'Indonesia';
+            let srvName = (currentTargetService === 'wa') ? 'WhatsApp' : 'Shopee';
+            let emptyLabel = srvName;
+            if (currentSmsCountryFilter === 'PH') emptyLabel = `${srvName} Philippines`;
+            else if (currentSmsCountryFilter === 'TH') emptyLabel = `${srvName} Thailand`;
+            else if (currentSmsCountryFilter === 'ID') emptyLabel = `${srvName} Indonesia`;
             box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
                 Layanan ${emptyLabel} tidak ditemukan / Kosong
             </div>`;
@@ -3325,21 +3352,26 @@
 
     async function loadSmsPrices() {
         if(!globalUser || !isWorkerLocked) return;
+        const box = document.getElementById('sms-prices');
+        if (box) box.innerHTML = '<div style="padding:20px; text-align:center; color:#888; font-size:14px;">Memuat data...</div>';
         try {
-            const res = await fetchWorker(`/get-prices`); 
+            const srv = currentTargetService || 'shopee';
+            const res = await fetchWorker(`/get-prices?service=${srv}`); 
             const json = await res.json();
-            const box = document.getElementById('sms-prices');
             
             if (json.success && json.data && json.data.length > 0) {
                 currentSmsPricesData = json.data;
                 renderSmsPrices();
             } else {
                 currentSmsPricesData = [];
-                box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
-                    ${json.error || "Layanan Shopee tidak ditemukan / Kosong"}
+                const srvLabel = (currentTargetService === 'wa') ? 'WhatsApp' : 'Shopee';
+                if (box) box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-weight:bold; font-size:13px;">
+                    ${json.error || `Layanan ${srvLabel} tidak ditemukan / Kosong`}
                 </div>`;
             }
-        } catch (e) { document.getElementById('sms-prices').innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`; }
+        } catch (e) { 
+            if (box) box.innerHTML = `<div style="padding:20px; text-align:center; color:#e74c3c; font-size:12px;">Koneksi Error: ${e.message}</div>`; 
+        }
     }
 
     async function buySms(pid, price, name) {
